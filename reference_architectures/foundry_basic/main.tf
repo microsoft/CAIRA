@@ -54,7 +54,7 @@ resource "azurerm_resource_group" "this" {
 module "ai_foundry" {
   # https://registry.terraform.io/modules/Azure/avm-ptn-aiml-ai-foundry/azurerm/latest
   source  = "Azure/avm-ptn-aiml-ai-foundry/azurerm"
-  version = "0.5.1"
+  version = "0.6.0"
 
   base_name                  = local.base_name
   location                   = var.location
