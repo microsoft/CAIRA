@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-forms.json
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+---
+name: 🚀 Feature Request
+description: Suggest a feature idea for this project
+title: "[FEAT] "
+labels: [type/feature]
+type: Feature
+projects: ["microsoft/1366"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this new feature or enhancement idea!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Description
+      description: |
+        A clear and concise description of the feature or enhancement proposal.
+        Try to follow the Job Story format: "When [situation] I want to [motivation] so I can [expected outcome]". Learn more about Job Stories: https://www.mountaingoatsoftware.com/blog/job-stories-offer-a-viable-alternative-to-user-stories
+      placeholder: |
+        A clear and concise description of the feature or enhancement proposal.
+
+        When [situation] I want to [motivation] so I can [expected outcome].
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🛰 Alternatives
+      description: A clear and concise description of any alternative solutions or features you've considered.
+      placeholder: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: potential-solution
+    attributes:
+      label: 🚧 Potential Configuration / Desired Solution
+      description: Sample config that describes how the new feature might look.
+      placeholder: Sample config that describes how the new feature might look.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 Additional context
+      description: Add any other context or screenshots about the feature request here.
+      placeholder: Add any other context or screenshots about the feature request here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ☑️ Acceptance Criteria
+      description: The functional criteria for the acceptance of this feature include a description of the expected behavior of the feature.
+      placeholder: The functional criteria for the acceptance of this feature include a description of the expected behavior of the feature.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 🔰 Code of Conduct
+      description: By submitting this issue, you agree to follow [`Code of Conduct`](../blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

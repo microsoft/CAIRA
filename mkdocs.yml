@@ -1,0 +1,108 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+---
+site_name: CAIRA
+site_description: Composable AI Reference Architectures
+site_author: Microsoft Corporation
+site_url: https://microsoft.github.io/CAIRA/
+use_directory_urls: true
+repo_name: microsoft/CAIRA
+repo_url: https://github.com/microsoft/CAIRA
+edit_uri: edit/main/docs/
+remote_branch: main
+remote_name: origin
+theme:
+  name: material
+  language: en
+  icon:
+    logo: octicons/ruby-24
+    admonition:
+      note: octicons/info-16
+      warning: octicons/alert-16
+      danger: octicons/alert-16
+    repo: octicons/mark-github-24
+    edit: octicons/pencil-24
+    view: octicons/eye-24
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - content.action.edit
+    - content.tooltips
+    - navigation.indexes
+    - navigation.instant
+    - navigation.prune
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+    - announce.dismiss
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - awesome-nav
+  # - mike
+  - minify:
+      minify_css: true
+      minify_html: true
+      minify_js: true
+
+validation:
+  links:
+    absolute_links: relative_to_docs
+    anchors: warn
+    unrecognized_links: warn
+
+markdown_extensions:
+  - meta
+  - abbr
+  - admonition
+  - attr_list
+  - toc:
+      permalink: true
+  - pymdownx.smartsymbols
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+copyright: Copyright &copy; 2025 Microsoft Corporation
+# hooks:
+#   - .github/dev/tfdocs.py
+
+extra:
+  # version:
+  #   provider: mike
+  #   default: latest
+  #   alias: true
+  social:
+    - icon: octicons/mark-github-24
+      link: https://github.com/microsoft/CAIRA
+  generator: false

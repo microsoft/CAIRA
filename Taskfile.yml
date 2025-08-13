@@ -1,0 +1,103 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+#
+# --- Windows ---
+# winget install Task.Task
+#
+# --- Linux ---
+# sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+# echo 'command -v task >/dev/null || export PATH="$PATH:$HOME/.local/bin"' >> ~/.profile
+# source ~/.profile
+#
+# ---  macOS ---
+# brew install go-task/tap/go-task
+---
+version: "3"
+
+vars:
+  REPO: microsoft/CAIRA
+  REPO_ABS_ROOT_PATH:
+    sh: git rev-parse --show-toplevel
+  CURRENT_BRANCH:
+    sh: git rev-parse --abbrev-ref HEAD
+
+includes:
+  internal:
+    taskfile: .taskfiles/internal.yml
+  sh:
+    taskfile: .taskfiles/bash.yml
+  gh:
+    taskfile: .taskfiles/github.yml
+  js:
+    taskfile: .taskfiles/javascript.yml
+  md:
+    taskfile: .taskfiles/markdown.yml
+  sec:
+    taskfile: .taskfiles/security.yml
+  spell:
+    taskfile: .taskfiles/spell.yml
+  tf:
+    taskfile: .taskfiles/terraform.yml
+  yml:
+    taskfile: .taskfiles/yaml.yml
+  site:
+    taskfile: .taskfiles/site.yml
+  project:
+    taskfile: .taskfiles/project.yml
+
+tasks:
+  default:
+    desc: Default task
+    silent: true
+    cmds:
+      - cmd: task --list
+        ignore_error: true
+
+  tools:
+    desc: Install tools
+    cmds:
+      - task: project:tools
+      - task: sh:tools
+      - task: gh:tools
+      - task: js:tools
+      - task: md:tools
+      - task: sec:tools
+      - task: spell:tools
+      - task: tf:tools
+      - task: yml:tools
+      - task: site:tools
+
+  lint:
+    desc: Lint files
+    deps:
+      - task: sh:lint
+      - task: gh:lint
+      - task: js:lint
+      - task: md:lint
+      - task: sec:lint
+      - task: spell:lint
+      - task: tf:lint
+      - task: yml:lint
+
+  docs:
+    desc: Generate documentation
+    # deps:
+    #   - task: tf:lint
+    cmds:
+      - task: tf:docs
+      - task: spell:lint
+      - task: md:lint
+
+  clean:
+    desc: Clean up files
+    deps:
+      - task: tf:clean
+      - task: site:clean
+
+  lint:ml:
+    desc: Lint using MegaLinter
+    vars:
+      LATEST:
+        sh: gh release list --repo oxsecurity/megalinter --exclude-drafts --exclude-pre-releases --json "isLatest,tagName" --jq '.[] | select(.isLatest) | .tagName'
+    cmds:
+      - docker run -v "{{.REPO_ABS_ROOT_PATH}}":/tmp/lint ghcr.io/oxsecurity/megalinter-cupcake:{{.LATEST}} -e 'SHOW_ELAPSED_TIME=true' -e 'VALIDATE_ALL_CODEBASE=true' --fix

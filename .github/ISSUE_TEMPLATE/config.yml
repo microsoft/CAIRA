@@ -1,0 +1,11 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-config.json
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+---
+blank_issues_enabled: false
+contact_links:
+  - name: ❓ Question
+    url: https://github.com/microsoft/CAIRA/discussions/categories/q-a
+    about: Please ask and answer questions here.
+  - name: 💬 Community Support and Discussions
+    url: https://github.com/microsoft/CAIRA/discussions
+    about: Connect with CAIRA community members and learn from each other.

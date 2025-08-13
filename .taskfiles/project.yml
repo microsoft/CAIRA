@@ -1,0 +1,116 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install Changie
+  install:changie:
+    desc: Install Changie
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: miniscruff.changie
+      - task: internal:install:brew
+        vars:
+          APP: changie
+      - cmd: |
+          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/miniscruff/changie/releases/latest | grep -o -E "https://.+?_linux_amd64.tar.gz")" > ~/changie.tar.gz
+          tar -xf ~/changie.tar.gz --directory ~/ changie \
+            && rm -f ~/changie.tar.gz \
+            && sudo install ~/changie /usr/local/bin/changie \
+            && rm -f ~/changie
+        platforms: [linux]
+
+  # * Tools
+  tools:
+    desc: Install Project tools
+    cmds:
+      - task: install:changie
+
+  # * Release preparation
+  # Usage example:
+  #   task project:release:prep -- azureml_rag_secure
+  release:prep:
+    desc: Prepare the project for a new release
+    vars:
+      SRC_ROOT: reference_architectures
+      PROJECT_ROOT: "{{.SRC_ROOT}}/{{.CLI_ARGS}}"
+      VERSION:
+        sh: |
+          {{if eq OS "windows"}}
+            {{.PWSH}} '(changie next auto --project "{{.CLI_ARGS}}") -replace "{{.CLI_ARGS}}", ""'
+          {{else}}
+            ver=$(changie next auto --project "{{.CLI_ARGS}}")
+            echo "${ver//{{.CLI_ARGS}}/}"
+          {{end}}
+      COMMIT: "chore(release): {{.CLI_ARGS}}/{{.VERSION}}"
+      BRANCH: "release/{{.CLI_ARGS}}/{{.VERSION}}"
+    preconditions:
+      - sh: task internal:command -- gh
+        msg: "GitHub CLI is not installed. Please install GitHub CLI: https://cli.github.com/"
+      - sh: task internal:command -- changie
+        msg: "Changie is not installed. Please install Changie: https://changie.dev/guide/installation/"
+      - sh: |
+          {{empty .CLI_ARGS | not}}
+        msg: No project provided. Please provide a project to prepare for release.
+      - sh: |
+          {{if eq OS "windows"}}
+            {{.PWSH}} 'if (-not(Test-Path "{{osClean .PROJECT_ROOT}}")) { exit 1 }'
+          {{else}}
+            test -d "{{osClean .PROJECT_ROOT}}"
+          {{end}}
+        msg: "Project directory '{{osClean .PROJECT_ROOT}}' does not exist"
+      - sh: |
+          {{if eq OS "windows"}}
+            {{.PWSH}} 'if ((git rev-parse --abbrev-ref HEAD) -ne "main") { exit 1 }'
+          {{else}}
+            test $(git rev-parse --abbrev-ref HEAD) = "main"
+          {{end}}
+        msg: You must be on the 'main' branch to release
+      - sh: gh auth status
+        msg: You must be authenticated to GitHub CLI
+    env:
+      CHANGIE_GITHUB_REPOSITORY: "{{.REPO}}"
+    cmds:
+      - echo "{{.COMMIT}}"
+      - cmd: |
+          git checkout main && git fetch && git pull
+          git checkout -b "{{.BRANCH}}"
+      - changie batch "{{.VERSION}}" --project "{{.CLI_ARGS}}"
+      - changie merge
+      - task md:lint
+      - cmd: |
+          git add --all
+          git commit -a -m "{{.COMMIT}}"
+          git push --set-upstream origin "{{.BRANCH}}"
+      - cmd: |
+          gh pr create --base main --title "{{.COMMIT}}" --body-file ".changes/{{.CLI_ARGS}}/{{.VERSION}}.md" --label "state/skip-changelog"
+          gh pr merge --auto --squash
+      - git checkout main
+    dir: "{{.ROOT_DIR}}"
+
+  # * Add changelog entry
+  # Usage example:
+  #   task project:changelog -- 1234
+  changelog:
+    desc: Add a changelog entry for the project
+    preconditions:
+      - sh: task internal:command -- gh
+        msg: "GitHub CLI is not installed. Please install using `task gh:install:gh` command."
+      - sh: task internal:command -- changie
+        msg: "Changie is not installed. Please install using `task project:install:changie` command."
+      - sh: gh auth status
+        msg: You must be authenticated to GitHub CLI
+      - sh: |
+          {{empty .CLI_ARGS | not}}
+        msg: Issue number not provided. Please provide an issue number to link in the changelog entry.
+    vars:
+      AUTHOR:
+        sh: gh api user --jq '.login'
+    cmds:
+      - changie new --custom "Author={{.AUTHOR}}" --custom "Issue={{atoi .CLI_ARGS}}"
+    dir: "{{.ROOT_DIR}}"

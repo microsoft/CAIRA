@@ -1,0 +1,16 @@
+# Force the following filetypes to have unix eols, so Windows does not break them
+* text eol=lf
+
+# Declare files that will always have CRLF line endings on checkout.
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Common files config
+*.pdf binary
+*.gif binary
+*.tif binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.vsdx binary

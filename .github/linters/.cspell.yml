@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
+# docs: https://cspell.org/docs/getting-started
+---
+$schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
+version: "0.2"
+language: en
+dictionaries:
+  - softwareTerms
+  - companies
+  - python
+  - bash
+  - filetypes
+  - en_US
+  - cspellignore
+ignoreRegExpList:
+  - code_block
+  - adr_yaml_formatter
+  - inline_code
+  - tf_docs
+patterns:
+  - name: code_block
+    pattern:
+      - /(^\s*`{3}\w*$)[\s\S]*?(^\s*`{3}$)/gm
+  - name: adr_yaml_formatter
+    pattern:
+      - /(^([a-z-]*[:]{1})((\w|\s|,|"|-)*?)$)/gm
+  - name: inline_code
+    pattern:
+      - /\s*[`]{1}(\w|\W)*[`]{1}/g
+  - name: tf_docs
+    pattern:
+      - ^(?:\s*\|{1}\s*)(?:<a
+        name="(?:requirement|provider|module){1}_[\w]*"></a>){1}
+      - \[.*\]\(#(?:requirement|provider|module){1}.*\)\s*
+      - \|{1}\s*\[[\w_\.]*\]\(.*\)\s*\|\s(?:resource|data source)\s*\|
+      - (?:\|\s*){1}(?:Azure\/avm){1}.*(?:\s*\|){1}
+dictionaryDefinitions:
+  - name: cspellignore
+    path: ../../.cspellignore
+    addWords: true
+allowCompoundWords: true
+ignorePaths:
+  - node_modules
+  - .dev
+  - .cspellignore
+  - .venv
+  - venv
+  - .terraform
+  - .changes/**/*.md
+  - ./**/CHANGELOG.md

@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://json.schemastore.org/dependabot-2.0.json
+# See GitHub's documentation for more information on this file:
+# https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+---
+version: 2
+
+enable-beta-ecosystems: true
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: ci
+      include: scope
+    labels:
+      - "deps/github-actions"
+    groups:
+      all:
+        patterns: ["*"]
+
+  - package-ecosystem: devcontainers
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: build
+      include: scope
+    labels:
+      - "deps/devcontainer"
+    groups:
+      all:
+        patterns: ["*"]
+
+  - package-ecosystem: terraform
+    directories:
+      - "/reference_architectures/**/*"
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: build
+      include: scope
+    labels:
+      - "deps/terraform"
+    groups:
+      all:
+        patterns: ["*"]

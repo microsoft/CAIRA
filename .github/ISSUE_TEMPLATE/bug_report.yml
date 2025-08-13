@@ -1,0 +1,119 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-issue-forms.json
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+---
+name: 🐛 Bug Report
+description: If something isn't working
+title: "[BUG] "
+labels: ["type/bug"]
+type: Bug
+projects: ["microsoft/1366"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 🐞 What happened?
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe what happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 🔬 How to reproduce?
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. Run ...
+        4. Scroll down to...
+        5. See error
+    validations:
+      required: false
+
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: 🏗️ Code Sample
+      description: |
+        Provide a snippet of the relevant configuration file(s) used for provisioning.
+
+        ‼️ **REMINDER: REDACT SENSITIVE DATA SUCH AS SECRETS, USER NAMES, EMAILS, TENANT INFORMATION, ETC.**
+      placeholder: Provide a snippet of the relevant configuration file(s) used for provisioning.
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 🚀 Expected behavior
+      description: Describe what you expected to happen when you applied the configuration.
+      placeholder: Describe what you expected to happen when you applied the configuration.
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: ❌ Actual behavior
+      description: |
+        Describe what actually happened. Include error messages, logs, or other details.
+
+        ‼️ **REMINDER: REDACT SENSITIVE DATA SUCH AS SECRETS, USER NAMES, EMAILS, TENANT INFORMATION, ETC.**
+      placeholder: Describe what actually happened. Include error messages, logs, or other details.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: tool
+    attributes:
+      label: 🛠️ Tool
+      description: What tool are you using to manage your infrastructure?
+      options:
+        - Terraform
+        - Bicep
+    validations:
+      required: false
+
+  - type: input
+    id: tool-version
+    attributes:
+      label: 🛠️ Tool version
+      description: What Terraform/Bicep version are you running? Run `terraform version` / `bicep --version` to see it.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 🌌 OS
+      description: What OS are you using?
+      options:
+        - Linux
+        - Windows
+        - macOS
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 Additional context
+      description: Add any other context about the problem here.
+      placeholder: Add any other context about the problem here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 🔰 Code of Conduct
+      description: By submitting this issue, you agree to follow our [`Code of Conduct`](../blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct.
+          required: true

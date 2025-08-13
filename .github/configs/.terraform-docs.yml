@@ -1,0 +1,58 @@
+# docs: https://terraform-docs.io/user-guide/configuration/
+---
+### To generate the output file to partially incorporate in the README.md,
+### Execute this command in the Terraform module's code folder:
+# terraform-docs -c .terraform-docs.yml .
+
+formatter: "markdown table" # this is required
+
+# header-from: ../_header.md
+# footer-from: _footer.md
+
+recursive:
+  enabled: true
+  path: reference_architectures
+  include-main: false
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  {{ .Requirements }}
+  {{ .Providers }}
+  {{ .Modules }}
+  {{ .Resources }}
+  {{ .Inputs }}
+  {{ .Outputs }}
+  {{ .Footer }}
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+output-values:
+  enabled: false
+  from: ""
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: false
+  color: false
+  default: true
+  description: false
+  escape: true
+  hide-empty: true
+  html: true
+  indent: 2
+  lockfile: false
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true

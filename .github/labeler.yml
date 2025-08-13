@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://json.schemastore.org/pull-request-labeler.json
+
+# docs: https://github.com/actions/labeler
+---
+"area/docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/*"
+          - "**/*.md"
+
+"area/iac":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.tf"
+          - "**/*.tfvars"
+          - "**/*.bicep"
+          - "**/*.bicepparam"

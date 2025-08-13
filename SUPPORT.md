@@ -1,25 +1,21 @@
-# TODO: The maintainer of this repo has not yet edited this file
-
-**REPO OWNER**: Do you want Customer Service & Support (CSS) support for this product/project?
-
-- **No CSS support:** Fill out this template with information about how to file issues and get help.
-- **Yes CSS support:** Fill out an intake form at [aka.ms/onboardsupport](https://aka.ms/onboardsupport). CSS will work with/help you to determine next steps.
-- **Not sure?** Fill out an intake as though the answer were "Yes". CSS will help you decide.
-
-*Then remove this first heading from this SUPPORT.MD file before publishing your repo.*
-
 # Support
 
-## How to file issues and get help  
+## How to File Issues and Get Help
 
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing 
-issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
-feature request as a new Issue.
+This project is provided "as-is" without any official support from Microsoft. If you encounter any issues or have feature requests, you can file them through GitHub Issues. Please follow these steps:
 
-For help and questions about using this project, please **REPO MAINTAINER: INSERT INSTRUCTIONS HERE 
-FOR HOW TO ENGAGE REPO OWNERS OR COMMUNITY FOR HELP. COULD BE A STACK OVERFLOW TAG OR OTHER
-CHANNEL. WHERE WILL YOU HELP PEOPLE?**.
+1. **Search Existing Issues:** Before creating a new issue, please check the existing issues in the repository to see if your problem or request has already been reported. This helps avoid duplicates and can save time.
 
-## Microsoft Support Policy  
+1. **File a New Issue:** If you do not find an existing issue that matches your problem, feel free to open a new one. Clearly describe the problem or feature request, providing as much detail as possible, including steps to reproduce the issue, if applicable.
 
-Support for this **PROJECT or PRODUCT** is limited to the resources listed above.
+    * Go to the [Issues](https://github.com/microsoft/CAIRA/issues) section of this repository.
+    * Click on the "New Issue" button.
+    * Select the appropriate issue template (if available) and fill out the required details.
+
+Please note that while we welcome your issues and feedback, there is no guaranteed timeline for addressing these issues. The maintainers of this repository will review and prioritize issues as time permits.
+
+## Microsoft Support Policy
+
+Support for this project is limited to the resources listed above. There is no official support provided through Microsoft Customer Service & Support (CSS) for this project. If you require formal support or service-level agreements (SLAs), you may need to explore other supported Azure solutions or engage with Microsoft Consulting Services.
+
+For questions and further engagement with the community, we encourage you to participate in the discussions on GitHub. Community members and maintainers may offer assistance on a voluntary basis.

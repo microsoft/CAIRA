@@ -1,0 +1,114 @@
+{
+  // files
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.associations": {
+    "**/.github/workflows/*.y*ml": "yaml",
+    "CODEOWNERS": "ignore",
+    ".lycheeignore": "ignore"
+  },
+  // editor
+  "editor.inlineSuggest.enabled": true,
+  "editor.detectIndentation": true,
+  "editor.formatOnSave": true,
+  // git
+  "git.autorefresh": true,
+  "git.autofetch": true,
+  "git.fetchOnPull": true,
+  "git.pruneOnFetch": true,
+  "git.pullBeforeCheckout": true,
+  "git.branchProtection": [
+    "main"
+  ],
+  "git.mergeEditor": true,
+  "git.enableSmartCommit": true,
+  // github
+  "github.branchProtection": true,
+  "githubPullRequests.showPullRequestNumberInTree": true,
+  // yaml
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "yaml.format.singleQuote": false,
+  "yaml.schemaStore.enable": true,
+  "yaml.customTags": [
+    "!ENV scalar",
+    "!ENV sequence",
+    "!relative scalar",
+    "tag:yaml.org,2002:python/name:material.extensions.emoji.to_svg",
+    "tag:yaml.org,2002:python/name:material.extensions.emoji.twemoji",
+    "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format",
+    "tag:yaml.org,2002:python/object/apply:pymdownx.slugs.slugify mapping"
+  ],
+  // markdown
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+  },
+  "markdownlint.configFile": "./.github/linters/.markdownlint.yml",
+  "markdown.extension.toc.levels": "2..6",
+  "markdown.extension.toc.updateOnSave": true,
+  "markdown.extension.tableFormatter.normalizeIndentation": true,
+  "markdown.extension.tableFormatter.delimiterRowNoPadding": true,
+  // lint
+  "prettier.configPath": ".github/linters/.prettierrc.yml",
+  "linter.linters": {
+    "yamllint": {
+      "configFiles": [
+        "./.github/linters/.yamllint.yml"
+      ]
+    },
+    "markdownlint": {
+      "configFiles": [
+        "./.github/linters/.markdownlint.yml"
+      ]
+    },
+    "shellcheck": {
+      "configFiles": [
+        "./.github/linters/.shellcheckrc"
+      ],
+      "command": [
+        "shellcheck",
+        "--format",
+        "json",
+        "--enable",
+        "all",
+        "--rcfile",
+        "$config",
+        "-"
+      ]
+    }
+  },
+  "shellcheck.customArgs": [
+    "--rcfile",
+    "./.github/linters/.shellcheckrc"
+  ],
+  "shellcheck.enable": true,
+  "shellcheck.enableQuickFix": true,
+  "shellcheck.useWorkspaceRootAsCwd": true,
+  // general
+  "cSpell.import": [
+    "${workspaceFolder}/.github/linters/.cspell.yml"
+  ],
+  "sarif-viewer.connectToGithubCodeScanning": "on",
+  "[terraform]": {
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  "[terraform-test]": {
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  "[hcl]": {
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  // copilot
+  "chat.mcp.discovery.enabled": true,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "file": "./.github/instructions/commit-message.instructions.md"
+    }
+  ]
+}

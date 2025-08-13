@@ -1,0 +1,55 @@
+# docs: https://changie.dev/config/
+---
+changesDir: .changes
+unreleasedDir: unreleased
+headerPath: header.tpl.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '## {{.Version}} - {{.Time.Format "2006-01-02"}}'
+kindFormat: "### {{.Kind}}"
+changeFormat: | # Go template functions: https://masterminds.github.io/sprig/
+  * [#{{.Custom.Issue}}](https://github.com/{{.Env.GITHUB_REPOSITORY}}/issues/{{.Custom.Issue}}) {{.Body}}{{if .Custom.Author}} _by [@{{.Custom.Author}}](https://github.com/{{.Custom.Author}})_{{end}}
+kinds:
+  - key: breaking
+    label: 💥 Breaking
+    auto: major
+  - key: added
+    label: ✨ Added
+    auto: minor
+  - key: changed
+    label: 💫 Changed
+    auto: minor
+  - key: deprecated
+    label: ⚰️ Deprecated
+    auto: minor
+  - key: removed
+    label: 🗑️ Removed
+    auto: minor
+  - key: fixed
+    label: 🪲 Fixed
+    auto: patch
+  - key: security
+    label: 🚨 Security
+    auto: patch
+  - key: documentation
+    label: 📚 Documentation
+    auto: patch
+newlines:
+  afterChangelogHeader: 1
+  beforeChangelogVersion: 1
+  endOfVersion: 1
+  afterKind: 1
+  beforeKind: 1
+envPrefix: CHANGIE_
+custom:
+  - key: Issue
+    label: Issue Number
+    type: int
+    minInt: 1
+    minLength: 1
+  - key: Author
+    type: string
+projects:
+  - key: foundry_basic
+    label: foundry_basic
+    changelog: reference_architectures/foundry_basic/CHANGELOG.md

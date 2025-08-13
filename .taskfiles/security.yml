@@ -1,0 +1,78 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install Gitleaks
+  install:gitleaks:
+    desc: Install Gitleaks
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: "Gitleaks.Gitleaks"
+      - task: internal:install:brew
+        vars:
+          APP: gitleaks
+      - cmd: |
+          arch=$(uname -m)
+          if [[ "${arch}" == "x86_64" ]]; then
+            arch="x64"
+          elif [[ "${arch}" == "aarch64" ]]; then
+            arch="arm64"
+          else
+            echo "Unsupported architecture: ${arch}"
+            exit 1
+          fi
+          download_url=$(curl {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"${arch}"'.*tar.gz"' | grep -o 'https://[^"]*')
+          curl --location -o ~/gitleaks.tar.gz "${download_url}" \
+            && tar -xf ~/gitleaks.tar.gz --directory ~/ \
+            && rm -f ~/gitleaks.tar.gz \
+            && sudo mv ~/gitleaks /usr/local/bin/
+        platforms: [linux]
+
+  # * Install Trivy
+  install:trivy:
+    desc: Install Trivy
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: AquaSecurity.Trivy
+      - task: internal:install:brew
+        vars:
+          APP: trivy
+      - cmd: |
+          sudo apt -o DPkg::Lock::Timeout=-1 install wget gnupg -y \
+            && wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null \
+            && echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee /etc/apt/sources.list.d/trivy.list \
+            && sudo apt -o DPkg::Lock::Timeout=-1 update \
+            && sudo apt -o DPkg::Lock::Timeout=-1 install trivy -y
+        platforms: [linux]
+
+  # * Install Checkov
+  install:checkov:
+    desc: Install Checkov
+    cmds:
+      - task: internal:install:uv
+        vars:
+          APP: checkov
+
+  # * Tools
+  tools:
+    desc: Install Security tools
+    cmds:
+      - task: install:gitleaks
+      - task: install:trivy
+      - task: install:checkov
+
+  # * Lint
+  lint:
+    desc: Run Security linters
+    cmds:
+      - gitleaks detect --config ./.github/linters/.gitleaks.toml --redact=90 --verbose --source .
+      - trivy --config ./.github/linters/.trivy.yml fs .
+      - checkov --config-file ./.github/linters/.checkov.yml --directory .
+    dir: "{{.ROOT_DIR}}"

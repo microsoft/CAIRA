@@ -1,0 +1,29 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install Prettier
+  install:prettier:
+    desc: Install Prettier
+    cmds:
+      - task: internal:install:npm
+        vars:
+          APP: prettier
+
+  # * Tools
+  tools:
+    desc: Install JavaScript tools
+    cmds:
+      - task: install:prettier
+
+  # * Lint
+  lint:
+    desc: Lint JavaScript files
+    cmds:
+      - prettier --config .github/linters/.prettierrc.yml --write "./**/*.{js,cjs,mjs,ts,tsx,jsx}"
+    dir: "{{.ROOT_DIR}}"
