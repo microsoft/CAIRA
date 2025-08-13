@@ -1,0 +1,73 @@
+---
+name: 🚀 Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".changes/**/v*.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: 🚀 Release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: 🏷️ Check for changelog
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          list-files: csv
+          filters: |
+            changelog:
+              - added: '.changes/**/v*.md'
+
+      - name: 🏷️ Get Release Tag
+        id: tag
+        if: ${{ steps.filter.outputs.changelog == 'true' }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/release_tag.mjs`)
+            await script({core})
+        env:
+          INPUT_CHANGES: ${{ steps.filter.outputs.changelog_files }}
+          INPUT_PROJECT_SRC: reference_architectures
+
+      - name: 🤖 Get bot details
+        if: ${{ steps.filter.outputs.changelog == 'true' }}
+        id: bot_details
+        uses: raven-actions/bot-details@b2d5fd6eb98adc0cb67df864daa834849f3a8bc0 # v1.1.0
+        with:
+          set-env: false
+
+      - name: 🔖 Push Release Tag
+        if: ${{ steps.filter.outputs.changelog == 'true' }}
+        run: |
+          git config --global user.name "${USER_NAME}"
+          git config --global user.email "${USER_EMAIL}"
+          git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG}"
+          git push origin --follow-tags
+        env:
+          USER_NAME: ${{ steps.bot_details.outputs.name }}
+          USER_EMAIL: ${{ steps.bot_details.outputs.email }}
+          RELEASE_TAG: ${{ steps.tag.outputs.release_tag }}
+
+      - name: 🚀 Release
+        if: ${{ steps.filter.outputs.changelog == 'true' }}
+        run: |
+          gh release create "${RELEASE_TAG}" --verify-tag --title "${RELEASE_TAG}" -F "${CHANGELOG_FILE}"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.tag.outputs.release_tag }}
+          CHANGELOG_FILE: ${{ steps.tag.outputs.changelog_file }}

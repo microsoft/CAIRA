@@ -1,0 +1,31 @@
+{
+  "recommendations": [
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-azureterraform",
+    "ms-vscode.powershell",
+    "ms-vscode.azurecli",
+    "hashicorp.terraform",
+    "ms-azuretools.vscode-azure-github-copilot",
+    "ms-azuretools.vscode-docker",
+    "bierner.github-markdown-preview",
+    "task.vscode-task",
+    "editorconfig.editorconfig",
+    "davidanson.vscode-markdownlint",
+    "redhat.vscode-yaml",
+    "fnando.linter",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "github.codespaces",
+    "github.remotehub",
+    "aaron-bond.better-comments",
+    "usernamehw.errorlens",
+    "ms-sarifvscode.sarif-viewer",
+    "yzhang.markdown-all-in-one",
+    "timonwong.shellcheck",
+    "streetsidesoftware.code-spell-checker",
+    "hashicorp.hcl",
+    "esbenp.prettier-vscode"
+  ]
+}

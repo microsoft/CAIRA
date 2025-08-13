@@ -1,0 +1,73 @@
+---
+- name: type/epic
+  description: A large body of work that can be broken down into smaller features
+  color: 006B75
+- name: type/feature
+  description: A new feature (job story, user story)
+  color: 006B75
+- name: type/task
+  description: A task that needs to be done
+  color: 006B75
+- name: type/bug
+  description: Something isn't working
+  color: 006B75
+- name: type/test
+  description: A test that needs to be done
+  color: 006B75
+
+- name: deps/devcontainer
+  description: Dev Container dependency
+  color: BFDADC
+- name: deps/github-actions
+  description: GitHub Actions dependency
+  color: BFDADC
+- name: deps/terraform
+  description: Terraform dependency
+  color: BFDADC
+
+- name: area/iac
+  description: Any changes to Infrastructure as Code
+  color: 5319E7
+- name: area/docs
+  description: Improvements or additions to documentation
+  color: 5319E7
+
+- name: kind/duplicate
+  description: Duplicate of existing case
+  color: F9C24D
+- name: kind/invalid
+  description: Invalid
+  color: F9C24D
+- name: kind/refactor
+  description: Refactor or resolve tech debt
+  color: F9C24D
+- name: kind/capability
+  description: Work item for user story requirements, what must be true for the user
+  color: F9C24D
+
+- name: state/stale
+  description: Stale/inactive work
+  color: CD42E6
+- name: state/needs-more-details
+  description: Needs more details
+  color: CD42E6
+- name: state/wont-fix
+  description: Won't fix
+  color: CD42E6
+- name: state/skip-changelog
+  description: Skip changelog entry
+  color: CD42E6
+
+- name: aspect/caira-v2
+  description: CAIRA 2.0
+  color: AF25CE
+- name: aspect/bugbash-v1.5
+  description: Bug Bash v1.5
+  color: AF25CE
+- name: aspect/qol
+  description: Quality of Life Improvements
+  color: AF25CE
+
+- name: good first issue
+  description: Good for newcomers
+  color: D4C5F9

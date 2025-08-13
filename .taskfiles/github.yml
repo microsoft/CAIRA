@@ -1,0 +1,72 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install Actionlint
+  install:actionlint:
+    desc: Install Actionlint
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: rhysd.actionlint
+      - task: internal:install:brew
+        vars:
+          APP: actionlint
+      - cmd: |
+          curl {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf  https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | sudo bash -s -- latest /usr/local/bin
+        platforms: [linux]
+
+  # * Install ACT
+  install:act:
+    desc: Install ACT
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: nektos.act
+      - task: internal:install:brew
+        vars:
+          APP: act
+      - cmd: |
+          curl {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash -s -- -b /usr/local/bin
+        platforms: [linux]
+
+  # * Install GitHub CLI
+  install:gh:
+    desc: Install GitHub CLI
+    cmds:
+      - task: internal:install:winget
+        vars:
+          APP: GitHub.cli
+      - task: internal:install:brew
+        vars:
+          APP: gh
+      - cmd: |
+          (type -p wget >/dev/null || (sudo apt -o DPkg::Lock::Timeout=-1 update && sudo apt -o DPkg::Lock::Timeout=-1 install wget -y)) \
+            && sudo mkdir -p -m 755 /etc/apt/keyrings \
+            && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+            && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt -o DPkg::Lock::Timeout=-1 update \
+            && sudo apt -o DPkg::Lock::Timeout=-1 install gh -y
+        platforms: [linux]
+
+  # * Tools
+  tools:
+    desc: Install GitHub tools
+    cmds:
+      - task: install:actionlint
+      - task: install:act
+      - task: install:gh
+
+  # * Lint
+  lint:
+    desc: Lint GitHub files
+    cmds:
+      - actionlint -config-file .github/linters/actionlint.yaml
+    dir: "{{.ROOT_DIR}}"

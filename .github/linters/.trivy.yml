@@ -1,0 +1,18 @@
+# https://trivy.dev/latest/docs/references/configuration/config-file/
+---
+scan:
+  scanners:
+    - vuln
+    - misconfig
+    - secret
+    - license
+misconfiguration:
+  render-cause:
+    - terraform
+  scanners:
+    - azure-arm
+    - dockerfile
+    - terraform
+    - terraformplan-json
+    - terraformplan-snapshot
+ignorefile: .trivyignore.yml

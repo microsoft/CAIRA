@@ -1,0 +1,326 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: Terraform Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  merge_group:
+  schedule:
+    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+  workflow_dispatch:
+    inputs: #checkov:skip=CKV_GHA_7
+      tf_dirs:
+        required: true
+        type: string
+        description: "Comma-separated list of directories to test, or '*' for all directories"
+        default: "*"
+      tf_test_integration:
+        required: true
+        type: boolean
+        description: "Run integration tests"
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  id-token: write
+  actions: read
+  checks: write
+
+jobs:
+  changes:
+    name: Changes
+    runs-on: ubuntu-24.04
+    outputs:
+      src: ${{ steps.dirs.outputs.changes }}
+    steps:
+      - name: 🩺 Debug
+        uses: raven-actions/debug@13e7c5b2e0436a1b85276087eba43ec7d46bd955 # v1.1.0
+
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: 🗃️ Filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          base: ${{ github.event_name == 'workflow_dispatch' && github.ref || '' }}
+          list-files: csv
+          filters: |
+            src:
+              - './reference_architectures/**/*.tf'
+              - './reference_architectures/**/*.tfvars'
+              - './reference_architectures/**/*.hcl'
+              - './reference_architectures/**/*.yml'
+              - './reference_architectures/**/*.yaml'
+              - './reference_architectures/**/*.json'
+              - './testing/**/*.tf'
+              - './testing/**/*.tfvars'
+              - './testing/**/*.hcl'
+              - './testing/**/*.yml'
+              - './testing/**/*.yaml'
+              - './testing/**/*.json'
+              - './modules/**/*.tf'
+              - './modules/**/*.tfvars'
+              - './modules/**/*.hcl'
+              - './modules/**/*.yml'
+              - './modules/**/*.yaml'
+              - './modules/**/*.json'
+
+      - name: 📂 Dirs
+        id: dirs
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_dirs.mjs`)
+            await script({context, core})
+        env:
+          INPUT_CHANGES: ${{ (github.event_name == 'workflow_dispatch' && inputs.tf_dirs != '*') && inputs.tf_dirs || steps.filter.outputs.src_files }}
+          INPUT_SRC_CORE: reference_architectures
+
+  test:
+    if: ${{ needs.changes.outputs.src != '[]' && needs.changes.outputs.src != '' }}
+    needs: changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        src: ${{ fromJSON(needs.changes.outputs.src) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.src.path }}
+    name: Test ${{ matrix.src.name }}
+    env:
+      TF_IN_AUTOMATION: true # Adjust Terraform output to avoid suggesting specific commands to run next?
+      TF_CLI_ARGS: -no-color
+      ARM_SNAPSHOT: true
+      ARM_USE_AZUREAD: true
+      ARM_USE_OIDC: true
+      ARM_TENANT_ID: ${{ vars.PERSISTENT_SUB_AZURE_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ vars.PERSISTENT_SUB_AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.PERSISTENT_SUB_AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - name: 🩺 Debug
+        uses: raven-actions/debug@13e7c5b2e0436a1b85276087eba43ec7d46bd955 # v1.1.0
+
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: 🚧 Setup Task
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
+        with:
+          repo-token: ${{ github.token }}
+
+      - name: 🚧 Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+
+      - name: 🔢 Terraform Version
+        id: version
+        run: |
+          tf_version_json=$(terraform version -json)
+          tf_version=$(echo "${tf_version_json}" | jq -r '.terraform_version')
+          tf_platform=$(echo "${tf_version_json}" | jq -r '.platform')
+          echo "version=${tf_version}" >> "$GITHUB_OUTPUT"
+          echo "platform=${tf_platform}" >> "$GITHUB_OUTPUT"
+          echo "${tf_version_json}" | jq
+
+      - name: 🖌 Terraform Fmt
+        id: fmt
+        run: terraform fmt -check -recursive > >(tee tffmt_stdout.out) 2> >(tee tffmt_stderr.out >&2)
+        continue-on-error: true
+
+      - name: ⚙️ Terraform Init
+        id: init
+        run: terraform init -upgrade > >(tee tfinit_stdout.out) 2> >(tee tfinit_stderr.out >&2)
+
+      - name: 🤖 Terraform Validate
+        id: validate
+        run: terraform validate > >(tee tfvalidate_stdout.out) 2> >(tee tfvalidate_stderr.out >&2)
+
+      - name: 📖 Terraform Plan
+        id: plan
+        run: terraform plan -detailed-exitcode -out=tfplan > >(tee tfplan_stdout.out) 2> >(tee tfplan_stderr.out >&2)
+        continue-on-error: true
+
+      - name: 👮 Create Issue on Plan Failure
+        if: steps.plan.outputs.exitcode == 1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_issue.mjs`)
+            await script({context, github, core})
+        env:
+          INPUT_WORKDIR: ${{ matrix.src.path }}
+          INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
+          INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
+          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
+          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          INPUT_TFVALIDATE_STDOUT_FILE: tfvalidate_stdout.out
+          INPUT_TFVALIDATE_STDERR_FILE: tfvalidate_stderr.out
+          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
+          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
+          INPUT_TFPLAN_STDOUT_FILE: tfplan_stdout.out
+          INPUT_TFPLAN_STDERR_FILE: tfplan_stderr.out
+          INPUT_TFPLAN_FILE: tfplan.txt
+
+      - name: 🎥 Terraform Show
+        id: show
+        run: terraform show tfplan > "tfplan.out"
+
+      - name: 🧹 Terraform Plan Reformat
+        run: sed -E 's/^([[:space:]]+)([-+])/\2\1/g' "tfplan.out" > "tfplan.txt"
+
+      - name: 🧪 Terraform Test (unit)
+        id: testunit
+        run: task tf:test:unit > >(tee tftestunit_stdout.out) 2> >(tee tftestunit_stderr.out >&2)
+        continue-on-error: true
+        timeout-minutes: 5
+
+      - name: 👮 Create Issue on Test Failure (unit)
+        if: steps.testunit.outputs.exitcode == 1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_issue.mjs`)
+            await script({context, github, core})
+        env:
+          INPUT_WORKDIR: ${{ matrix.src.path }}
+          INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
+          INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
+          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
+          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
+          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
+          INPUT_TFTEST_OUTCOME: ${{ steps.testunit.outcome }}
+          INPUT_TFTEST_EXITCODE: ${{ steps.testunit.outputs.exitcode }}
+          INPUT_TFTEST_STDOUT_FILE: tftestunit_stdout.out
+          INPUT_TFTEST_STDERR_FILE: tftestunit_stderr.out
+
+      - name: 🧪 Terraform Test (acceptance)
+        id: testacc
+        run: task tf:test:acc > >(tee tftestacc_stdout.out) 2> >(tee tftestacc_stderr.out >&2)
+        continue-on-error: true
+        timeout-minutes: 15
+
+      - name: 👮 Create Issue on Test Failure (acceptance)
+        if: steps.testacc.outputs.exitcode == 1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_issue.mjs`)
+            await script({context, github, core})
+        env:
+          INPUT_WORKDIR: ${{ matrix.src.path }}
+          INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
+          INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
+          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
+          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
+          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
+          INPUT_TFTEST_OUTCOME: ${{ steps.testacc.outcome }}
+          INPUT_TFTEST_EXITCODE: ${{ steps.testacc.outputs.exitcode }}
+          INPUT_TFTEST_STDOUT_FILE: tftestacc_stdout.out
+          INPUT_TFTEST_STDERR_FILE: tftestacc_stderr.out
+
+      - name: 🧪 Terraform Test (integration)
+        id: testint
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.tf_test_integration == true)
+        run: task tf:test:int > >(tee tftestint_stdout.out) 2> >(tee tftestint_stderr.out >&2)
+        continue-on-error: true
+        timeout-minutes: 90
+
+      - name: 👮 Create Issue on Test Failure (integration)
+        if: steps.testint.outputs.exitcode == 1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_issue.mjs`)
+            await script({context, github, core})
+        env:
+          INPUT_WORKDIR: ${{ matrix.src.path }}
+          INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
+          INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
+          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
+          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
+          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
+          INPUT_TFTEST_OUTCOME: ${{ steps.testint.outcome }}
+          INPUT_TFTEST_EXITCODE: ${{ steps.testint.outputs.exitcode }}
+          INPUT_TFTEST_STDOUT_FILE: tftestint_stdout.out
+          INPUT_TFTEST_STDERR_FILE: tftestint_stderr.out
+
+      - name: 👮 Create summary comment
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/tf_issue.mjs`)
+            await script({context, github, core})
+        env:
+          INPUT_WORKDIR: ${{ matrix.src.path }}
+          INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
+          INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
+          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
+          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
+          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
+          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
+          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
+
+      - name: 📦 Upload out
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: out-${{ matrix.src.name }}-${{ github.run_id }}
+          path: |
+            **/*.out
+          overwrite: true
+
+      - name: 📦 Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tests-results-${{ matrix.src.name }}-${{ github.run_id }}
+          path: |
+            **/test*-results.xml
+          overwrite: true
+
+      - name: 📜 Publish test results
+        id: test_results
+        if: always()
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3 # v2.1.1
+        with:
+          working-directory: ${{ matrix.src.path }}
+          name: Test results (${{ matrix.src.name }})
+          reporter: java-junit
+          path: test*-results.xml
+          fail-on-error: false
+          fail-on-empty: false
+
+  # Returns success if all matrix jobs in test are successful - otherwise, it returns a failure.
+  # Use this as a PR status check for GitHub Policy Service instead of individual matrix entry checks.
+  check_test:
+    if: always()
+    name: Check Tests
+    needs: [changes, test]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 🛑 Failure
+        if: ${{ (needs.changes.outputs.src != '[]' && needs.changes.outputs.src != '') && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) }}
+        run: exit 1
+
+      - name: ✅ Success
+        run: exit 0

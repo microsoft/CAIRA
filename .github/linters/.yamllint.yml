@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://json.schemastore.org/yamllint.json
+# docs: https://yamllint.readthedocs.io/en/stable/configuration.html#extending-the-default-configuration
+---
+extends: relaxed
+
+locale: en_US.UTF-8
+rules:
+  document-start:
+    level: warning
+    ignore:
+      - .cspell.yml
+  line-length: disable
+
+ignore-from-file:
+  - .gitignore

@@ -1,0 +1,64 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install MkDocs
+  install:mkdocs:
+    desc: Install MkDocs
+    cmds:
+      - for: [mkdocs]
+        task: internal:install:pipx
+        vars:
+          APP: "{{.ITEM}}"
+      - pipx inject --include-deps --force mkdocs $(mkdocs get-deps)
+
+  # * Tools
+  tools:
+    desc: Install Page tools
+    cmds:
+      - task: install:mkdocs
+
+  # * Build
+  build:
+    desc: Build docs site
+    deps:
+      - clean
+    vars:
+      ARGS: "{{if empty .CLI_ARGS | not}} {{.CLI_ARGS}}{{end}}"
+    cmds:
+      - mkdocs build --verbose --clean{{.ARGS}}
+    dir: "{{.ROOT_DIR}}"
+    env:
+      TZ: UTC
+
+  # * Preview
+  preview:
+    desc: Preview a docs site locally
+    interactive: true
+    deps:
+      - clean
+    vars:
+      ARGS: "{{if empty .CLI_ARGS | not}} {{.CLI_ARGS}}{{end}}"
+    cmds:
+      - mkdocs serve --verbose --clean{{.ARGS}}
+    dir: "{{.ROOT_DIR}}"
+    env:
+      TZ: UTC
+
+  # * Clean
+  clean:
+    desc: Clean up site
+    silent: true
+    cmds:
+      - cmd: |
+          find ./ -name "site" -type d -exec rm -rf {} \;
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "site" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
+        platforms: [windows]
+    dir: "{{.ROOT_DIR}}"

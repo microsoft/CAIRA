@@ -1,0 +1,16 @@
+ignored
+^https://github\.com/.*$
+^https://cli.github\.com/.*$
+0005-example.md
+https://aquasecurity.github.io/trivy-repo/deb
+https://graph.microsoft.com/.default
+http://host.docker.internal:5002/analyze
+http://host.docker.internal:5001/anonymize
+https://doi.org/10.1109/TSE.1986.6312940
+https://api.github.com/repos/mvdan/sh/releases/latest
+https://api.github.com/repos/miniscruff/changie/releases/latest
+https://api.github.com/repos/lycheeverse/lychee/releases/latest
+https://api.github.com/repos/tenable/terrascan/releases/latest
+https://api.github.com/repos/gitleaks/gitleaks/releases/latest
+https://www.microsoft.com/ai/responsible-ai
+https://taskfile.dev

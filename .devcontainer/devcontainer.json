@@ -1,0 +1,97 @@
+// For format details, see https://aka.ms/devcontainer.json
+{
+  "name": "CAIRA",
+  // Available base images: https://mcr.microsoft.com/v2/devcontainers/base/tags/list
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu24.04",
+  // Features to add to the dev container. More info: https://containers.dev/features
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.25"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13",
+      "toolsToInstall": ""
+    },
+    "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
+      "jqVersion": "latest",
+      "yqVersion": "latest"
+    },
+    "ghcr.io/eitsupi/devcontainer-features/go-task:1": {}
+  },
+  "onCreateCommand": {
+    "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME/.local",
+    "setup-tools": "task tools"
+  },
+  "postCreateCommand": {
+    "git-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  "remoteEnv": {
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  },
+  "remoteUser": "vscode",
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [
+    8000
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "mkdocs serve",
+      "onAutoForward": "notify"
+    }
+  },
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.defaultProfile.osx": "zsh",
+        "powershell.powerShellAdditionalExePaths": {
+          "pwsh": "/usr/bin/pwsh"
+        },
+        "powershell.powerShellDefaultVersion": "pwsh"
+      },
+      "extensions": [
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-azureterraform",
+        "ms-vscode.powershell",
+        "ms-vscode.azurecli",
+        "hashicorp.terraform",
+        "ms-azuretools.vscode-azure-github-copilot",
+        "ms-azuretools.vscode-docker",
+        "bierner.github-markdown-preview",
+        "task.vscode-task",
+        "editorconfig.editorconfig",
+        "davidanson.vscode-markdownlint",
+        "redhat.vscode-yaml",
+        "fnando.linter",
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "github.codespaces",
+        "github.remotehub",
+        "aaron-bond.better-comments",
+        "usernamehw.errorlens",
+        "ms-sarifvscode.sarif-viewer",
+        "yzhang.markdown-all-in-one",
+        "timonwong.shellcheck",
+        "streetsidesoftware.code-spell-checker",
+        "hashicorp.hcl",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+}

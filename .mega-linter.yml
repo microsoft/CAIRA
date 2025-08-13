@@ -1,0 +1,77 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/megalinter/megalinter/main/megalinter/descriptors/schemas/megalinter-configuration.jsonschema.json
+# Configuration file for MegaLinter
+# See all available variables at https://megalinter.io/latest/config-file/ and in linters documentation
+---
+PARALLEL: true
+DEFAULT_BRANCH: main
+SHOW_ELAPSED_TIME: true
+CLEAR_REPORT_FOLDER: true
+OUTPUT_DETAIL: detailed
+GITHUB_COMMENT_REPORTER: true
+GITHUB_STATUS_REPORTER: false
+JSON_REPORTER: true
+JSON_REPORTER_OUTPUT_DETAIL: simple
+SARIF_REPORTER: true
+FILEIO_REPORTER: false
+FORMATTERS_DISABLE_ERRORS: false
+REPORTERS_MARKDOWN_TYPE: simple
+MARKDOWN_SUMMARY_REPORTER: true
+APPLY_FIXES: all
+
+ENABLE_LINTERS:
+  # GitHub
+  - ACTION_ACTIONLINT
+
+  # Markdown
+  - MARKDOWN_MARKDOWNLINT
+  - MARKDOWN_MARKDOWN_TABLE_FORMATTER
+
+  # General
+  - YAML_YAMLLINT
+  - EDITORCONFIG_EDITORCONFIG_CHECKER
+
+  # Security
+  - REPOSITORY_GITLEAKS
+  - REPOSITORY_CHECKOV
+  - REPOSITORY_TRIVY
+
+  # Spell
+  - SPELL_CSPELL
+  - SPELL_LYCHEE
+
+  # Terraform
+  - TERRAFORM_TERRAFORM_FMT
+  - TERRAFORM_TFLINT
+  # - TERRAFORM_TERRASCAN # TODO
+
+  # Shell
+  - BASH_SHELLCHECK
+  - BASH_SHFMT
+
+  # JavaScript
+  - JAVASCRIPT_PRETTIER
+
+EXCLUDED_DIRECTORIES:
+  - .git
+  - node_modules
+  - .venv
+  - .terraform
+  - megalinter-reports
+  - .dev
+
+TERRAFORM_TFLINT_UNSECURED_ENV_VARIABLES:
+  - GITHUB_TOKEN
+
+ACTION_ACTIONLINT_CONFIG_FILE: .github/linters/actionlint.yaml
+BASH_SHELLCHECK_ARGUMENTS: "--rcfile=.github/linters/.shellcheckrc"
+MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .github/linters/.markdownlint.yml
+YAML_YAMLLINT_CONFIG_FILE: .github/linters/.yamllint.yml
+SPELL_CSPELL_CONFIG_FILE: .github/linters/.cspell.yml
+SPELL_CSPELL_FILE_EXTENSIONS: [".md"]
+SPELL_LYCHEE_CONFIG_FILE: .github/linters/.lychee.toml
+REPOSITORY_GITLEAKS_CONFIG_FILE: .github/linters/.gitleaks.toml
+REPOSITORY_CHECKOV_CONFIG_FILE: .github/linters/.checkov.yml
+REPOSITORY_TRIVY_CONFIG_FILE: .github/linters/.trivy.yml
+REPOSITORY_TRIVY_COMMAND_REMOVE_ARGUMENTS: "--scanners vuln,misconfig"
+TERRAFORM_TFLINT_CONFIG_FILE: .github/linters/.tflint.hcl
+JAVASCRIPT_PRETTIER_CONFIG_FILE: .github/linters/.prettierrc.yml

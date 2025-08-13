@@ -1,0 +1,39 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install markdownlint-cli2
+  install:markdownlint:
+    desc: Install markdownlint-cli2
+    cmds:
+      - task: internal:install:npm
+        vars:
+          APP: "markdownlint-cli2"
+
+  # * Install markdown-table-formatter
+  install:table-formatter:
+    desc: Install markdown-table-formatter
+    cmds:
+      - task: internal:install:npm
+        vars:
+          APP: "markdown-table-formatter"
+
+  # * Tools
+  tools:
+    desc: Install Markdown tools
+    cmds:
+      - task: install:markdownlint
+      - task: install:table-formatter
+
+  # * Lint
+  lint:
+    desc: Lint Markdown files
+    cmds:
+      - markdownlint-cli2 "./**/*.md" --config "./.github/linters/.markdownlint-cli2.yaml" --fix
+      - markdown-table-formatter "./**/*.md"
+    dir: "{{.ROOT_DIR}}"

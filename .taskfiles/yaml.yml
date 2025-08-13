@@ -1,0 +1,29 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install YAMLlint
+  install:yamllint:
+    desc: Install YAMLlint
+    cmds:
+      - task: internal:install:uv
+        vars:
+          APP: yamllint
+
+  # * Tools
+  tools:
+    desc: Install YAML tools
+    cmds:
+      - task: install:yamllint
+
+  # * Lint
+  lint:
+    desc: Lint YAML files
+    cmds:
+      - yamllint -c ./.github/linters/.yamllint.yml --format auto --strict .
+    dir: "{{.ROOT_DIR}}"

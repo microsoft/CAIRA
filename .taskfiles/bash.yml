@@ -1,0 +1,69 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+includes:
+  internal: internal.yml
+
+tasks:
+  # * Install shellcheck
+  install:shellcheck:
+    desc: Install shellcheck
+    cmds:
+      - for: [koalaman.shellcheck]
+        task: internal:install:winget
+        vars:
+          APP: "{{.ITEM}}"
+        platforms: [windows]
+      - for: [shellcheck]
+        task: internal:install:brew
+        vars:
+          APP: "{{.ITEM}}"
+        platforms: [darwin]
+      - cmd: |
+          sudo apt -o DPkg::Lock::Timeout=-1 update \
+            && sudo apt -o DPkg::Lock::Timeout=-1 install shellcheck -y
+        platforms: [linux]
+
+  # * Install shfmt
+  install:shfmt:
+    desc: Install shfmt
+    cmds:
+      - for: [mvdan.shfmt]
+        task: internal:install:winget
+        vars:
+          APP: "{{.ITEM}}"
+        platforms: [windows]
+      - cmd: |
+          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_linux_amd64")" > ~/shfmt
+          sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
+        platforms: [linux]
+      - cmd: |
+          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_darwin_arm64")" > ~/shfmt
+          sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
+        platforms: [darwin]
+
+  # * Tools
+  tools:
+    desc: Install Bash tools
+    cmds:
+      - task: install:shellcheck
+      - task: install:shfmt
+
+  # * Lint
+  lint:
+    desc: Lint Bash files
+    vars:
+      ITEMS:
+        sh: |
+          {{if eq OS "windows"}}
+            {{.PWSH}} 'Get-ChildItem -Path . -Filter "*.sh" -Recurse | Where-Object { $_.FullName -notmatch "\\(.git|node_modules|.terraform|.venv|.dev)\\" } | ForEach-Object { $_.FullName | Resolve-Path -Relative }'
+          {{else}}
+            find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "*/.venv/*" -not -path "*/.dev/*" -not -path "./.terraform/*"
+          {{end}}
+    cmds:
+      - shfmt -w -i 2 -ci -bn --list .
+      - for: { var: ITEMS }
+        cmd: shellcheck "{{osClean .ITEM}}"
+    dir: "{{.ROOT_DIR}}"

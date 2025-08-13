@@ -1,0 +1,114 @@
+#  yaml-language-server: $schema=https://taskfile.dev/schema.json
+# docs: https://taskfile.dev
+---
+version: "3"
+
+vars:
+  PWSH: pwsh -NonInteractive -NoProfile -NoLogo -Command
+  PWSH_SCRIPT: pwsh -NonInteractive -NoProfile -NoLogo -File
+  GH_CURL_AUTH:
+    sh: |
+      {{if empty .GITHUB_TOKEN | not}}
+        echo "-H \"Authorization: token {{.GITHUB_TOKEN}}\""
+      {{end}}
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+tasks:
+  command:
+    desc: Check if command exists
+    silent: true
+    run: once
+    preconditions:
+      - sh: |
+          {{empty .CLI_ARGS | not}}
+        msg: No command provided. Please provide a command to check.
+    cmds:
+      - cmd: command -v "{{.CLI_ARGS}}"
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH}} 'Get-Command "{{.CLI_ARGS}}"'
+        platforms: [windows]
+
+  install:go:
+    desc: go install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- go
+        msg: "go is not installed. Please install go: https://go.dev/doc/install"
+    cmds:
+      - go install {{.APP}}
+
+  install:winget:
+    desc: winget install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- winget
+        msg: "winget is not installed. Please install winget: https://learn.microsoft.com/windows/package-manager/winget/"
+    cmds:
+      - winget install {{.APP}} --accept-source-agreements --accept-package-agreements
+    ignore_error: true
+    platforms: [windows]
+
+  install:brew:
+    desc: brew install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- brew
+        msg: "brew is not installed. Please install brew."
+    cmds:
+      - brew install {{.APP}}
+    platforms: [darwin]
+
+  install:brew:tap:
+    desc: brew tap
+    internal: true
+    preconditions:
+      - sh: task internal:command -- brew
+        msg: "brew is not installed. Please install brew."
+    cmds:
+      - brew tap {{.APP}}
+    platforms: [darwin]
+
+  install:pipx:
+    desc: pipx install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- pipx
+        msg: "pipx is not installed. Please install pipx: https://pipx.pypa.io/"
+    cmds:
+      - pipx install --include-deps {{.APP}}
+
+  install:npm:
+    desc: npm install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- npm
+        msg: "npm is not installed. Please install npm: https://docs.npmjs.com/cli/commands/npm"
+    cmds:
+      - cmd: npm install --global {{.APP}}
+        platforms: [linux, darwin]
+      - cmd: npm install --global {{.APP}}
+        platforms: [windows]
+
+  install:uv:
+    desc: uv install
+    internal: true
+    preconditions:
+      - sh: task internal:command -- uv
+        msg: "uv is not installed. Please install uv by running: `task internal:setup:uv`"
+    cmds:
+      - uv tool install --force --upgrade {{.APP}}
+
+  setup:uv:
+    desc: uv setup
+    cmds:
+      - cmd: curl -LsSf https://astral.sh/uv/install.sh | sudo env UV_INSTALL_DIR="/usr/local/bin" sh
+        platforms: [linux]
+      - task: install:brew
+        vars:
+          APP: uv
+      - task: install:winget
+        vars:
+          APP: sh.uv

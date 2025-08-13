@@ -1,0 +1,139 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: 🔄 Changelog
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled, synchronize]
+
+concurrency:
+  group: ${{ format('{0}-{1}-{2}-{3}-{4}', github.workflow, github.event_name, github.ref, github.base_ref || null, github.head_ref || null) }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  check_changelog:
+    name: 🔄 Check Changelog
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') && github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: ✔️ Check if changelog exists
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            exists:
+              - added|modified: '.changes/unreleased/*.yaml'
+
+      - name: 🚧 Setup Task
+        if: steps.filter.outputs.exists == 'true'
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
+        with:
+          repo-token: ${{ github.token }}
+
+      - name: 🚧 Setup Changie
+        if: steps.filter.outputs.exists == 'true'
+        run: task project:install:changie
+
+      - name: 🔎 Find comment
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: "<!-- changelog -->"
+
+      - name: 🔄 Prepare comment
+        if: steps.filter.outputs.exists == 'false'
+        run: |
+          echo -e "# 🛑 Changelog entry required to merge\n" > changie.md
+          echo "Run \`task project:changelog -- <ISSUE_NUMBER>\` to add a new changelog entry" >> changie.md
+          cat changie.md >> "$GITHUB_STEP_SUMMARY"
+          echo -e "\n<!-- changelog -->" >> changie.md
+
+      - name: 📝 Create comment
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id == ''
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: changie.md
+
+      - name: 📝 Update comment
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          body-path: changie.md
+          edit-mode: replace
+
+      - name: 🗑️ Delete comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        if: steps.filter.outputs.exists == 'true' && steps.fc.outputs.comment-id != ''
+        with:
+          script: |
+            try {
+              const commentId = core.getInput('COMMENT_ID', { required: true })
+
+              await github.rest.issues.deleteComment({
+                ...context.repo,
+                comment_id: commentId
+              })
+            } catch (error) {
+              core.setFailed(error.message)
+            }
+        env:
+          INPUT_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
+
+      - name: ✅ Success
+        if: steps.filter.outputs.exists == 'true'
+        run: |
+          echo "✅ Changelog entry exists."
+          exit 0
+
+      - name: 🛑 Failure
+        if: steps.filter.outputs.exists == 'false'
+        run: |
+          echo "🛑 Changelog entry required to merge."
+          exit 1
+
+  skip_changelog:
+    name: 🔄 Check Changelog
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') || github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 🔎 Find comment
+        if: github.actor != 'dependabot[bot]'
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: github-actions[bot]
+          body-includes: "<!-- changelog -->"
+
+      - name: 🗑️ Delete comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        if: github.actor != 'dependabot[bot]' && steps.fc.outputs.comment-id != ''
+        with:
+          script: |
+            try {
+              const commentId = core.getInput('COMMENT_ID', { required: true })
+
+              await github.rest.issues.deleteComment({
+                ...context.repo,
+                comment_id: commentId
+              })
+            } catch (error) {
+              core.setFailed(error.message)
+            }
+        env:
+          INPUT_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
+
+      - name: ✅ Success
+        run: exit 0
