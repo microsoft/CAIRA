@@ -38,6 +38,21 @@ output "ai_foundry_project_identity_principal_id" {
   value       = module.ai_foundry.ai_foundry_project_identity_principal_id
 }
 
+output "cosmosdb_account_id" {
+  description = "The resource ID of the Cosmos DB account."
+  value       = azurerm_cosmosdb_account.cosmosdb.id
+}
+
+output "ai_search_service_id" {
+  description = "The resource ID of the AI Search service."
+  value       = azapi_resource.ai_search.id
+}
+
+output "storage_account_id" {
+  description = "The resource ID of the Storage account."
+  value       = azurerm_storage_account.storage_account.id
+}
+
 output "application_insights_id" {
   description = "The resource ID of the Application Insights instance."
   value       = module.application_insights.resource_id

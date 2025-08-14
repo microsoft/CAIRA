@@ -14,7 +14,7 @@ This guide provides comprehensive instructions for creating, reviewing, and mana
 
 ### Pre-PR Validation
 
-```bash
+```shell
 # Ensure your branch is up to date
 git fetch upstream
 git rebase upstream/main
@@ -180,7 +180,7 @@ Related to #101
 
 ### Linting Errors
 
-```bash
+```shell
 # Auto-fix formatting issues
 task lint
 

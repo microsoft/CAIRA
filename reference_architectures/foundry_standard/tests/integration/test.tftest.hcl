@@ -1,4 +1,4 @@
-run "testint_foundry_basic" {
+run "testint_foundry_standard" {
   command = apply
 
   assert {

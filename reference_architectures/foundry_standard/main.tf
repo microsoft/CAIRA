@@ -1,8 +1,9 @@
 ############################################################
-# Foundry Basic Reference Architecture - Root Module Call
+# Foundry Standard Reference Architecture - Root Module Call
 #
 # This Terraform stack provisions a baseline Azure AI Foundry
-# environment
+# environment with data sovereignty and resource compliance
+# support.
 ############################################################
 
 # Reusable model definitions used when configuring AI Foundry
@@ -33,7 +34,7 @@ resource "azurerm_resource_group" "this" {
 
 # Local values centralize the computed naming and resource group id.
 locals {
-  base_name                  = "basic" # Used as the semantic prefix for naming resources
+  base_name                  = "standard" # Used as the semantic prefix for naming resources
   resource_group_resource_id = var.resource_group_resource_id != null ? var.resource_group_resource_id : azurerm_resource_group.this[0].id
   resource_group_name        = var.resource_group_resource_id != null ? split("/", var.resource_group_resource_id)[4] : azurerm_resource_group.this[0].name
 }
@@ -69,6 +70,31 @@ module "ai_foundry" {
     resource_id       = module.application_insights.resource_id
     name              = module.application_insights.name
     connection_string = module.application_insights.connection_string
+  }
+
+  # If you don't have specific requirements for data sovereignty and resource compliance,
+  # you can remove the agent_connections block and those resource will be managed by the agent service.
+  agent_capability_host_connections = {
+    cosmos_db = {
+      resource_id         = azurerm_cosmosdb_account.cosmosdb.id
+      name                = azurerm_cosmosdb_account.cosmosdb.name
+      endpoint            = azurerm_cosmosdb_account.cosmosdb.endpoint
+      location            = var.location
+      resource_group_name = local.resource_group_name
+    }
+
+    storage_account = {
+      location              = var.location
+      resource_id           = azurerm_storage_account.storage_account.id
+      name                  = azurerm_storage_account.storage_account.name
+      primary_blob_endpoint = azurerm_storage_account.storage_account.primary_blob_endpoint
+    }
+
+    ai_search = {
+      name        = azapi_resource.ai_search.name
+      resource_id = azapi_resource.ai_search.id
+      location    = var.location
+    }
   }
 
   tags = var.tags

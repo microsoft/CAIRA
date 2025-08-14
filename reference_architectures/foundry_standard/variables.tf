@@ -51,3 +51,4 @@ variable "tags" {
   default     = null
   description = "(Optional) Tags to be applied to all resources."
 }
+

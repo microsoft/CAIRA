@@ -50,7 +50,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 1. **Register Resource Providers**
 
-   ```bash
+   ```shell
    az provider register --namespace 'Microsoft.CognitiveServices'
    ```
 
@@ -64,44 +64,44 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 1. **Clone the repository**:
 
-   ```bash
+   ```shell
    git clone <repository-url>
    cd reference_architectures/foundry_basic
    ```
 
 1. **Login to your Azure subscription**
 
-    ```bash
+    ```shell
     az login
     ```
 
 1. **Set your active subscription**
 
-    ```bash
+    ```shell
     az account set --subscription "<your_subscription_id>"
     ```
 
 1. **Export the subscription ID as an environment variable to make it available to the AzureRM and AzAPI Terraform providers**
 
-    ```bash
+    ```shell
     export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
     ```
 
 1. **Initialize Terraform**:
 
-   ```bash
+   ```shell
    terraform init
    ```
 
 1. **Review the plan**:
 
-   ```bash
+   ```shell
    terraform plan
    ```
 
 1. **Deploy the infrastructure**:
 
-   ```bash
+   ```shell
    terraform apply
    ```
 
@@ -174,22 +174,21 @@ For issues and questions:
 
 | Name    | Version |
 |---------|---------|
-| azapi   | ~> 2.5  |
 | azurerm | ~> 4.38 |
 
 ## Modules
 
 | Name                  | Source                                   | Version |
 |-----------------------|------------------------------------------|---------|
-| ai\_foundry           | Azure/avm-ptn-aiml-ai-foundry/azurerm    | 0.6.0   |
+| ai\_foundry           | ../../modules/ai_foundry                 | n/a     |
 | application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
+| common\_models        | ../../modules/common_models              | n/a     |
 | naming                | Azure/naming/azurerm                     | 0.4.2   |
 
 ## Resources
 
 | Name                                                                                                                                            | Type     |
 |-------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                     | resource |
 | [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
 | [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group)                   | resource |
 
@@ -203,17 +202,21 @@ For issues and questions:
 | project\_display\_name        | The display name of the AI Foundry project                                                                                                                                                                  | `string`      | `"Default Project"`             |    no    |
 | project\_name                 | The name of the AI Foundry project                                                                                                                                                                          | `string`      | `"default-project"`             |    no    |
 | resource\_group\_resource\_id | The resource group resource id where the module resources will be deployed. If not provided, a new resource group will be created.                                                                          | `string`      | `null`                          |    no    |
+| sku                           | The SKU for the AI Foundry resource. The default is 'S0'.                                                                                                                                                   | `string`      | `"S0"`                          |    no    |
 | tags                          | (Optional) Tags to be applied to all resources.                                                                                                                                                             | `map(string)` | `null`                          |    no    |
 
 ## Outputs
 
-| Name                                 | Description                                  |
-|--------------------------------------|----------------------------------------------|
-| ai\_foundry\_id                      | The resource ID of the AI Foundry account.   |
-| ai\_foundry\_model\_deployments\_ids | The IDs of the AI Foundry model deployments. |
-| ai\_foundry\_name                    | The name of the AI Foundry account.          |
-| ai\_foundry\_project\_id             | The resource ID of the AI Foundry Project.   |
-| ai\_foundry\_project\_name           | The name of the AI Foundry Project.          |
-| resource\_group\_id                  | The resource ID of the resource group.       |
-| resource\_group\_name                | The name of the resource group.              |
+| Name                                          | Description                                                                  |
+|-----------------------------------------------|------------------------------------------------------------------------------|
+| ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
+| ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
+| ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
+| ai\_foundry\_project\_id                      | The resource ID of the AI Foundry Project.                                   |
+| ai\_foundry\_project\_identity\_principal\_id | The principal ID of the AI Foundry project system-assigned managed identity. |
+| ai\_foundry\_project\_name                    | The name of the AI Foundry Project.                                          |
+| application\_insights\_id                     | The resource ID of the Application Insights instance.                        |
+| log\_analytics\_workspace\_id                 | The resource ID of the Log Analytics workspace.                              |
+| resource\_group\_id                           | The resource ID of the resource group.                                       |
+| resource\_group\_name                         | The name of the resource group.                                              |
 <!-- END_TF_DOCS -->

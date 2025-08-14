@@ -147,7 +147,8 @@ tasks:
     #   ITEMS:
     #     sh: "task tf:get:modules"
     cmds:
-      - terraform-docs -c ./.github/configs/.terraform-docs.yml .
+      - terraform-docs -c ./.github/configs/.terraform-docs.yml modules
+      - terraform-docs -c ./.github/configs/.terraform-docs.yml reference_architectures
       # - for: { var: ITEMS }
       #   cmd: terraform-docs -c ./.terraform-docs.yml "{{osClean .ITEM}}"
       # - for: { var: ITEMS }

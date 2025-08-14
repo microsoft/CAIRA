@@ -24,19 +24,19 @@ This troubleshooting guide is designed to help you diagnose and resolve common i
 
 * Ensure you are authenticated to the correct Azure account using the Azure CLI:
 
-    ```bash
+    ```shell
     az login
     ```
 
 * Confirm that you have selected the correct Azure subscription:
 
-    ```bash
+    ```shell
     az account set --subscription "<your_subscription_id>"
     ```
 
 * Confirm that the environment variable `ARM_SUBSCRIPTION_ID` is set to the correct subscription ID.
 
-    ```bash
+    ```shell
     export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
     ```
 
@@ -52,7 +52,7 @@ This troubleshooting guide is designed to help you diagnose and resolve common i
 
 * You can use the following command to check your role assignments:
 
-    ```bash
+    ```shell
     az role assignment list --assignee "<your_assignee>"
     ```
 
@@ -66,13 +66,13 @@ This troubleshooting guide is designed to help you diagnose and resolve common i
 
     Verify Terraform installation:
 
-    ```bash
+    ```shell
     terraform version
     ```
 
     Verify Azure CLI installation:
 
-    ```bash
+    ```shell
     az version
     ```
 
@@ -110,7 +110,7 @@ This troubleshooting guide is designed to help you diagnose and resolve common i
 
 * **Enable Debug Logging:** You can increase Terraform's verbosity by setting the `TF_LOG` environment variable:
 
-    ```bash
+    ```shell
     export TF_LOG=DEBUG
     terraform plan
     ```
@@ -119,13 +119,13 @@ This troubleshooting guide is designed to help you diagnose and resolve common i
 
 * **Re-run Terraform Init:** If you suspect an issue with provider plugins or dependencies, try re-running the initialization process:
 
-    ```bash
+    ```shell
     terraform init -reconfigure
     ```
 
 * **Check State Files:** Ensure that the Terraform state files (`terraform.tfstate`) are not corrupted. You can inspect the state file with:
 
-    ```bash
+    ```shell
     terraform show
     ```
 

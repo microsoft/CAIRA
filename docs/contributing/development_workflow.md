@@ -14,17 +14,33 @@ Before you start developing, make sure you have:
 ## Workflow Overview
 
 ```mermaid
-graph LR
-    A[Create Issue] --> B[Fork Repo]
-    B --> C[Clone Fork]
-    C --> D[Create Branch]
-    D --> E[Make Changes]
-    E --> F[Run Tests]
-    F --> G[Commit Changes]
-    G --> H[Push Branch]
-    H --> I[Create PR]
-    I --> J[Code Review]
-    J --> K[Merge]
+flowchart TB
+    subgraph row1 [" "]
+        direction LR
+        A["🎯 Create Issue<br/>Define requirements<br/>and scope"] --> B["🍴 Fork Repository<br/>Create your own<br/>copy to work on"]
+        B --> C["📥 Clone Fork<br/>Download code<br/>to local machine"]
+        C --> D["🌿 Create Branch<br/>Feature/fix branch<br/>from main"]
+    end
+
+    subgraph row2 [" "]
+        direction LR
+        E["✏️ Make Changes<br/>Implement your<br/>solution"] --> F["🧪 Run Tests<br/>Verify code quality<br/>and functionality"]
+        F --> G["💾 Commit Changes<br/>Save progress with<br/>clear messages"]
+        G --> H["⬆️ Push Branch<br/>Upload changes<br/>to your fork"]
+        H --> I["🔄 Create PR<br/>Request merge<br/>to main repo"]
+    end
+
+    subgraph row3 [" "]
+        direction LR
+        J["👀 Code Review<br/>Maintainer feedback<br/>and approval"] --> K["🎉 Merge<br/>Integration into<br/>main branch"]
+    end
+
+    row1 --> row2
+    row2 --> row3
+
+    style row1 fill:none,stroke:none
+    style row2 fill:none,stroke:none
+    style row3 fill:none,stroke:none
 ```
 
 ## 1. Issue-First Development
@@ -61,7 +77,7 @@ Before starting work:
 
 ### Clone Your Fork
 
-```bash
+```shell
 # Clone your fork
 git clone https://github.com/YOUR-USERNAME/CAIRA.git
 cd CAIRA
@@ -94,7 +110,7 @@ Use descriptive branch names that follow this pattern:
 
 **Examples:**
 
-```bash
+```shell
 feature/123_azure-openai-module
 fix/456-terraform-validation-error
 docs/789-update-contributing-guide
@@ -105,7 +121,7 @@ chore/131-update-dependencies
 
 ### Creating a Branch
 
-```bash
+```shell
 # Ensure you're on main and up to date
 git checkout main
 git pull upstream main
@@ -135,7 +151,7 @@ Follow our coding standards:
 
 ### Running Tests and Linting
 
-```bash
+```shell
 # Run all linting checks
 task lint
 
@@ -220,7 +236,7 @@ to be updated.
 
 Run the complete test suite:
 
-```bash
+```shell
 # Lint all code
 task lint
 ```
@@ -284,7 +300,7 @@ See our [Code Review Guidelines](code_review_guidelines.md) for more details.
 
 Regularly sync your fork with the upstream repository:
 
-```bash
+```shell
 # Fetch upstream changes
 git fetch upstream
 
@@ -306,7 +322,7 @@ git rebase main
 
 If your branch has conflicts with main:
 
-```bash
+```shell
 # Fetch latest changes
 git fetch upstream
 
@@ -327,7 +343,7 @@ git push --force-with-lease origin feature/123-your-feature
 
 ### Adding a New Terraform Module
 
-```bash
+```shell
 # Create module directory
 mkdir -p modules/azure-new-service
 

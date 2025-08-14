@@ -1,0 +1,166 @@
+# AI Foundry Terraform Module
+
+Deploys an Azure AI Foundry account, model deployments, and an AI Foundry Project. Optionally connects Application Insights and wires Agent Capability Host connections to Cosmos DB, Storage, and Azure AI Search, including required RBAC assignments.
+
+## Overview
+
+This module provisions:
+
+- Azure AI Foundry account
+- One or more model deployments on the account
+- An AI Foundry Project
+- Optional Application Insights connection to the Project
+- Optional Agent Capability Host for Agents and connections to Cosmos DB, Storage, and AI Search
+- Optional RBAC setup for the Project identity on the connected services (including data-plane Cosmos roles and conditional Storage role assignment)
+
+Designed to be used directly or with the `common_models` module to supply model deployment specs.
+
+## Usage
+
+### Minimal example
+
+```terraform
+data "azurerm_resource_group" "rg" {
+  name = "my-rg"
+}
+
+module "common_models" {
+  source = "../../modules/common_models"
+}
+
+module "ai_foundry" {
+  source = "../../modules/ai_foundry"
+
+  ai_foundry_name   = "my-aif-account"
+  location          = "swedencentral"
+  resource_group_id = data.azurerm_resource_group.rg.id
+
+  # Optional project fields (defaults shown)
+  project_name         = "default-project"
+  project_display_name = "Default Project"
+  project_description  = "Default Project description"
+
+  # Provide at least one model deployment
+  model_deployments = [
+    module.common_models.gpt_4_1,
+    module.common_models.text_embedding_3_large
+  ]
+
+  # Application Insights connection is required (supply from your existing AI/LAW setup)
+  application_insights = {
+    resource_id       = azurerm_application_insights.appi.id
+    name              = azurerm_application_insights.appi.name
+    connection_string = azurerm_application_insights.appi.connection_string
+  }
+
+  # Omit agent_capability_host_connections to skip agent wiring
+}
+```
+
+### With agent capability host connections (BYO resources)
+
+```terraform
+module "ai_foundry" {
+  # ...as above...
+
+  agent_capability_host_connections = {
+    cosmos_db = {
+      resource_id         = azurerm_cosmosdb_account.cosmos.id
+      resource_group_name = azurerm_cosmosdb_account.cosmos.resource_group_name
+      name                = azurerm_cosmosdb_account.cosmos.name
+      endpoint            = azurerm_cosmosdb_account.cosmos.endpoint
+      location            = var.location
+    }
+    storage_account = {
+      resource_id           = azurerm_storage_account.sa.id
+      name                  = azurerm_storage_account.sa.name
+      primary_blob_endpoint = azurerm_storage_account.sa.primary_blob_endpoint
+      location              = var.location
+    }
+    ai_search = {
+      resource_id = azapi_resource.search.id
+      name        = azapi_resource.search.name
+      location    = var.location
+    }
+
+    # Set to false if RBAC is managed externally
+    create_required_role_assignments = true
+  }
+}
+```
+
+Notes:
+
+- If `create_required_role_assignments` is true, the module grants the Project identity RBAC on Cosmos DB (Cosmos DB Operator), Storage (Storage Blob Data Contributor + conditional Storage Blob Data Owner for project containers), and Search (Search Index Data Contributor, Search Service Contributor). It also creates Cosmos SQL data-plane role assignments on three collections used by agents.
+- The module uses timed waits to allow identity propagation and RBAC consistency before binding the capability host.
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name      | Version        |
+|-----------|----------------|
+| terraform | >= 1.10, < 2.0 |
+| azapi     | ~> 2.5         |
+| azurerm   | ~> 4.38        |
+| random    | ~> 3.7         |
+| time      | 0.13.1         |
+
+## Providers
+
+| Name    | Version |
+|---------|---------|
+| azapi   | ~> 2.5  |
+| azurerm | ~> 4.38 |
+| time    | 0.13.1  |
+
+## Resources
+
+| Name                                                                                                                                                                                                     | Type     |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                          | resource |
+| [azapi_resource.ai_foundry_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                          | resource |
+| [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
+| [azapi_resource.ai_foundry_project_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                  | resource |
+| [azapi_resource.ai_search_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                | resource |
+| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                              | resource |
+| [azapi_resource.cosmosdb_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                 | resource |
+| [azapi_resource.storage_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
+| [azurerm_cognitive_deployment.model_deployments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_deployment)                                                   | resource |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_entity_store_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)         | resource |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_system_thread_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)        | resource |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_user_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
+| [azurerm_role_assignment.cosmosdb_operator_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                          | resource |
+| [azurerm_role_assignment.search_index_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
+| [azurerm_role_assignment.search_service_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                 | resource |
+| [azurerm_role_assignment.storage_blob_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
+| [azurerm_role_assignment.storage_blob_data_owner_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                    | resource |
+| [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/0.13.1/docs/resources/sleep)                                                                                 | resource |
+| [time_sleep.wait_rbac](https://registry.terraform.io/providers/hashicorp/time/0.13.1/docs/resources/sleep)                                                                                               | resource |
+
+## Inputs
+
+| Name                                 | Description                                                                 | Type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Default                         | Required |
+|--------------------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------|:--------:|
+| ai\_foundry\_name                    | The name of the AI Foundry resource.                                        | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | n/a                             |   yes    |
+| application\_insights                | Configuration for Application Insights connection.                          | <pre>object({<br/>    resource_id       = string<br/>    name              = string<br/>    connection_string = string<br/>  })</pre>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | n/a                             |   yes    |
+| location                             | The Azure region where the AI Foundry resource will be deployed.            | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | n/a                             |   yes    |
+| model\_deployments                   | A map of model deployments to be created in the AI Foundry resource.        | <pre>list(object({<br/>    name    = string<br/>    version = string<br/>    format  = string<br/>    sku = optional(object({<br/>      name     = string<br/>      capacity = number<br/>      }), {<br/>      name     = "GlobalStandard"<br/>      capacity = 1<br/>    })<br/>  }))</pre>                                                                                                                                                                                                                                                                                                                                                                                                       | n/a                             |   yes    |
+| resource\_group\_id                  | The ID of the resource group where the AI Foundry resource will be created. | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | n/a                             |   yes    |
+| agent\_capability\_host\_connections | Connections for AI Foundry agents.                                          | <pre>object({<br/>    cosmos_db = object({<br/>      resource_id         = string<br/>      resource_group_name = string<br/>      name                = string<br/>      endpoint            = string<br/>      location            = string<br/>    })<br/>    ai_search = object({<br/>      resource_id = string<br/>      name        = string<br/>      location    = string<br/>    })<br/>    storage_account = object({<br/>      resource_id           = string<br/>      name                  = string<br/>      primary_blob_endpoint = string<br/>      location              = string<br/>    })<br/><br/>    create_required_role_assignments = optional(bool, true)<br/>  })</pre> | `null`                          |    no    |
+| project\_description                 | The description of the AI Foundry project                                   | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"Default Project description"` |    no    |
+| project\_display\_name               | The display name of the AI Foundry project                                  | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"Default Project"`             |    no    |
+| project\_name                        | The name of the AI Foundry project                                          | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"default-project"`             |    no    |
+| sku                                  | The SKU for the AI Foundry resource.                                        | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"S0"`                          |    no    |
+| tags                                 | A list of tags to apply to the AI Foundry resource.                         | `map(string)`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | `null`                          |    no    |
+
+## Outputs
+
+| Name                                          | Description                                                                  |
+|-----------------------------------------------|------------------------------------------------------------------------------|
+| ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
+| ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
+| ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
+| ai\_foundry\_project\_id                      | The resource ID of the AI Foundry Project.                                   |
+| ai\_foundry\_project\_identity\_principal\_id | The principal ID of the AI Foundry project system-assigned managed identity. |
+| ai\_foundry\_project\_name                    | The name of the AI Foundry Project.                                          |
+<!-- END_TF_DOCS -->

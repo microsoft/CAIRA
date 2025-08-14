@@ -30,19 +30,19 @@ Authenticate to your Azure subscription. Terraform must be able to create and ma
 
 Use the following command to login to Azure:
 
-```bash
+```shell
 az login
 ```
 
 If you have access to multiple subscriptions, you can set the active subscription using the following command:
 
-```bash
+```shell
 az account set --subscription "<your_subscription_id>"
 ```
 
 Export the subscription ID as an environment variable to make it available to the AzureRM and AzAPI Terraform providers:
 
-```bash
+```shell
 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 ```
 
@@ -52,19 +52,19 @@ To ensure everything is set up correctly, run the following commands:
 
 1. **Check Terraform Installation:**
 
-    ```bash
+    ```shell
     terraform version
     ```
 
 1. **Check Azure CLI Installation:**
 
-    ```bash
+    ```shell
     az version
     ```
 
 1. **Verify Azure Authentication:**
 
-    ```bash
+    ```shell
     az account show
     ```
 
@@ -72,7 +72,7 @@ To ensure everything is set up correctly, run the following commands:
 
 1. **Verify the `ARM_SUBSCRIPTION_ID` Environment Variable:**
 
-    ```bash
+    ```shell
     echo $ARM_SUBSCRIPTION_ID
     ```
 

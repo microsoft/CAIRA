@@ -17,6 +17,20 @@ This configuration is designed as a simple development environment for common AI
 - Microsoft-managed file storage
 - Microsoft-managed resources for storing Agents threads and messages
 
+### Standard AI Foundry with Capability Host
+
+This configuration includes everything in the Basic setup and adds explicit capability host connections for data services so you can control where agent data is stored and how it's accessed.
+
+**Deploys Azure AI Foundry with explicit host connections for data sovereignty and compliance**
+
+- Project and default model deployments
+- Explicit agent capability host connections to Azure Cosmos DB, Azure AI Search, and Azure Storage
+- Bring-your-own or module-provisioned dependent services
+- Identity-first defaults (RBAC), ready for enterprise hardening
+- Built-in observability via Log Analytics and Application Insights
+
+See the reference architecture at `reference_architectures/foundry_standard`.
+
 ## Getting Started
 
 To use CAIRA, you'll need to set up your development environment with the required tools and dependencies. The easiest way to do it is using the devcontainer provided in with the repository. If you rather configure the environment manually, follow the directions outlined in [Environment Setup](./docs/environment_setup.md)

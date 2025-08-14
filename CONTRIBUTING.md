@@ -43,7 +43,7 @@ There are many ways to contribute to CAIRA:
 
 ### Testing
 
-```bash
+```shell
 # Run all tests
 task test
 
