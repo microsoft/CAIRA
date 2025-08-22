@@ -3,7 +3,6 @@
 ---
 name: 🐛 Bug Report
 description: If something isn't working
-title: "[BUG] "
 labels: ["type/bug"]
 type: Bug
 projects: ["microsoft/1366"]

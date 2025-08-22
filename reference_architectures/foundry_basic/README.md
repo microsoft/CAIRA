@@ -1,3 +1,20 @@
+<!-- META
+title: Azure AI Foundry - Basic Configuration
+description: This Terraform configuration deploys a baseline Azure AI Foundry environment designed for development and experimentation with AI workloads.
+author: CAIRA Team
+ms.date: 08/14/2025
+ms.topic: architecture
+estimated_reading_time: 7
+keywords:
+   - reference architecture
+   - azure ai foundry
+   - basic configuration
+   - terraform
+   - application insights
+   - log analytics
+   - model deployments
+-->
+
 # Azure AI Foundry - Basic Configuration
 
 This Terraform configuration deploys a baseline Azure AI Foundry environment designed for development and experimentation with AI workloads. It provides a simple, cost-effective setup that includes all essential components for building, testing, and monitoring AI applications.
@@ -167,14 +184,14 @@ For issues and questions:
 | Name      | Version        |
 |-----------|----------------|
 | terraform | >= 1.10, < 2.0 |
-| azapi     | ~> 2.5         |
-| azurerm   | ~> 4.38        |
+| azapi     | ~> 2.6         |
+| azurerm   | ~> 4.40        |
 
 ## Providers
 
 | Name    | Version |
 |---------|---------|
-| azurerm | ~> 4.38 |
+| azurerm | ~> 4.40 |
 
 ## Modules
 

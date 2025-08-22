@@ -33,7 +33,7 @@ tasks:
 
   # * Release preparation
   # Usage example:
-  #   task project:release:prep -- azureml_rag_secure
+  #   task project:release:prep -- foundry_basic
   release:prep:
     desc: Prepare the project for a new release
     vars:
@@ -44,11 +44,11 @@ tasks:
           {{if eq OS "windows"}}
             {{.PWSH}} '(changie next auto --project "{{.CLI_ARGS}}") -replace "{{.CLI_ARGS}}", ""'
           {{else}}
-            ver=$(changie next auto --project "{{.CLI_ARGS}}")
-            echo "${ver//{{.CLI_ARGS}}/}"
+            version=$(changie next auto --project "{{.CLI_ARGS}}")
+            echo "${version//{{.CLI_ARGS}}/}"
           {{end}}
       COMMIT: "chore(release): {{.CLI_ARGS}}/{{.VERSION}}"
-      BRANCH: "release/{{.CLI_ARGS}}/{{.VERSION}}"
+      BRANCH: "release/{{.CLI_ARGS}}-{{.VERSION}}"
     preconditions:
       - sh: task internal:command -- gh
         msg: "GitHub CLI is not installed. Please install GitHub CLI: https://cli.github.com/"

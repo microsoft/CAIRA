@@ -36,7 +36,7 @@ resource "azurerm_resource_group" "this" {
 locals {
   base_name                  = "standard" # Used as the semantic prefix for naming resources
   resource_group_resource_id = var.resource_group_resource_id != null ? var.resource_group_resource_id : azurerm_resource_group.this[0].id
-  resource_group_name        = var.resource_group_resource_id != null ? split("/", var.resource_group_resource_id)[4] : azurerm_resource_group.this[0].name
+  resource_group_name        = var.resource_group_resource_id != null ? provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.resource_group_resource_id).resource_group_name : azurerm_resource_group.this[0].name
 }
 
 # Core AI Foundry environment module
@@ -73,29 +73,24 @@ module "ai_foundry" {
   }
 
   # If you don't have specific requirements for data sovereignty and resource compliance,
-  # you can remove the agent_connections block and those resource will be managed by the agent service.
-  agent_capability_host_connections = {
-    cosmos_db = {
-      resource_id         = azurerm_cosmosdb_account.cosmosdb.id
-      name                = azurerm_cosmosdb_account.cosmosdb.name
-      endpoint            = azurerm_cosmosdb_account.cosmosdb.endpoint
-      location            = var.location
-      resource_group_name = local.resource_group_name
-    }
-
-    storage_account = {
-      location              = var.location
-      resource_id           = azurerm_storage_account.storage_account.id
-      name                  = azurerm_storage_account.storage_account.name
-      primary_blob_endpoint = azurerm_storage_account.storage_account.primary_blob_endpoint
-    }
-
-    ai_search = {
-      name        = azapi_resource.ai_search.name
-      resource_id = azapi_resource.ai_search.id
-      location    = var.location
-    }
-  }
+  # you can remove this variable, and those resource will be managed by the agent service.
+  agent_capability_host_connections = module.capability_host_resources.connections
 
   tags = var.tags
+}
+
+# This module provisions new resources for AI Foundry agent capability host.
+# If you prefer to use existing resources for the capability host, you can use the
+# existing_resources_agent_capability_host_connections module as a drop-in replacement.
+
+module "capability_host_resources" {
+  source = "../../modules/new_resources_agent_capability_host_connections"
+
+  location                   = var.location
+  resource_group_resource_id = local.resource_group_resource_id
+  tags                       = var.tags
+
+  cosmos_db_account_name = module.naming.cosmosdb_account.name_unique
+  storage_account_name   = module.naming.storage_account.name_unique
+  ai_search_name         = module.naming.search_service.name_unique
 }

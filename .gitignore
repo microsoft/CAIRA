@@ -264,3 +264,6 @@ final_resources_planned.txt
 #backup folders
 .backup/
 *.zip
+
+# Copilot tracking folder
+.copilot-tracking/

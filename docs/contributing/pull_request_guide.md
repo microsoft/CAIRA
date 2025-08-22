@@ -1,3 +1,21 @@
+<!-- META
+title: Pull Request Guide
+description: Instructions for creating, reviewing, and managing pull requests in CAIRA.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 7
+keywords:
+  - pull request
+  - review
+  - contribution
+  - workflow
+  - github
+  - branch management
+  - validation
+  - CAIRA
+-->
+
 # Pull Request Guide
 
 This guide provides comprehensive instructions for creating, reviewing, and managing pull requests in the CAIRA project. Following these guidelines ensures a smooth review process and maintains code quality.

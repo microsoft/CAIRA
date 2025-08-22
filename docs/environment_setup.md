@@ -1,3 +1,21 @@
+<!-- META
+title: Environment Setup
+description: Step-by-step instructions for configuring your environment for CAIRA.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 7
+keywords:
+    - environment setup
+    - prerequisites
+    - CAIRA
+    - azure
+    - configuration
+    - tooling
+    - platform support
+    - developer workflow
+-->
+
 # Environment Setup
 
 ## Overview

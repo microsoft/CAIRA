@@ -35,7 +35,7 @@ resource "azurerm_resource_group" "this" {
 locals {
   base_name                  = "basic" # Used as the semantic prefix for naming resources
   resource_group_resource_id = var.resource_group_resource_id != null ? var.resource_group_resource_id : azurerm_resource_group.this[0].id
-  resource_group_name        = var.resource_group_resource_id != null ? split("/", var.resource_group_resource_id)[4] : azurerm_resource_group.this[0].name
+  resource_group_name        = var.resource_group_resource_id != null ? provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.resource_group_resource_id).resource_group_name : azurerm_resource_group.this[0].name
 }
 
 # Core AI Foundry environment module

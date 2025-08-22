@@ -66,7 +66,7 @@ jobs:
       - name: 🚀 Release
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         run: |
-          gh release create "${RELEASE_TAG}" --verify-tag --title "${RELEASE_TAG}" -F "${CHANGELOG_FILE}"
+          gh release create "${RELEASE_TAG}" --verify-tag --latest=false --title "${RELEASE_TAG}" -F "${CHANGELOG_FILE}"
         env:
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ steps.tag.outputs.release_tag }}

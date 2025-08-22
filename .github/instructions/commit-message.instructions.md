@@ -1,3 +1,7 @@
+---
+description: 'This file provides instructions for generating commit messages in the CAIRA repository. Follow the Conventional Commits specification with recommended scopes and formatting guidelines.'
+---
+
 # Commit Message Instructions
 
 Generate commit messages following the Conventional Commits specification with scope to maintain consistent commit history.

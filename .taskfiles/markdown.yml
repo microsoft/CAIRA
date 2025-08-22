@@ -30,6 +30,29 @@ tasks:
       - task: install:markdownlint
       - task: install:table-formatter
 
+  # * Frontmatter validation
+  frontmatter:
+    desc: Validate markdown frontmatter consistency
+    dir: "{{.ROOT_DIR}}"
+    cmds:
+      - cmd: ./.github/scripts/validate-markdown-frontmatter.sh
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH_SCRIPT}} './.github/scripts/Validate-MarkdownFrontmatter.ps1'
+        platforms: [windows]
+
+  frontmatter:check:
+    desc: >-
+      Validate markdown frontmatter with custom options (use -- to pass args)
+    dir: "{{.ROOT_DIR}}"
+    cmds:
+      - cmd: ./.github/scripts/validate-markdown-frontmatter.sh {{.CLI_ARGS}}
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH_SCRIPT}} \
+            ./.github/scripts/Validate-MarkdownFrontmatter.ps1 {{.CLI_ARGS}}
+        platforms: [windows]
+
   # * Lint
   lint:
     desc: Lint Markdown files

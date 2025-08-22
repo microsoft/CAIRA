@@ -59,6 +59,18 @@ variable "tags" {
   default     = null
 }
 
+variable "agents_subnet_id" {
+  description = "Optional subnet ID to inject the AI Foundry Agents capability host."
+  type        = string
+  default     = null
+}
+
+variable "foundry_subnet_id" {
+  description = "Optional subnet ID to inject the AI Foundry."
+  type        = string
+  default     = null
+}
+
 variable "application_insights" {
   description = "Configuration for Application Insights connection."
   type = object({

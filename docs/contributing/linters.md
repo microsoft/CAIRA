@@ -1,3 +1,21 @@
+<!-- META
+title: Linters
+description: Linting tools and commands for code quality in CAIRA.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: reference
+estimated_reading_time: 5
+keywords:
+    - linters
+    - code quality
+    - automation
+    - tools
+    - markdownlint
+    - terraform lint
+    - security scan
+    - CI/CD
+-->
+
 # Linters
 
 - [GitHub Actions](#github-actions)

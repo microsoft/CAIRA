@@ -6,30 +6,7 @@ CAIRA (Composable AI Reference Architecture) is an infrastructure-as-code baseli
 
 CAIRA provides several baseline configurations for Azure AI Foundry based solutions, so users can have a consistent, scalable, reliable deployment of Azure AI Foundry and supporting infrastructure in an accelerated time frame in support of agentic workloads.
 
-### Basic AI Foundry
-
-This configuration is designed as a simple development environment for common AI workloads such as generative AI application development, building autonomous AI agents capable of performing complex tasks, as well as the evaluation and testing of AI models.
-
-**Deploys Azure AI Foundry with basic setup**
-
-- Project and deployment for getting started
-- Public networking
-- Microsoft-managed file storage
-- Microsoft-managed resources for storing Agents threads and messages
-
-### Standard AI Foundry with Capability Host
-
-This configuration includes everything in the Basic setup and adds explicit capability host connections for data services so you can control where agent data is stored and how it's accessed.
-
-**Deploys Azure AI Foundry with explicit host connections for data sovereignty and compliance**
-
-- Project and default model deployments
-- Explicit agent capability host connections to Azure Cosmos DB, Azure AI Search, and Azure Storage
-- Bring-your-own or module-provisioned dependent services
-- Identity-first defaults (RBAC), ready for enterprise hardening
-- Built-in observability via Log Analytics and Application Insights
-
-See the reference architecture at `reference_architectures/foundry_standard`.
+Look [here for documentation](https://github.com/microsoft/CAIRA/tree/main/reference_architectures) that details the available configurations.
 
 ## Getting Started
 

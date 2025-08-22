@@ -1,3 +1,20 @@
+<!-- META
+title: Development Workflow
+description: Development process, branch management, and best practices for CAIRA.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 7
+keywords:
+    - development workflow
+    - CAIRA
+    - branches
+    - best practices
+    - commit conventions
+    - automation
+    - github
+-->
+
 # Development Workflow
 
 This guide outlines the development process for contributing to CAIRA, including branch management, commit conventions, and development best practices.

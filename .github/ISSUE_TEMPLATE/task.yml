@@ -3,7 +3,6 @@
 ---
 name: ✔️ Task
 description: Task to be done
-title: "[TASK] "
 labels: [type/task]
 type: Task
 projects: ["microsoft/1366"]

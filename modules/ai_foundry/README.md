@@ -1,3 +1,20 @@
+<!-- META
+title: AI Foundry Terraform Module
+description: Deploys an Azure AI Foundry account, model deployments, and an AI Foundry Project.
+author: CAIRA Team
+ms.date: 08/14/2025
+ms.topic: module
+estimated_reading_time: 5
+keywords:
+  - azure ai foundry
+  - terraform module
+  - model deployments
+  - ai project
+  - application insights
+  - rbac
+  - agent capability host
+-->
+
 # AI Foundry Terraform Module
 
 Deploys an Azure AI Foundry account, model deployments, and an AI Foundry Project. Optionally connects Application Insights and wires Agent Capability Host connections to Cosmos DB, Storage, and Azure AI Search, including required RBAC assignments.
@@ -16,6 +33,15 @@ This module provisions:
 Designed to be used directly or with the `common_models` module to supply model deployment specs.
 
 ## Usage
+
+### Private networking (VNet injection)
+
+To deploy AI Foundry in private mode and inject the Agents capability into an existing subnet, set:
+
+- `public_network_access = "Disabled"`
+- `agent_network_injection_subnet_id = "/subscriptions/<subId>/resourceGroups/<rg>/providers/Microsoft.Network/virtualNetworks/<vnet>/subnets/<subnet>"`
+
+When using private endpoints for connected services (Cosmos DB, Storage, AI Search), provide their standard endpoints; private DNS will resolve to private IPs inside your VNet.
 
 ### Minimal example
 
@@ -100,42 +126,50 @@ Notes:
 | Name      | Version        |
 |-----------|----------------|
 | terraform | >= 1.10, < 2.0 |
-| azapi     | ~> 2.5         |
-| azurerm   | ~> 4.38        |
+| azapi     | ~> 2.6         |
+| azurerm   | ~> 4.40        |
 | random    | ~> 3.7         |
-| time      | 0.13.1         |
+| time      | ~> 0.13        |
 
 ## Providers
 
 | Name    | Version |
 |---------|---------|
-| azapi   | ~> 2.5  |
-| azurerm | ~> 4.38 |
-| time    | 0.13.1  |
+| azapi   | ~> 2.6  |
+| azurerm | ~> 4.40 |
+| time    | ~> 0.13 |
 
 ## Resources
 
-| Name                                                                                                                                                                                                     | Type     |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                          | resource |
-| [azapi_resource.ai_foundry_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                          | resource |
-| [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
-| [azapi_resource.ai_foundry_project_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                  | resource |
-| [azapi_resource.ai_search_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                | resource |
-| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                              | resource |
-| [azapi_resource.cosmosdb_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                 | resource |
-| [azapi_resource.storage_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
-| [azurerm_cognitive_deployment.model_deployments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_deployment)                                                   | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_entity_store_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)         | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_system_thread_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)        | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_user_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
-| [azurerm_role_assignment.cosmosdb_operator_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                          | resource |
-| [azurerm_role_assignment.search_index_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
-| [azurerm_role_assignment.search_service_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                 | resource |
-| [azurerm_role_assignment.storage_blob_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
-| [azurerm_role_assignment.storage_blob_data_owner_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                    | resource |
-| [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/0.13.1/docs/resources/sleep)                                                                                 | resource |
-| [time_sleep.wait_rbac](https://registry.terraform.io/providers/hashicorp/time/0.13.1/docs/resources/sleep)                                                                                               | resource |
+| Name                                                                                                                                                                                                     | Type        |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                          | resource    |
+| [azapi_resource.ai_foundry_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                          | resource    |
+| [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource    |
+| [azapi_resource.ai_foundry_project_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                  | resource    |
+| [azapi_resource.ai_search_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                | resource    |
+| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                              | resource    |
+| [azapi_resource.cosmosdb_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                 | resource    |
+| [azapi_resource.storage_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource    |
+| [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action)                                                                      | resource    |
+| [azurerm_cognitive_deployment.model_deployments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_deployment)                                                   | resource    |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_entity_store_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)         | resource    |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_system_thread_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)        | resource    |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_user_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource    |
+| [azurerm_private_endpoint.ai_foundry_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint)                                                               | resource    |
+| [azurerm_role_assignment.cosmosdb_operator_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                          | resource    |
+| [azurerm_role_assignment.search_index_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource    |
+| [azurerm_role_assignment.search_service_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                 | resource    |
+| [azurerm_role_assignment.storage_blob_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource    |
+| [azurerm_role_assignment.storage_blob_data_owner_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                    | resource    |
+| [time_sleep.ai_search_connection_destroy_delay](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                      | resource    |
+| [time_sleep.wait_before_purge](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                                       | resource    |
+| [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                                 | resource    |
+| [time_sleep.wait_rbac](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                                               | resource    |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config)                                                                        | data source |
+| [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)                                                              | data source |
+| [azurerm_private_dns_zone.cognitive](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)                                                                | data source |
+| [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)                                                                   | data source |
 
 ## Inputs
 
@@ -147,6 +181,8 @@ Notes:
 | model\_deployments                   | A map of model deployments to be created in the AI Foundry resource.        | <pre>list(object({<br/>    name    = string<br/>    version = string<br/>    format  = string<br/>    sku = optional(object({<br/>      name     = string<br/>      capacity = number<br/>      }), {<br/>      name     = "GlobalStandard"<br/>      capacity = 1<br/>    })<br/>  }))</pre>                                                                                                                                                                                                                                                                                                                                                                                                       | n/a                             |   yes    |
 | resource\_group\_id                  | The ID of the resource group where the AI Foundry resource will be created. | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | n/a                             |   yes    |
 | agent\_capability\_host\_connections | Connections for AI Foundry agents.                                          | <pre>object({<br/>    cosmos_db = object({<br/>      resource_id         = string<br/>      resource_group_name = string<br/>      name                = string<br/>      endpoint            = string<br/>      location            = string<br/>    })<br/>    ai_search = object({<br/>      resource_id = string<br/>      name        = string<br/>      location    = string<br/>    })<br/>    storage_account = object({<br/>      resource_id           = string<br/>      name                  = string<br/>      primary_blob_endpoint = string<br/>      location              = string<br/>    })<br/><br/>    create_required_role_assignments = optional(bool, true)<br/>  })</pre> | `null`                          |    no    |
+| agents\_subnet\_id                   | Optional subnet ID to inject the AI Foundry Agents capability host.         | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `null`                          |    no    |
+| foundry\_subnet\_id                  | Optional subnet ID to inject the AI Foundry.                                | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `null`                          |    no    |
 | project\_description                 | The description of the AI Foundry project                                   | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"Default Project description"` |    no    |
 | project\_display\_name               | The display name of the AI Foundry project                                  | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"Default Project"`             |    no    |
 | project\_name                        | The name of the AI Foundry project                                          | `string`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `"default-project"`             |    no    |

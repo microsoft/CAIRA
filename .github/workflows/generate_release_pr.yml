@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: Generate release PR
+
+on:
+  workflow_dispatch:
+    inputs: #checkov:skip=CKV_GHA_7
+      project:
+        type: choice
+        description: Project to release
+        options:
+          - foundry_basic
+          - foundry_basic_private
+          - foundry_standard
+          - foundry_standard_private
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-release-pr:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: 🚧 Setup Changie
+        uses: miniscruff/changie-action@6dcc2533cac0495148ed4046c438487e4dceaa23 # v2.0.0
+        with:
+          version: latest
+          args: --version
+
+      - name: 📜 Compile Changelog
+        id: changelog
+        run: |
+          changie batch auto --project "${PROJECT}"
+          changie merge
+          version=$(changie latest --project "${PROJECT}")
+          version="${version//$PROJECT/}"
+          echo "version=${version}" >>"$GITHUB_OUTPUT"
+        env:
+          PROJECT: ${{ github.event.inputs.project }}
+
+      - name: 📤 Create Pull Request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          title: "chore(release): ${{ github.event.inputs.project }}/${{ steps.changelog.outputs.version }}"
+          branch: "release/${{ github.event.inputs.project }}-${{ steps.changelog.outputs.version }}"
+          commit-message: "chore(release): ${{ github.event.inputs.project }}/${{ steps.changelog.outputs.version }}"
+          body-path: "./.changes/${{ github.event.inputs.project }}/${{ steps.changelog.outputs.version }}.md"

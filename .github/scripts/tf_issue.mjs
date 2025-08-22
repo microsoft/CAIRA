@@ -60,6 +60,10 @@ export default async ({ context, github, core }) => {
     const tfTestExitCode = core.getInput('TFTEST_EXITCODE') || 'unknown'
     const tfTestStdoutFile = core.getInput('TFTEST_STDOUT_FILE') || 'tftest_stdout.out'
     const tfTestStderrFile = core.getInput('TFTEST_STDERR_FILE') || 'tftest_stderr.out'
+    const owner =
+      context.eventName === 'pull_request' || context.eventName === 'pull_request_target'
+        ? context.actor
+        : core.getInput('OWNER')
 
     // Variables
     const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
@@ -179,7 +183,7 @@ ${tfPlanResult.truncatedMessage}
 
 ${tfTestExitCode !== 'unknown' ? testBody : ''}
 
-*Pusher: @${context.actor}, Action: \`${context.eventName}\`, Working Directory: \`${workDir}\`, Workflow: \`${
+*Pusher: @${owner}, Action: \`${context.eventName}\`, Working Directory: \`${workDir}\`, Workflow: \`${
       context.workflow
     }\`*
 `

@@ -1,3 +1,20 @@
+<!-- META
+title: Types of Contributions
+description: Guide to contribution types and expectations for CAIRA.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 6
+keywords:
+    - contributions
+    - community
+    - documentation
+    - code
+    - issue management
+    - review process
+    - CAIRA
+-->
+
 # Types of Contributions
 
 CAIRA welcomes contributions of all types and skill levels. This guide outlines the different ways you can contribute.

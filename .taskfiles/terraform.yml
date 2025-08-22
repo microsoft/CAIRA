@@ -149,6 +149,7 @@ tasks:
     cmds:
       - terraform-docs -c ./.github/configs/.terraform-docs.yml modules
       - terraform-docs -c ./.github/configs/.terraform-docs.yml reference_architectures
+      - terraform-docs -c ./.github/configs/.terraform-docs.yml testing
       # - for: { var: ITEMS }
       #   cmd: terraform-docs -c ./.terraform-docs.yml "{{osClean .ITEM}}"
       # - for: { var: ITEMS }
@@ -180,11 +181,14 @@ tasks:
         platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
+  # * Run Unit Test
   test:unit:
     desc: Run terraform unit tests
     silent: true
+    status:
+      - test ! -d "tests/unit"
     cmds:
-      # - terraform init -upgrade
+      - terraform init -upgrade -test-directory="tests/unit"
       - terraform test -test-directory="tests/unit" -junit-xml="testunit-results.xml" -verbose
     dir: "{{.USER_WORKING_DIR}}"
 
@@ -202,11 +206,14 @@ tasks:
           popd
     dir: "{{.ROOT_DIR}}"
 
+  # * Run Acceptance Test
   test:acc:
     desc: Run terraform acceptance tests
     silent: true
+    status:
+      - test ! -d "tests/acceptance"
     cmds:
-      # - terraform init -upgrade
+      - terraform init -upgrade -test-directory="tests/acceptance"
       - terraform test -test-directory="tests/acceptance" -junit-xml="testacc-results.xml" -verbose
     dir: "{{.USER_WORKING_DIR}}"
 
@@ -224,11 +231,14 @@ tasks:
           popd
     dir: "{{.ROOT_DIR}}"
 
+  # * Run Integration Test
   test:int:
     desc: Run terraform integration tests
     silent: true
+    status:
+      - test ! -d "tests/integration"
     cmds:
-      # - terraform init -upgrade
+      - terraform init -upgrade -test-directory="tests/integration"
       - terraform test -test-directory="tests/integration" -junit-xml="testint-results.xml" -verbose
     dir: "{{.USER_WORKING_DIR}}"
 

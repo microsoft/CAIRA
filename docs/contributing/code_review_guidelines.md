@@ -1,3 +1,21 @@
+<!-- META
+title: Code Review Guidelines
+description: Best practices for inclusive, constructive code reviews in the CAIRA project.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 7
+keywords:
+  - code review
+  - best practices
+  - inclusive reviews
+  - quality
+  - feedback
+  - pull requests
+  - review workflow
+  - CAIRA
+-->
+
 # Code Review Guidelines
 
 This guide outlines best practices for conducting inclusive, constructive code reviews in the CAIRA project. Good code reviews improve code quality, share knowledge, and build a welcoming community.

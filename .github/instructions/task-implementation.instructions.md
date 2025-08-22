@@ -45,7 +45,7 @@ Implementation progress is tracked in corresponding changes files located in `.c
 ### 3. Implementation Quality Standards
 
 **Every implementation MUST:**
-- Follow existing workspace patterns and conventions (check `copilot/` folder for standards)
+- Follow existing workspace patterns and conventions (check `.github/guidance/` folder for standards)
 - Implement complete, working functionality that meets all task requirements
 - Include appropriate error handling and validation
 - Use consistent naming conventions and code structure from the workspace
@@ -118,11 +118,11 @@ Implementation progress is tracked in corresponding changes files located in `.c
 ## Success Criteria
 
 Implementation is complete when:
-- ✅ All plan tasks are marked complete `[x]`
-- ✅ All specified files contain working, tested code
-- ✅ Code follows workspace patterns and conventions
-- ✅ All functionality works as expected within the project
-- ✅ Changes file documents all phases with detailed release-ready documentation and final release summary
+- All plan tasks are marked complete `[x]`
+- All specified files contain working, tested code
+- Code follows workspace patterns and conventions
+- All functionality works as expected within the project
+- Changes file documents all phases with detailed release-ready documentation and final release summary
 
 ## Template Changes File
 

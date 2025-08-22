@@ -3,7 +3,6 @@
 ---
 name: 🚀 Feature Request
 description: Suggest a feature idea for this project
-title: "[FEAT] "
 labels: [type/feature]
 type: Feature
 projects: ["microsoft/1366"]

@@ -53,3 +53,12 @@ projects:
   - key: foundry_basic
     label: foundry_basic
     changelog: reference_architectures/foundry_basic/CHANGELOG.md
+  - key: foundry_basic_private
+    label: foundry_basic_private
+    changelog: reference_architectures/foundry_basic_private/CHANGELOG.md
+  - key: foundry_standard
+    label: foundry_standard
+    changelog: reference_architectures/foundry_standard/CHANGELOG.md
+  - key: foundry_standard_private
+    label: foundry_standard_private
+    changelog: reference_architectures/foundry_standard_private/CHANGELOG.md

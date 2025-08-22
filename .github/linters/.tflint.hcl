@@ -12,7 +12,7 @@ plugin "terraform" {
 
 plugin "terraform" {
   enabled = true
-  version = "0.12.0"
+  version = "0.13.0"
   source  = "github.com/terraform-linters/tflint-ruleset-terraform"
 }
 
@@ -24,7 +24,7 @@ plugin "basic-ext" {
 
 plugin "azurerm" {
   enabled = true
-  version = "0.28.0"
+  version = "0.29.0"
   source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
 }
 

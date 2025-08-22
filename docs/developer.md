@@ -1,3 +1,21 @@
+<!-- META
+title: Developer Guide
+description: Guide for setting up and using the CAIRA development environment.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 6
+keywords:
+  - devcontainer
+  - codespaces
+  - local development
+  - prerequisites
+  - tooling
+  - automation
+  - cross-platform
+  - azure cli
+-->
+
 # Developer Guide
 
 ## Developer Environment

@@ -1,3 +1,21 @@
+<!-- META
+title: Troubleshooting Guide
+description: Solutions for common issues when using CAIRA with Terraform.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: guide
+estimated_reading_time: 6
+keywords:
+    - troubleshooting
+    - terraform
+    - error resolution
+    - diagnostics
+    - CAIRA
+    - deployment issues
+    - support workflow
+    - configuration
+-->
+
 # Troubleshooting Guide
 
 This troubleshooting guide is designed to help you diagnose and resolve common issues that may arise when using the Composable AI Reference Architectures (CAIRA) with Terraform. If you encounter a problem, please review the sections below before seeking further assistance.

@@ -1,3 +1,17 @@
+<!-- META
+title: Common Models Terraform Module
+description: Provides a catalog of commonly used model deployment specifications as Terraform outputs.
+author: CAIRA Team
+ms.date: 08/14/2025
+ms.topic: module
+estimated_reading_time: 3
+keywords:
+  - terraform module
+  - model catalogs
+  - model deployments
+  - azure ai foundry
+-->
+
 # Common Models Terraform Module
 
 Provides a catalog of commonly used model deployment specifications as Terraform outputs. Intended to be consumed by other modules (e.g., `ai_foundry`) to supply the `model_deployments` input.

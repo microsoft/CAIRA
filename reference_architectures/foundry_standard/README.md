@@ -1,3 +1,21 @@
+<!-- META
+title: Azure AI Foundry - Standard Configuration
+description: This Terraform configuration deploys an Azure AI Foundry environment that delivers all the capabilities of the basic configuration and adds enterprise features for data sovereignty and resource compliance.
+author: CAIRA Team
+ms.date: 08/14/2025
+ms.topic: architecture
+estimated_reading_time: 9
+keywords:
+  - reference architecture
+  - azure ai foundry
+  - standard configuration
+  - terraform
+  - rbac
+  - data sovereignty
+  - resource compliance
+  - model deployments
+-->
+
 # Azure AI Foundry - Standard Configuration
 
 This Terraform configuration deploys an Azure AI Foundry environment that delivers all the capabilities of the basic configuration and adds features that supports data sovereignty and resource compliance. It lets you explicitly control which Azure Cosmos DB, Azure AI Search, and Azure Storage resources your agents use, so data stays where you need it and access is governed according to your policies.
@@ -162,7 +180,7 @@ module "ai_foundry" {
 
 **Role assignments**: The AI Foundry Project uses a managed identity. The module includes role assignment wiring for the provided host connections; verify and adjust as needed in `modules/ai_foundry/agent_capability_host_connections.role_assignments.tf`. The output `ai_foundry_project_identity_principal_id` is provided for audits or custom RBAC.
 
-**Networking and compliance**: Defaults keep public network access enabled for simplicity. For stricter environments, apply your organization’s policies (private endpoints/VNET integration, customer-managed keys, firewall rules) and update the resources accordingly.
+**Networking and compliance**: Defaults keep public network access enabled for simplicity. For stricter environments, apply your organization's policies (private endpoints/VNET integration, customer-managed keys, firewall rules) and update the resources accordingly.
 
 ## Monitoring and Observability
 
@@ -189,34 +207,31 @@ module "ai_foundry" {
 | Name      | Version        |
 |-----------|----------------|
 | terraform | >= 1.10, < 2.0 |
-| azapi     | ~> 2.5         |
-| azurerm   | ~> 4.38        |
+| azapi     | ~> 2.6         |
+| azurerm   | ~> 4.40        |
 
 ## Providers
 
 | Name    | Version |
 |---------|---------|
-| azapi   | ~> 2.5  |
-| azurerm | ~> 4.38 |
+| azurerm | ~> 4.40 |
 
 ## Modules
 
-| Name                  | Source                                   | Version |
-|-----------------------|------------------------------------------|---------|
-| ai\_foundry           | ../../modules/ai_foundry                 | n/a     |
-| application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
-| common\_models        | ../../modules/common_models              | n/a     |
-| naming                | Azure/naming/azurerm                     | 0.4.2   |
+| Name                        | Source                                                        | Version |
+|-----------------------------|---------------------------------------------------------------|---------|
+| ai\_foundry                 | ../../modules/ai_foundry                                      | n/a     |
+| application\_insights       | Azure/avm-res-insights-component/azurerm                      | 0.2.0   |
+| capability\_host\_resources | ../../modules/new_resources_agent_capability_host_connections | n/a     |
+| common\_models              | ../../modules/common_models                                   | n/a     |
+| naming                      | Azure/naming/azurerm                                          | 0.4.2   |
 
 ## Resources
 
 | Name                                                                                                                                            | Type     |
 |-------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| [azapi_resource.ai_search](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                  | resource |
-| [azurerm_cosmosdb_account.cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_account)           | resource |
 | [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
 | [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group)                   | resource |
-| [azurerm_storage_account.storage_account](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account)      | resource |
 
 ## Inputs
 
@@ -235,17 +250,15 @@ module "ai_foundry" {
 
 | Name                                          | Description                                                                  |
 |-----------------------------------------------|------------------------------------------------------------------------------|
+| agent\_capability\_host\_connections          | The connections used for the agent capability host.                          |
 | ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
 | ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
 | ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
 | ai\_foundry\_project\_id                      | The resource ID of the AI Foundry Project.                                   |
 | ai\_foundry\_project\_identity\_principal\_id | The principal ID of the AI Foundry project system-assigned managed identity. |
 | ai\_foundry\_project\_name                    | The name of the AI Foundry Project.                                          |
-| ai\_search\_service\_id                       | The resource ID of the AI Search service.                                    |
 | application\_insights\_id                     | The resource ID of the Application Insights instance.                        |
-| cosmosdb\_account\_id                         | The resource ID of the Cosmos DB account.                                    |
 | log\_analytics\_workspace\_id                 | The resource ID of the Log Analytics workspace.                              |
 | resource\_group\_id                           | The resource ID of the resource group.                                       |
 | resource\_group\_name                         | The name of the resource group.                                              |
-| storage\_account\_id                          | The resource ID of the Storage account.                                      |
 <!-- END_TF_DOCS -->

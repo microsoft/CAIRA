@@ -1,3 +1,11 @@
+<!-- META
+title: CAIRA Documentation
+description: Index of documentation for developing and contributing to the CAIRA project.
+author: CAIRA Team
+ms.date: 08/18/2025
+ms.topic: overview
+-->
+
 # CAIRA Documentation
 
 Welcome to the CAIRA (Composable AI Reference Architecture) documentation! This directory contains comprehensive guides for developers, contributors, and users working with Azure AI Foundry reference architectures.
@@ -22,31 +30,14 @@ Welcome to the CAIRA (Composable AI Reference Architecture) documentation! This 
 
 ### Reference Architectures
 
-- **[Foundry Basic](https://github.com/microsoft/CAIRA/tree/main/reference_architectures/foundry_basic)** - Minimal AI Foundry setup
-- **[Foundry Standard](https://github.com/microsoft/CAIRA/tree/main/reference_architectures/foundry_standard)** - Enterprise-ready configuration
-
-### Terraform Modules
-
-- **[AI Foundry Module](https://github.com/microsoft/CAIRA/tree/main/modules/ai_foundry)** - Core AI Foundry infrastructure
-- **[Common Models](https://github.com/microsoft/CAIRA/tree/main/modules/common_models)** - Shared model configurations
-
-## 📖 Documentation Structure
-
-```text
-docs/
-├── README.md                    # This file - documentation index
-├── developer.md                 # Developer setup and workflows
-├── environment_setup.md         # Environment configuration
-├── troubleshooting.md          # Common issues and solutions
-└── contributing/               # Contribution guidelines
-    ├── code_review_guidelines.md
-    ├── development_workflow.md
-    ├── linters.md
-    ├── pull_request_guide.md
-    └── types_of_contributions.md
-```
+Look [here for documentation](https://github.com/microsoft/CAIRA/tree/main/reference_architectures) that details the available configurations.
 
 ## 🎯 Quick Start Paths
+
+### For Users
+
+1. Look [here for documentation](https://github.com/microsoft/CAIRA/tree/main/reference_architectures) that details the available configurations.
+1. ❓ [Troubleshooting](troubleshooting.md) - Get help with deployment issues
 
 ### For New Contributors
 
@@ -61,12 +52,6 @@ docs/
 1. 🏗️ [Architecture Documentation](#️-architecture-documentation) - Understand CAIRA components
 1. 🧪 [Linting Tools](contributing/linters.md) - Code quality requirements
 1. 🔍 [Troubleshooting](troubleshooting.md) - Resolve common issues
-
-### For Users
-
-1. 🚀 [Foundry Basic](https://github.com/microsoft/CAIRA/tree/main/reference_architectures/foundry_basic) - Start with basic setup
-1. 🏢 [Foundry Standard](https://github.com/microsoft/CAIRA/tree/main/reference_architectures/foundry_standard) - Enterprise deployment
-1. ❓ [Troubleshooting](troubleshooting.md) - Get help with deployment issues
 
 ## 🔧 Development Tools
 
