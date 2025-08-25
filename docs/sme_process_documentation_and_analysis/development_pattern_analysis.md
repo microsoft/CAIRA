@@ -167,19 +167,61 @@ This analysis identifies and catalogs repeatable development patterns within CAI
 
 ---
 
-## 5. Complexity Scoring for Automation Feasibility
+### 5.1 Pattern Complexity Scoring Matrix (ICI Framework)
 
-### 5.1 Pattern Complexity Scoring Matrix
+Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Complexity Index (ICI) quantifies pattern complexity through integration points, data transformations, protocol transitions, and asynchronous operations.
 
-```text
-// TODO
-```
+**ICI Formula**: Integration Points + (Data Transformations × 2) + (Protocol Transitions × 2) + (Async Operations × 3)
 
-### 5.2 Automation Recommendations by Complexity
+| Pattern | Integration Points | Data Transforms | Protocol Transitions | Async Operations | ICI Score | Automation Feasibility |
+|---------|-------------------|-----------------|---------------------|-----------------|-----------|----------------------|
+| Basic AI Foundry Setup | 2 | 0 | 0 | 0 | **2** | Full Automation |
+| Multi-Project Setup | 3 | 1 | 0 | 0 | **5** | Full Automation |
+| RBAC Configuration | 5 | 1 | 0 | 1 | **10** | High Automation |
+| CMK Encryption | 4 | 2 | 1 | 1 | **13** | Semi-Automation |
+| Enterprise Network Isolation | 6 | 2 | 3 | 1 | **19** | Semi-Automation |
+| Capability Host Lifecycle | 6 | 3 | 2 | 2 | **22** | Guided Assistance |
+| Agent Service Configuration | 9 | 4 | 5 | 3 | **36** | Expert Guidance |
 
-```text
-// TODO
-```
+**Automation Feasibility Thresholds**:
+- **Full Automation** (ICI 0-5): Direct template deployment, no user intervention
+- **High Automation** (ICI 6-12): Template with validation checkpoints
+- **Semi-Automation** (ICI 13-20): Multi-stage with user confirmation gates
+- **Guided Assistance** (ICI 21-30): Step-by-step manual execution with guidance
+- **Expert Guidance** (ICI 31+): Complex manual implementation with expert support
+
+### 5.2 Key Complexity Drivers
+
+**Integration Points** (1x multiplier):
+- Each external service or resource that must be connected
+- Example: Agent Service requires 9 integrations (VNet, Subnets, Container Apps, Cosmos DB, AI Search, Storage, DNS, Capability Hosts, Projects)
+
+**Data Transformations** (2x multiplier):
+- Format changes, mappings, or conversions required
+- Example: Connection IDs must be transformed to arrays for capability hosts
+
+**Protocol Transitions** (2x multiplier):
+- Changes in communication protocols or deployment methods
+- Example: Portal → IaC mandatory for agent-enabled scenarios
+
+**Async Operations** (3x multiplier):
+- Operations requiring wait states or eventual consistency
+- Example: Capability host destroy/recreate cycles, DNS propagation
+
+### 5.3 Automation Priority Recommendations
+
+**Priority 1 - Immediate Automation** (ICI ≤ 12):
+- Basic AI Foundry Setup (2)
+- Multi-Project Setup (5)
+- RBAC Configuration (10)
+
+**Priority 2 - Phased Automation** (ICI 13-20):
+- CMK Encryption (13)
+- Enterprise Network Isolation (19)
+
+**Priority 3 - Guided Implementation** (ICI > 20):
+- Capability Host Lifecycle (22)
+- Agent Service Configuration (36)
 
 ---
 
