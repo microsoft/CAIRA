@@ -101,11 +101,13 @@ Based on the three-tier deployment architecture defined in the CAIRA SME knowled
 ### 2.1 Tier 1: Basic AI Foundry Template Structure
 
 **Scenario Characteristics** (from document):
+
 - Target Users: "Customers who trust Microsoft defaults"
 - Complexity: "Low"
 - Portal Support: "Full portal support available"
 
 **Required Components**:
+
 ```yaml
 Core_AI_Foundry_Components:
   - AI Foundry Account (Cognitive services account, kind: AI services)
@@ -130,12 +132,14 @@ Deployment_Method:
 ### 2.2 Tier 2: Enterprise AI Foundry Template Structure
 
 **Scenario Characteristics**:
+
 - Target Users: "Enterprise customers with security requirements"
 - Approach: "BYOD (Bring Your Own Device) resource management"
 - Complexity: "High"
 - Portal Support: "Limited - basic isolation possible through portal"
 
 **Required Components**:
+
 ```yaml
 Customer_Provided_Prerequisites:
   - Virtual Network (customer VNet - never create within CAIRA modules)
@@ -166,11 +170,13 @@ Deployment_Method:
 ### 2.3 Tier 3: Agent-Enabled Enterprise AI Foundry Template Structure
 
 **Scenario Characteristics**:
+
 - Target Users: "Enterprise customers requiring protected agents"
 - Complexity: "Highest"
 - Portal Support: "NONE - Infrastructure-as-Code mandatory"
 
 **Required Components**:
+
 ```yaml
 All_Enterprise_Prerequisites_Plus:
   - Container Apps Environment
@@ -212,38 +218,39 @@ Deployment_Method:
   - IaC: MANDATORY (bicep/terraform only)
   - Prerequisites: Container apps environment, subnet delegation
 ```
+
 ---
 
 ## 3. Code Generation Decision Matrices
 
 ### 3.1 Deployment Type Decision Matrix
 
-| Customer Requirement | Portal Possible | IaC Required | Recommended Pattern | Complexity |
-|---------------------|-----------------|--------------|-------------------|------------|
-| Basic PoC/Development | ✅ Yes | ❌ No | Basic Tier | Low |
-| Network Isolation Only | ⚠️ Limited | ✅ Yes | Enterprise Tier | Medium |
-| Protected Agents | ❌ No | ✅ Yes | Agent-Enabled Enterprise | High |
-| Custom DNS | ❌ No | ✅ Yes | Enterprise+ | High |
-| CMK Encryption | ❌ No | ✅ Yes | Enterprise+ | Medium |
-| Multi-Project | ✅ Yes | ✅ Recommended | Any Tier | Low-High |
+| Customer Requirement   | Portal Possible | IaC Required  | Recommended Pattern      | Complexity |
+|------------------------|-----------------|---------------|--------------------------|------------|
+| Basic PoC/Development  | ✅ Yes           | ❌ No          | Basic Tier               | Low        |
+| Network Isolation Only | ⚠️ Limited      | ✅ Yes         | Enterprise Tier          | Medium     |
+| Protected Agents       | ❌ No            | ✅ Yes         | Agent-Enabled Enterprise | High       |
+| Custom DNS             | ❌ No            | ✅ Yes         | Enterprise+              | High       |
+| CMK Encryption         | ❌ No            | ✅ Yes         | Enterprise+              | Medium     |
+| Multi-Project          | ✅ Yes           | ✅ Recommended | Any Tier                 | Low-High   |
 
 ### 3.2 Resource Selection Decision Matrix
 
-| Scenario | AI Search | Cosmos DB | Storage RBAC | App Insights | Container Apps |
-|----------|-----------|-----------|--------------|--------------|----------------|
-| Basic Development | Optional | Optional | Local Auth | Required | Not Supported |
-| Enterprise w/o Agents | Required | Optional | RBAC | Required | Not Required |
-| Enterprise w/ Agents | Required | Required | RBAC | Required | Required |
-| Multi-Region | Required | Required | RBAC | Required | Per Region |
+| Scenario              | AI Search | Cosmos DB | Storage RBAC | App Insights | Container Apps |
+|-----------------------|-----------|-----------|--------------|--------------|----------------|
+| Basic Development     | Optional  | Optional  | Local Auth   | Required     | Not Supported  |
+| Enterprise w/o Agents | Required  | Optional  | RBAC         | Required     | Not Required   |
+| Enterprise w/ Agents  | Required  | Required  | RBAC         | Required     | Required       |
+| Multi-Region          | Required  | Required  | RBAC         | Required     | Per Region     |
 
 ### 3.3 Networking Configuration Decision Matrix
 
-| Network Requirement | Subnet Count | Subnet Sizes | DNS Zones | Delegation Required |
-|--------------------|--------------|--------------|-----------|-------------------|
-| Public Networking | 0 | N/A | 0 | No |
-| Private Endpoints Only | 1 | /28 minimum | 5+ | No |
-| Agent Service | 2+ | /27 agent min, /28 PE | 5+ | Yes (ContainerApps) |
-| Multi-AI Foundry | 2+ per instance | /21 agent recommended | Shared | Yes (unique per instance) |
+| Network Requirement    | Subnet Count    | Subnet Sizes          | DNS Zones | Delegation Required       |
+|------------------------|-----------------|-----------------------|-----------|---------------------------|
+| Public Networking      | 0               | N/A                   | 0         | No                        |
+| Private Endpoints Only | 1               | /28 minimum           | 5+        | No                        |
+| Agent Service          | 2+              | /27 agent min, /28 PE | 5+        | Yes (ContainerApps)       |
+| Multi-AI Foundry       | 2+ per instance | /21 agent recommended | Shared    | Yes (unique per instance) |
 
 ---
 
@@ -253,17 +260,18 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 
 **ICI Formula**: Integration Points + (Data Transformations × 2) + (Protocol Transitions × 2) + (Async Operations × 3)
 
-| Pattern | Integration Points | Data Transforms | Protocol Transitions | Async Operations | ICI Score | Automation Feasibility |
-|---------|-------------------|-----------------|---------------------|-----------------|-----------|----------------------|
-| Basic AI Foundry Setup | 2 | 0 | 0 | 0 | **2** | Full Automation |
-| Multi-Project Setup | 3 | 1 | 0 | 0 | **5** | Full Automation |
-| RBAC Configuration | 5 | 1 | 0 | 1 | **10** | High Automation |
-| CMK Encryption | 4 | 2 | 1 | 1 | **13** | Semi-Automation |
-| Enterprise Network Isolation | 6 | 2 | 3 | 1 | **19** | Semi-Automation |
-| Capability Host Lifecycle | 6 | 3 | 2 | 2 | **22** | Guided Assistance |
-| Agent Service Configuration | 9 | 4 | 5 | 3 | **36** | Expert Guidance |
+| Pattern                      | Integration Points | Data Transforms | Protocol Transitions | Async Operations | ICI Score | Automation Feasibility |
+|------------------------------|--------------------|-----------------|----------------------|------------------|-----------|------------------------|
+| Basic AI Foundry Setup       | 2                  | 0               | 0                    | 0                | **2**     | Full Automation        |
+| Multi-Project Setup          | 3                  | 1               | 0                    | 0                | **5**     | Full Automation        |
+| RBAC Configuration           | 5                  | 1               | 0                    | 1                | **10**    | High Automation        |
+| CMK Encryption               | 4                  | 2               | 1                    | 1                | **13**    | Semi-Automation        |
+| Enterprise Network Isolation | 6                  | 2               | 3                    | 1                | **19**    | Semi-Automation        |
+| Capability Host Lifecycle    | 6                  | 3               | 2                    | 2                | **22**    | Guided Assistance      |
+| Agent Service Configuration  | 9                  | 4               | 5                    | 3                | **36**    | Expert Guidance        |
 
 **Automation Feasibility Thresholds**:
+
 - **Full Automation** (ICI 0-5): Direct template deployment, no user intervention
 - **High Automation** (ICI 6-12): Template with validation checkpoints
 - **Semi-Automation** (ICI 13-20): Multi-stage with user confirmation gates
@@ -273,33 +281,40 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 ### 4.1 Key Complexity Drivers
 
 **Integration Points** (1x multiplier):
+
 - Each external service or resource that must be connected
 - Example: Agent Service requires 9 integrations (VNet, Subnets, Container Apps, Cosmos DB, AI Search, Storage, DNS, Capability Hosts, Projects)
 
 **Data Transformations** (2x multiplier):
+
 - Format changes, mappings, or conversions required
 - Example: Connection IDs must be transformed to arrays for capability hosts
 
 **Protocol Transitions** (2x multiplier):
+
 - Changes in communication protocols or deployment methods
 - Example: Portal → IaC mandatory for agent-enabled scenarios
 
 **Async Operations** (3x multiplier):
+
 - Operations requiring wait states or eventual consistency
 - Example: Capability host destroy/recreate cycles, DNS propagation
 
 ### 4.2 Automation Priority Recommendations
 
 **Priority 1 - Immediate Automation** (ICI ≤ 12):
+
 - Basic AI Foundry Setup (2)
 - Multi-Project Setup (5)
 - RBAC Configuration (10)
 
 **Priority 2 - Phased Automation** (ICI 13-20):
+
 - CMK Encryption (13)
 - Enterprise Network Isolation (19)
 
 **Priority 3 - Guided Implementation** (ICI > 20):
+
 - Capability Host Lifecycle (22)
 - Agent Service Configuration (36)
 
@@ -314,16 +329,16 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
    - Identify matching patterns from catalog
    - Select appropriate template structure
 
-2. **Complexity Assessment Phase**
+1. **Complexity Assessment Phase**
    - Calculate complexity score
    - Determine automation feasibility
    - Select appropriate Copilot strategy
 
-3. **Code Generation Phase**
+1. **Code Generation Phase**
    - Apply selected template
    - Inject customer-specific variables
 
-4. **Validation Phase**
+1. **Validation Phase**
    - Check dependency requirements
    - Validate networking constraints
    - Ensure security compliance
@@ -347,9 +362,9 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 **Next Steps**:
 
 1. Implement Priority 1 automation patterns in Copilot instructions
-2. Develop validation frameworks for medium-complexity patterns
-3. Create expert guidance documentation for low-automation patterns
-4. Establish feedback loops for continuous pattern refinement
+1. Develop validation frameworks for medium-complexity patterns
+1. Create expert guidance documentation for low-automation patterns
+1. Establish feedback loops for continuous pattern refinement
 
 ---
 
