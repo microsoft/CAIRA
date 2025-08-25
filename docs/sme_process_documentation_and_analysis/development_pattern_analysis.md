@@ -94,22 +94,124 @@ This analysis identifies and catalogs repeatable development patterns within CAI
   - Additional configuration complexity
   - Specific scope requirements
 
----
-
 ## 2. Template Structures for Different Architecture Scenarios
 
-### 2.1 Basic AI Foundry Template Structure
+Based on the three-tier deployment architecture defined in the CAIRA SME knowledge, each scenario requires specific components and configurations:
 
-```terraform
-// TODO
+### 2.1 Tier 1: Basic AI Foundry Template Structure
+
+**Scenario Characteristics** (from document):
+- Target Users: "Customers who trust Microsoft defaults"
+- Complexity: "Low"
+- Portal Support: "Full portal support available"
+
+**Required Components**:
+```yaml
+Core_AI_Foundry_Components:
+  - AI Foundry Account (Cognitive services account, kind: AI services)
+  - AI Foundry Projects (with GUID and human-friendly name)
+  - App Insights (required at AI Foundry resource level)
+  - Shared Connections (at AI Foundry level preferred)
+
+Networking_Configuration:
+  - Type: Public networking
+  - DNS: Default Azure DNS
+  - Private Endpoints: None required
+
+Identity_Configuration:
+  - Managed Identity: System-assigned (standard configuration)
+
+Deployment_Method:
+  - Portal: Fully supported
+  - IaC: Optional (terraform/bicep available)
+  - Timeline: "30 minutes from terraform apply to operational instance"
 ```
 
-### 2.2 Enterprise AI Foundry Template Structure
+### 2.2 Tier 2: Enterprise AI Foundry Template Structure
 
-```terraform
-// TODO
+**Scenario Characteristics** (from document):
+- Target Users: "Enterprise customers with security requirements"
+- Approach: "Bring-Your-Own-Resources (BYOD)"
+- Complexity: "High"
+- Portal Support: "Limited - basic isolation possible through portal"
+
+**Required Components**:
+```yaml
+Customer_Provided_Prerequisites:
+  - Virtual Network (customer VNet - never create within CAIRA modules)
+  - Subnets:
+    - Private endpoint subnet (separate from other subnets)
+  - AI Search (vector stores for agent functionality)
+  - Cosmos DB (thread storage - optional, provision throughput or serverless)
+  - Storage Account (file uploads and agent data)
+  - App Insights (depends on Log Analytics workspace)
+  - Private DNS Zones (multiple zones for different service endpoints)
+
+AI_Foundry_Configuration:
+  - All Basic tier components
+  - Network isolation enabled
+  - RBAC configuration across multiple resource scopes
+  - Service principal requirements for specific scopes
+
+Security_Configuration:
+  - Customer Managed Key encryption (requires system-assigned managed identities)
+  - RBAC vs local auth configuration for Storage Account
+
+Deployment_Method:
+  - Portal: Limited support for basic isolation
+  - IaC: Recommended (terraform/bicep)
+  - Prerequisites: Significant networking setup required
 ```
 
+### 2.3 Tier 3: Agent-Enabled Enterprise AI Foundry Template Structure
+
+**Scenario Characteristics** (from document):
+- Target Users: "Enterprise customers requiring protected agents"
+- Complexity: "Highest"
+- Portal Support: "NONE - Infrastructure-as-Code mandatory"
+
+**Required Components**:
+```yaml
+All_Enterprise_Prerequisites_Plus:
+  - Container Apps Environment
+  - Cosmos DB (REQUIRED for thread storage - not optional)
+  - AI Search (REQUIRED for vector stores)
+
+Agent_Specific_Networking:
+  - Agent Subnet:
+    - Minimum size: /27
+    - Recommended size: /21 (production)
+    - Delegation: Microsoft.ContainerApps/environments
+    - Constraint: Cannot reuse for multiple AI Foundry instances
+  - Private Endpoint Subnet (separate from agent subnet)
+  - Multiple Private DNS Zones:
+    - privatelink.cognitiveservices.azure.com
+    - privatelink.openai.azure.com
+    - privatelink.search.windows.net
+    - privatelink.documents.azure.com
+    - privatelink.blob.core.windows.net
+
+Capability_Host_Configuration:
+  - Parent Capability Host (AI Foundry level):
+    - Kind: "agents" (required field)
+    - Creation: IaC only (bicep/terraform)
+    - Lifecycle: Cannot update in-place (destroy/recreate required)
+  - Child Capability Hosts (Project level):
+    - Connection IDs: Must pass as arrays
+    - Dependency: Parent must exist first
+    - Hierarchy: Strict ordering requirement
+
+Regional_Constraints:
+  - Class A Subnets: Limited regions, allowlisting required
+    - Supported: West US, East US, East US 2, Central US, Japan East, France Central, Spain Central, UAE North
+    - Contact: fosteramanda@microsoft.com for allowlisting
+  - Class B/C Subnets: GA in all AI Foundry Agent Service regions
+
+Deployment_Method:
+  - Portal: NOT SUPPORTED
+  - IaC: MANDATORY (bicep/terraform only)
+  - Prerequisites: Container apps environment, subnet delegation
+```
 ---
 
 ## 3. Code Generation Decision Matrices
