@@ -77,7 +77,7 @@ Note: The architecture diagram is similar in shape to the basic configuration wi
 
 1. Azure CLI installed and configured on your local workstation or deployment pipeline server
 
-1. Terraform CLI version v1.10 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
+1. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
 
 ### Standard Deploy
 

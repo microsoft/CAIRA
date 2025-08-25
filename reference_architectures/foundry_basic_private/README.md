@@ -77,7 +77,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 1. Azure CLI installed and configured on your local workstation or deployment pipeline server
 
-1. Terraform CLI version v1.10 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
+1. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
 
 1. An existing virtual network (VNet) in your Azure subscription with a subnet that includes the following private DNS Zones, created in the same resource group as the VNet:
 
