@@ -5,6 +5,8 @@ name: 🔄 Changelog
 on:
   pull_request_target:
     types: [opened, reopened, labeled, unlabeled, synchronize]
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled, synchronize]
 
 concurrency:
   group: ${{ format('{0}-{1}-{2}-{3}-{4}', github.workflow, github.event_name, github.ref, github.base_ref || null, github.head_ref || null) }}
