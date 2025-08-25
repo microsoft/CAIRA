@@ -247,7 +247,7 @@ Deployment_Method:
 
 ---
 
-### 4.1 Pattern Complexity Scoring Matrix (ICI Framework)
+## 4. Pattern Complexity Scoring Matrix (ICI Framework)
 
 Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Complexity Index (ICI) quantifies pattern complexity through integration points, data transformations, protocol transitions, and asynchronous operations.
 
@@ -270,7 +270,7 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 - **Guided Assistance** (ICI 21-30): Step-by-step manual execution with guidance
 - **Expert Guidance** (ICI 31+): Complex manual implementation with expert support
 
-### 4.2 Key Complexity Drivers
+### 4.1 Key Complexity Drivers
 
 **Integration Points** (1x multiplier):
 - Each external service or resource that must be connected
@@ -288,7 +288,7 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 - Operations requiring wait states or eventual consistency
 - Example: Capability host destroy/recreate cycles, DNS propagation
 
-### 5.3 Automation Priority Recommendations
+### 4.2 Automation Priority Recommendations
 
 **Priority 1 - Immediate Automation** (ICI ≤ 12):
 - Basic AI Foundry Setup (2)
@@ -322,7 +322,6 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 3. **Code Generation Phase**
    - Apply selected template
    - Inject customer-specific variables
-   - Implement required integration patterns
 
 4. **Validation Phase**
    - Check dependency requirements
