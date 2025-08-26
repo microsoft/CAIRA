@@ -1,7 +1,0 @@
-project: foundry_standard_private
-kind: fixed
-body: Bumped min terraform version to 1.13
-time: 2025-08-26T14:05:04.076710918Z
-custom:
-    Author: Pablo Zaidenvoren
-    Issue: "26"
