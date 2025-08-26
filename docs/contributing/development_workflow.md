@@ -123,17 +123,19 @@ Use descriptive branch names that follow this pattern:
 - `docs/` - Documentation changes
 - `refactor/` - Code refactoring
 - `test/` - Test improvements
+- `build/` - Build and dependences
+- `ci/` - CI changes
 - `chore/` - Maintenance tasks
 
 **Examples:**
 
 ```shell
 feature/123_azure-openai-module
-fix/456-terraform-validation-error
-docs/789-update-contributing-guide
-refactor/101-module-structure
-test/112-integration-test-coverage
-chore/131-update-dependencies
+fix/456_terraform-validation-error
+docs/789_update-contributing-guide
+refactor/101_module-structure
+test/112_integration-test-coverage
+chore/131_update-dependencies
 ```
 
 ### Creating a Branch
@@ -144,10 +146,10 @@ git checkout main
 git pull upstream main
 
 # Create and switch to your feature branch
-git checkout -b feature/123-azure-openai-module
+git checkout -b feature/123_azure-openai-module
 
 # Push branch to your fork
-git push -u origin feature/123-azure-openai-module
+git push -u origin feature/123_azure-openai-module
 ```
 
 ## 4. Development Process
@@ -180,7 +182,15 @@ task md:lint
 task test
 ```
 
-## 5. Commit Guidelines
+## 5. Changelog
+
+Add clear changelog entries for end-users.
+
+```shell
+task project:changelog -- <ISSUE_NUMBER>
+```
+
+## 6. Commit Guidelines
 
 ### Commit Message Format
 
@@ -201,10 +211,12 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/) specificatio
 - `docs` - Documentation changes
 - `style` - Code style changes (formatting, etc.)
 - `refactor` - Code refactoring
-- `test` - Adding or updating tests
-- `chore` - Maintenance tasks
 - `perf` - Performance improvements
+- `test` - Adding or updating tests
+- `build` - Changes that affect the build system or external dependencies
 - `ci` - CI/CD changes
+- `chore` - Maintenance tasks
+- `revert` - Revert a previous commit
 
 ### Examples
 
@@ -247,7 +259,7 @@ to be updated.
 - **Breaking changes** - Use "BREAKING CHANGE:" in footer
 - **Keep it concise** - 50 characters for title, 72 for body lines
 
-## 6. Testing Requirements
+## 7. Testing Requirements
 
 ### Before Committing
 
@@ -263,7 +275,7 @@ task lint
 - **Integration tests**: Major functionality must be tested
 - **Documentation tests**: Examples must be validated
 
-## 7. Pull Request Process
+## 8. Pull Request Process
 
 ### Before Creating a PR
 
@@ -293,7 +305,7 @@ docs(contributing): update development workflow guide
 
 See our [Pull Request Guide](pull_request_guide.md) for detailed requirements.
 
-## 8. Code Review Process
+## 9. Code Review Process
 
 ### As an Author
 
@@ -311,7 +323,7 @@ See our [Pull Request Guide](pull_request_guide.md) for detailed requirements.
 
 See our [Code Review Guidelines](code_review_guidelines.md) for more details.
 
-## 9. Keeping Your Fork Updated
+## 10. Keeping Your Fork Updated
 
 ### Sync with Upstream
 
@@ -331,7 +343,7 @@ git merge upstream/main
 git push origin main
 
 # Update your feature branch (if needed)
-git checkout feature/123-your-feature
+git checkout feature/123_your-feature
 git rebase main
 ```
 
@@ -344,7 +356,7 @@ If your branch has conflicts with main:
 git fetch upstream
 
 # Rebase your branch
-git checkout feature/123-your-feature
+git checkout feature/123_your-feature
 git rebase upstream/main
 
 # Resolve conflicts in your editor
@@ -353,7 +365,7 @@ git add .
 git rebase --continue
 
 # Force push to update your PR
-git push --force-with-lease origin feature/123-your-feature
+git push --force-with-lease origin feature/123_your-feature
 ```
 
 ## 10. Common Development Tasks
