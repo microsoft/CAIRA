@@ -21,7 +21,7 @@ keywords:
 
 | Name      | Version        |
 |-----------|----------------|
-| terraform | >= 1.10, < 2.0 |
+| terraform | >= 1.13, < 2.0 |
 | azapi     | ~> 2.6         |
 | azurerm   | ~> 4.40        |
 | random    | ~> 3.7         |
