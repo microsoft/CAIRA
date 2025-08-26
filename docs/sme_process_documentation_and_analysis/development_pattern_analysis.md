@@ -26,7 +26,7 @@ This analysis identifies and catalogs repeatable development patterns within CAI
 
 - **Enterprise Tier Pattern**
   - Network isolation implementation
-  - BYOD (Bring Your Own Device) resource management
+  - Bring Your Own Resource (BYOR) management
   - Infrastructure-as-Code deployment
   - Enhanced security configuration
 
@@ -134,7 +134,7 @@ Deployment_Method:
 **Scenario Characteristics**:
 
 - Target Users: "Enterprise customers with security requirements"
-- Approach: "BYOD (Bring Your Own Device) resource management"
+- Approach: "Bring Your Own Resource (BYOR) management"
 - Complexity: "High"
 - Portal Support: "Limited - basic isolation possible through portal"
 
@@ -254,7 +254,9 @@ Deployment_Method:
 
 ---
 
-## 4. Pattern Complexity Scoring Matrix (ICI Framework)
+## 4. Complexity Scoring for Automation Feasibility
+
+### 4.1 ICI Scoring Matrix
 
 Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Complexity Index (ICI) quantifies pattern complexity through integration points, data transformations, protocol transitions, and asynchronous operations.
 
@@ -278,7 +280,7 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 - **Guided Assistance** (ICI 21-30): Step-by-step manual execution with guidance
 - **Expert Guidance** (ICI 31+): Complex manual implementation with expert support
 
-### 4.1 Key Complexity Drivers
+### 4.2 Key Complexity Drivers
 
 **Integration Points** (1x multiplier):
 
@@ -300,7 +302,7 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 - Operations requiring wait states or eventual consistency
 - Example: Capability host destroy/recreate cycles, DNS propagation
 
-### 4.2 Automation Priority Recommendations
+### 4.3 Automation Priority Recommendations
 
 **Priority 1 - Immediate Automation** (ICI ≤ 12):
 
@@ -355,9 +357,15 @@ Based on Hohpe & Woolf's Enterprise Integration Patterns, the Integration Comple
 
 ## Conclusion
 
-```Text
-// TODO
-```
+This analysis provides a comprehensive framework for understanding and automating CAIRA development patterns. The Integration Complexity Index (ICI) analysis reveals a clear threshold at ICI score 20, above which patterns require Infrastructure-as-Code exclusively and cannot be deployed through the Azure portal. This quantitative approach enables objective decision-making about automation strategies.
+
+Key findings:
+
+- Portal deployment is only viable for patterns with ICI scores below 20
+- Agent-enabled scenarios (ICI 36) require the highest level of expertise and manual implementation
+- Three distinct automation strategies emerge: full automation (ICI 0-5), semi-automation (ICI 6-20), and guided assistance (ICI 21+)
+
+The pattern catalog and decision matrices provide development teams with clear guidance for selecting appropriate deployment approaches based on customer requirements and technical constraints. This framework supports the creation of targeted Copilot instructions that match the complexity and automation feasibility of each pattern.
 
 **Next Steps**:
 
