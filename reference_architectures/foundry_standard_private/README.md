@@ -31,16 +31,16 @@ The Standard Private configuration is suited for:
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
 
-| Component                                          | Purpose                            | Configuration                                                                                 |
-|----------------------------------------------------|------------------------------------|-----------------------------------------------------------------------------------------------|
-| **Resource Group**                                 | Logical container for resources    | Created if not provided; can use existing resource group via `resource_group_resource_id`     |
+| Component                                          | Purpose                            | Configuration                                                                                     |
+|----------------------------------------------------|------------------------------------|---------------------------------------------------------------------------------------------------|
+| **Resource Group**                                 | Logical container for resources    | Created if not provided; can use existing resource group via `resource_group_resource_id`         |
 | **Azure AI Foundry Account and Project**           | Core AI platform resources         | Deployed via Terraform module; project identity managed automatically; private networking enabled |
-| **Model Deployments**                              | Provides default models for agents | Uses `common_models` module; includes GPT‑4.1 model deployment                                |
-| **Log Analytics Workspace + Application Insights** | Monitoring and observability       | App Insights connected to Log Analytics Workspace; deployed and wired automatically           |
-| **Existing Azure Cosmos DB Account**              | Data storage for agents            | References existing Cosmos DB via data source; explicitly wired via host connections         |
-| **Existing Azure Storage Account**                 | File and blob storage for agents   | References existing Storage Account via data source; explicitly wired via host connections   |
-| **Existing Azure AI Search Service**               | Search capabilities for agents     | References existing AI Search service via data source; explicitly wired via host connections |
-| **Virtual Network Integration**                    | Private networking                 | AI Foundry injected into `foundry_subnet_id`; Agents injected into `agents_subnet_id`       |
+| **Model Deployments**                              | Provides default models for agents | Uses `common_models` module; includes GPT‑4.1 model deployment                                    |
+| **Log Analytics Workspace + Application Insights** | Monitoring and observability       | App Insights connected to Log Analytics Workspace; deployed and wired automatically               |
+| **Existing Azure Cosmos DB Account**               | Data storage for agents            | References existing Cosmos DB via data source; explicitly wired via host connections              |
+| **Existing Azure Storage Account**                 | File and blob storage for agents   | References existing Storage Account via data source; explicitly wired via host connections        |
+| **Existing Azure AI Search Service**               | Search capabilities for agents     | References existing AI Search service via data source; explicitly wired via host connections      |
+| **Virtual Network Integration**                    | Private networking                 | AI Foundry injected into `foundry_subnet_id`; Agents injected into `agents_subnet_id`             |
 
 Note: This architecture requires existing Cosmos DB, Storage, and AI Search resources, and two subnets for private network injection.
 
