@@ -1,10 +1,22 @@
 # Copilot Tips
 
-This document focuses on introductory GHCP (GitHub Copilot) tips and tricks for beginners.
+This document focuses on **CAIRA-specific** findings and validated tactics for using GitHub Copilot, particularly for Terraform and infrastructure-as-code development. These are practical tips discovered through hands-on testing in our environment.
 
 Using [Copilot in Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot).
 
-## Findings
+## General GitHub Copilot Resources
+
+For comprehensive GitHub Copilot documentation and general best practices, refer to:
+
+- [Official GitHub Copilot Documentation](https://docs.github.com/en/copilot)
+- [Getting started with GitHub Copilot](https://docs.github.com/en/copilot/getting-started-with-github-copilot)
+- [Configuring GitHub Copilot in your environment](https://docs.github.com/en/copilot/configuring-github-copilot)
+- [Prompt engineering for GitHub Copilot](https://docs.github.com/en/copilot/using-github-copilot/prompt-engineering-for-github-copilot)
+- [GitHub Copilot in VS Code](https://code.visualstudio.com/docs/copilot/overview)
+
+## CAIRA-Specific Findings
+
+The following findings are based on practical testing within our Terraform/IaC workflows:
 
 | Action                                                       | Outcome                                                                                                                                                  | Conclusion                                                                                                                                        |
 |--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -27,7 +39,9 @@ Using [Copilot in Visual Studio Code](https://marketplace.visualstudio.com/items
 | Provide complete file structure requirements                 | Copilot creates better organized code when structure is specified.                                                                                       | List all expected files (main.tf, variables.tf, outputs.tf, README.md) in your initial prompt.                                                    |
 | Include error context with full error messages               | Copilot fixes are more accurate with complete error information.                                                                                         | Paste the entire error output, not just the error line, for better resolution.                                                                    |
 
-## Conclusions
+## Terraform-Specific Conclusions
+
+These conclusions are drawn from our testing with Terraform and infrastructure-as-code workflows:
 
 - Determining the context to use is crucial to ensure the effect of your prompt leads to what you intend.
 - Be specific with the types of edits you want, and where.
