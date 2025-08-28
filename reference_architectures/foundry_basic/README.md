@@ -75,7 +75,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 1. Azure CLI installed and configured on your local workstation or deployment pipeline server
 
-1. Terraform CLI version v1.10 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
+1. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
 
 ### Basic Deployment
 
@@ -183,7 +183,7 @@ For issues and questions:
 
 | Name      | Version        |
 |-----------|----------------|
-| terraform | >= 1.10, < 2.0 |
+| terraform | >= 1.13, < 2.0 |
 | azapi     | ~> 2.6         |
 | azurerm   | ~> 4.40        |
 
