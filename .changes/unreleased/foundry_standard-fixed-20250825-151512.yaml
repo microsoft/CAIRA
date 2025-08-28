@@ -1,7 +1,0 @@
-project: foundry_standard
-kind: fixed
-body: Adjusted Minimum Supported Version of Terraform to v1.13
-time: 2025-08-25T15:15:12.076939-07:00
-custom:
-    Author: timfpark
-    Issue: "26"
