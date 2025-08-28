@@ -1,8 +1,8 @@
 <!-- META
 title: Azure AI Foundry - Standard Private Configuration
-description: Terraform reference architecture for deploying a standard Azure AI Foundry environment with private endpoints, enhanced security, and production-ready features.
+description: Terraform reference architecture for deploying an Azure AI Foundry environment with private networking, existing resource integration, and enhanced security for enterprise workloads.
 author: CAIRA Team
-ms.date: 08/20/2025
+ms.date: 08/26/2025
 ms.topic: reference
 estimated_reading_time: 6
 keywords:
@@ -14,6 +14,186 @@ keywords:
     - reference architecture
     - ai services
 -->
+# Azure AI Foundry - Standard Private Configuration
+
+This Terraform configuration deploys an Azure AI Foundry environment with private networking that delivers all the capabilities of the standard configuration while adding private endpoint connectivity and subnet injection for enhanced security. It uses existing Azure Cosmos DB, Azure AI Search, and Azure Storage resources, ensuring data stays within your controlled network boundaries and access is governed according to your private networking policies.
+
+## Overview
+
+The Standard Private configuration is suited for:
+
+- **Enterprise/regulated workloads** that require private networking and enhanced security controls
+- **Organizations with existing Azure services** that need to integrate AI Foundry with their current Cosmos DB, Storage, and AI Search resources
+- **Teams with strict network security requirements** that mandate subnet injection and private endpoint connectivity
+- **Environments that need both data sovereignty and network isolation** with RBAC-based access controls
+
+## Architecture
+
+![Architecture Diagram](./images/architecture.drawio.svg)
+
+| Component                                          | Purpose                            | Configuration                                                                                     |
+|----------------------------------------------------|------------------------------------|---------------------------------------------------------------------------------------------------|
+| **Resource Group**                                 | Logical container for resources    | Created if not provided; can use existing resource group via `resource_group_resource_id`         |
+| **Azure AI Foundry Account and Project**           | Core AI platform resources         | Deployed via Terraform module; project identity managed automatically; private networking enabled |
+| **Model Deployments**                              | Provides default models for agents | Uses `common_models` module; includes GPT‑4.1 model deployment                                    |
+| **Log Analytics Workspace + Application Insights** | Monitoring and observability       | App Insights connected to Log Analytics Workspace; deployed and wired automatically               |
+| **Existing Azure Cosmos DB Account**               | Data storage for agents            | References existing Cosmos DB via data source; explicitly wired via host connections              |
+| **Existing Azure Storage Account**                 | File and blob storage for agents   | References existing Storage Account via data source; explicitly wired via host connections        |
+| **Existing Azure AI Search Service**               | Search capabilities for agents     | References existing AI Search service via data source; explicitly wired via host connections      |
+| **Virtual Network Integration**                    | Private networking                 | AI Foundry injected into `foundry_subnet_id`; Agents injected into `agents_subnet_id`             |
+
+Note: This architecture requires existing Cosmos DB, Storage, and AI Search resources, and two subnets for private network injection.
+
+## Key Features
+
+- **🔒 Private networking**: AI Foundry and agents are injected into your existing VNet subnets for enhanced security
+- **🌍 Existing resource integration**: Uses your existing Cosmos DB, Storage, and AI Search resources for complete control
+- **�️ Enhanced security**: Private endpoints and subnet injection eliminate public internet exposure
+- **📊 Observability**: Log Analytics and Application Insights out of the box
+- **📈 Enterprise-ready**: Built for regulated workloads with strict security and compliance requirements
+
+## Getting Started
+
+### Prerequisites
+
+1. **Existing network infrastructure**:
+   - **Virtual Network**: An existing VNet with two subnets available for AI Foundry and Agents injection
+   - **Foundry Subnet**: Subnet ID where the AI Foundry service will be injected
+   - **Agents Subnet**: Subnet ID where AI Foundry Agents will be injected
+
+1. **Existing capability host resources**:
+   - **Azure Cosmos DB Account**: Existing Cosmos DB account for agent data storage
+   - **Azure Storage Account**: Existing Storage Account for file and blob storage
+   - **Azure AI Search Service**: Existing AI Search service for search capabilities
+   - All existing resources must be in the same region as the AI Foundry deployment
+
+1. **Active Azure subscription(s) with appropriate permissions** for the target resource group and services. Suggested roles include (depending on deployment approach):
+
+   - **Workload Subscription**
+     - **Role Based Access Control Administrator**: Needed over the resource group to create the relevant role assignments
+     - **Network Contributor**: Needed over the resource group and VNet to create private endpoint resources
+     - **Azure AI Account Owner**: Needed to create a cognitive services account and project
+     - **Owner or Role Based Access Administrator**: Needed to assign RBAC to the existing resources (Cosmos DB, Azure AI Search, Storage)
+     - **Azure AI User**: Needed to create and edit agents
+
+1. **Register resource providers** (at minimum):
+
+    ```shell
+    az provider register --namespace 'Microsoft.CognitiveServices'
+    az provider register --namespace 'Microsoft.DocumentDB'
+    az provider register --namespace 'Microsoft.Search'
+    az provider register --namespace 'Microsoft.Storage'
+    az provider register --namespace 'Microsoft.Network'
+    ```
+
+1. Sufficient quota for all resources in your target Azure region
+
+1. Azure CLI installed and configured on your local workstation or deployment pipeline server
+
+1. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
+
+### Standard Deploy
+
+1. **Clone the repository**:
+
+   ```shell
+   git clone <repository-url>
+   cd reference_architectures/foundry_standard_private
+   ```
+
+1. **Login to your Azure subscription**
+
+    ```shell
+    az login
+    ```
+
+1. **Set your active subscription**
+
+    ```shell
+    az account set --subscription "<your_subscription_id>"
+    ```
+
+1. **Export the subscription ID as an environment variable to make it available to the AzureRM and AzAPI Terraform providers**
+
+    ```shell
+    export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+    ```
+
+1. **Initialize Terraform**:
+
+   ```shell
+   terraform init
+   ```
+
+1. **Configure required variables**: Create a `terraform.tfvars` file or set environment variables for the required configuration:
+
+   ```shell
+   # Example terraform.tfvars
+   agents_subnet_id = "/subscriptions/your-subscription-id/resourceGroups/your-rg/providers/Microsoft.Network/virtualNetworks/your-vnet/subnets/agents-subnet"
+   foundry_subnet_id = "/subscriptions/your-subscription-id/resourceGroups/your-rg/providers/Microsoft.Network/virtualNetworks/your-vnet/subnets/foundry-subnet"
+   existing_capability_host_resource_group_id = "/subscriptions/your-subscription-id/resourceGroups/your-existing-rg"
+   existing_cosmosdb_account_name = "your-cosmos-account-name"
+   existing_storage_account_name = "your-storage-account-name"
+   existing_search_service_name = "your-search-service-name"
+   ```
+
+1. **Review the plan**:
+
+   ```shell
+   terraform plan
+   ```
+
+1. **Deploy the infrastructure**:
+
+   ```shell
+   terraform apply
+   ```
+
+## Controlling Dependent Services (Existing Resources Only)
+
+This configuration is designed to use existing Azure resources for agent capability host connections (Cosmos DB, Storage, and AI Search). Unlike the standard configuration, this private networking version does not create new resources but instead connects to your existing, approved services:
+
+1. **Existing Resources Approach** (the only option for this configuration):
+   - The configuration uses the `existing_resources_agent_capability_host_connections` module to reference your existing Cosmos DB, Storage, and AI Search services.
+   - The module inputs `existing_cosmosdb_account_name`, `existing_storage_account_name`, and `existing_search_service_name` specify which resources to connect to.
+   - The `existing_capability_host_resource_group_id` identifies the resource group containing these existing resources.
+
+   Example configuration (configured via `terraform.tfvars` or variables):
+
+```hcl
+agents_subnet_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/agents-subnet"
+foundry_subnet_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/foundry-subnet"
+existing_capability_host_resource_group_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/existing-services-rg"
+existing_cosmosdb_account_name = "my-cosmos-account"
+existing_storage_account_name = "mystorageaccount"
+existing_search_service_name = "my-search-service"
+```
+
+**Role assignments**: The AI Foundry Project uses a managed identity. The module includes role assignment wiring for the existing host connections; verify and adjust as needed in `modules/ai_foundry/agent_capability_host_connections.role_assignments.tf`. The output `ai_foundry_project_identity_principal_id` is provided for audits or custom RBAC.
+
+**Private networking**: This configuration enables private networking by default with subnet injection for both the AI Foundry service and Agents. Public network access is disabled to ensure all communication flows through your private network. Ensure your existing Cosmos DB, Storage, and AI Search services are configured appropriately for private access if needed.
+
+## Monitoring and Observability
+
+- Application Insights connected to Log Analytics Workspace
+- Use Log Analytics for queries/dashboards; App Insights for app performance and distributed tracing
+
+## Cost Considerations
+
+- In addition to AI Foundry costs, this configuration provisions Cosmos DB, Storage, and AI Search; review SKUs/retention settings
+- Default LAW retention is 30 days (PerGB2018); adjust to your needs
+
+## Troubleshooting
+
+- **Subnet configuration errors**: Verify that `agents_subnet_id` and `foundry_subnet_id` are valid subnet resource IDs and exist in your VNet
+- **Existing resource errors**: Confirm resource names and resource group IDs are correct; ensure the project identity has required RBAC on existing Cosmos DB, Storage, and AI Search resources
+- **Private networking issues**: Ensure your existing resources are accessible from the specified subnets; check network security group rules and route tables
+- **Resource location mismatch**: All existing resources and the AI Foundry deployment must be in the same Azure region
+- **Quota/region**: Check model availability and service quotas in your target region
+- **Provider registration**: Validate all required providers are registered, including `Microsoft.Network` for private networking
+- **Terraform**: `terraform validate` and ensure Azure CLI context is correct (`az account show`)
+
+---
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
