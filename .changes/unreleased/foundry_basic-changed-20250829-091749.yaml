@@ -1,0 +1,7 @@
+project: foundry_basic
+kind: changed
+body: Mark project pre-release software until flipped public
+time: 2025-08-29T09:17:49.285116-07:00
+custom:
+    Author: timfpark
+    Issue: "93749"
