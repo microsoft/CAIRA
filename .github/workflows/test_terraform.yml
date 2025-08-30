@@ -6,6 +6,8 @@ on:
   pull_request:
     branches:
       - main
+  issue_comment:
+    types: [created]
   merge_group:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day
@@ -44,8 +46,32 @@ env:
   TF_VAR_subnet_destroy_time_sleep: ${{ vars.TF_VAR_SUBNET_DESTROY_TIME_SLEEP }}
 
 jobs:
+  check-fork:
+    name: Check Fork Status
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: 🔍 Check if PR is from fork and should run
+        id: check
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/test_terraform.mjs`)
+            await script({context, github, core})
+
   changes:
     name: Changes
+    needs: check-fork
+    if: needs.check-fork.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     outputs:
       src: ${{ steps.dirs.outputs.changes }}
@@ -96,8 +122,8 @@ jobs:
           INPUT_SRC_CORE: reference_architectures
 
   test:
-    if: ${{ needs.changes.outputs.src != '[]' && needs.changes.outputs.src != '' }}
-    needs: changes
+    if: needs.check-fork.outputs.should_run == 'true' && needs.changes.outputs.src != '[]' && needs.changes.outputs.src != ''
+    needs: [check-fork, changes]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:
@@ -333,7 +359,7 @@ jobs:
   check_test:
     if: always()
     name: Check Tests
-    needs: [changes, test]
+    needs: [check-fork, changes, test]
     runs-on: ubuntu-24.04
     steps:
       - name: 🛑 Failure
