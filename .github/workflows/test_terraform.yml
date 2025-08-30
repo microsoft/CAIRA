@@ -46,8 +46,8 @@ env:
   TF_VAR_subnet_destroy_time_sleep: ${{ vars.TF_VAR_SUBNET_DESTROY_TIME_SLEEP }}
 
 jobs:
-  check-fork:
-    name: Check Fork Status
+  check-should-run:
+    name: Check Should Run
     runs-on: ubuntu-24.04
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
@@ -70,8 +70,8 @@ jobs:
 
   changes:
     name: Changes
-    needs: check-fork
-    if: needs.check-fork.outputs.should_run == 'true'
+    needs: check-should-run
+    if: needs.check-should-run.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     outputs:
       src: ${{ steps.dirs.outputs.changes }}
@@ -122,8 +122,8 @@ jobs:
           INPUT_SRC_CORE: reference_architectures
 
   test:
-    if: needs.check-fork.outputs.should_run == 'true' && needs.changes.outputs.src != '[]' && needs.changes.outputs.src != ''
-    needs: [check-fork, changes]
+    if: needs.check-should-run.outputs.should_run == 'true' && needs.changes.outputs.src != '[]' && needs.changes.outputs.src != ''
+    needs: [check-should-run, changes]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:
@@ -359,7 +359,7 @@ jobs:
   check_test:
     if: always()
     name: Check Tests
-    needs: [check-fork, changes, test]
+    needs: [check-should-run, changes, test]
     runs-on: ubuntu-24.04
     steps:
       - name: 🛑 Failure
