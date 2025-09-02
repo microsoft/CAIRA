@@ -20,7 +20,7 @@ jobs:
     name: 🔄 Check PR
     runs-on: ubuntu-24.04
     outputs:
-      should_run: ${{ steps.fork_check.outputs.should_run }}
+      is_fork: ${{ steps.fork_check.outputs.is_fork }}
     steps:
       - name: ⤵️ Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -67,7 +67,7 @@ jobs:
       - name: 🔎 Find comment
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
-        if: needs.check_pr.outputs.should_run == 'false'
+        if: needs.check_pr.outputs.is_fork == 'false'
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: github-actions[bot]
@@ -83,13 +83,13 @@ jobs:
 
       - name: 📝 Create comment
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id == '' && needs.check_pr.outputs.should_run == 'false'
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id == '' && needs.check_pr.outputs.is_fork == 'false'
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: changie.md
 
       - name: 📝 Update comment
-        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.is_fork == 'false'
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -98,7 +98,7 @@ jobs:
 
       - name: 🗑️ Delete comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: steps.filter.outputs.exists == 'true' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
+        if: steps.filter.outputs.exists == 'true' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.is_fork == 'false'
         with:
           script: |
             try {
@@ -121,7 +121,7 @@ jobs:
           exit 0
 
       - name: 🛑 Failure
-        if: steps.filter.outputs.exists == 'false' && needs.check_pr.outputs.should_run == 'false'
+        if: steps.filter.outputs.exists == 'false' && needs.check_pr.outputs.is_fork == 'false'
         run: |
           echo "🛑 Changelog entry required to merge."
           exit 1
@@ -143,7 +143,7 @@ jobs:
           fi
 
       - name: �🔎 Find comment
-        if: github.actor != 'dependabot[bot]' && needs.check_pr.outputs.should_run == 'false'
+        if: github.actor != 'dependabot[bot]' && needs.check_pr.outputs.is_fork == 'false'
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
         with:
@@ -153,7 +153,7 @@ jobs:
 
       - name: 🗑️ Delete comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: github.actor != 'dependabot[bot]' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
+        if: github.actor != 'dependabot[bot]' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.is_fork == 'false'
         with:
           script: |
             try {
