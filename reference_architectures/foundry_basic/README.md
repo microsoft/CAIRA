@@ -247,22 +247,22 @@ For issues and questions:
 
 ## Deployment Decision Matrix
 
-| Customer Requirement          | Portal Possible | IaC Required  | Recommended RA            |
-|-------------------------------|-----------------|---------------|---------------------------|
-| Basic PoC/Development         | ✅ Yes          | ❌ No         | foundry_basic             |
-| Network Isolation Only        | ⚠️ Limited      | ✅ Yes        | foundry_basic_private     |
-| Enterprise Features           | ⚠️ Limited      | ✅ Yes        | foundry_standard          |
-| Protected Agents              | ❌ No           | ✅ Yes        | foundry_standard_private  |
-| Multi-Project                 | ✅ Yes          | ✅ Recommended | Any RA                    |
+| Customer Requirement   | Portal Possible | IaC Required  | Recommended RA           |
+|------------------------|-----------------|---------------|--------------------------|
+| Basic PoC/Development  | ✅ Yes           | ❌ No          | foundry_basic            |
+| Network Isolation Only | ⚠️ Limited      | ✅ Yes         | foundry_basic_private    |
+| Enterprise Features    | ⚠️ Limited      | ✅ Yes         | foundry_standard         |
+| Protected Agents       | ❌ No            | ✅ Yes         | foundry_standard_private |
+| Multi-Project          | ✅ Yes           | ✅ Recommended | Any RA                   |
 
 ## Resource Selection Matrix
 
-| Reference Architecture    | AI Search | Cosmos DB | Storage Account | App Insights | Container Apps |
-|---------------------------|-----------|-----------|-----------------|--------------|----------------|
-| foundry_basic             | Optional  | Optional  | Required        | Required     | Not Supported  |
-| foundry_basic_private     | Optional  | Optional  | Required        | Required     | Not Supported  |
-| foundry_standard          | Required  | Optional  | Required        | Required     | Not Required   |
-| foundry_standard_private  | Required  | Required  | Required        | Required     | Required       |
+| Reference Architecture   | AI Search | Cosmos DB | Storage Account | App Insights | Container Apps |
+|--------------------------|-----------|-----------|-----------------|--------------|----------------|
+| foundry_basic            | Optional  | Optional  | Required        | Required     | Not Supported  |
+| foundry_basic_private    | Optional  | Optional  | Required        | Required     | Not Supported  |
+| foundry_standard         | Required  | Optional  | Required        | Required     | Not Required   |
+| foundry_standard_private | Required  | Required  | Required        | Required     | Required       |
 
 ## Implementation Complexity Guide
 
@@ -270,13 +270,13 @@ The Integration Complexity Index (ICI) helps teams understand the relative compl
 
 ### Complexity Scoring
 
-| Reference Architecture        | ICI Score | Implementation Approach      | Typical Timeline |
-|-------------------------------|-----------|------------------------------|------------------|
-| foundry_basic                 | **2**     | Full Automation              | 30 minutes       |
-| foundry_basic (multi-project) | **5**     | Full Automation              | 45 minutes       |
-| foundry_basic_private         | **19**    | Semi-Automation with Gates   | 2-4 hours        |
-| foundry_standard              | **19**    | Semi-Automation with Gates   | 2-4 hours        |
-| foundry_standard_private      | **36**    | Expert Guidance Required     | 1-2 days         |
+| Reference Architecture        | ICI Score | Implementation Approach    | Typical Timeline |
+|-------------------------------|-----------|----------------------------|------------------|
+| foundry_basic                 | **2**     | Full Automation            | 30 minutes       |
+| foundry_basic (multi-project) | **5**     | Full Automation            | 45 minutes       |
+| foundry_basic_private         | **19**    | Semi-Automation with Gates | 2-4 hours        |
+| foundry_standard              | **19**    | Semi-Automation with Gates | 2-4 hours        |
+| foundry_standard_private      | **36**    | Expert Guidance Required   | 1-2 days         |
 
 **Complexity Levels:**
 
