@@ -133,18 +133,7 @@ jobs:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') || github.actor == 'dependabot[bot]' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: 🔍 Check if PR is from fork
-        id: fork_check
-        run: |
-          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]; then
-            echo "is_fork=true" >> $GITHUB_OUTPUT
-            echo "🔍 This is a fork PR - comment operations will be skipped"
-          else
-            echo "is_fork=false" >> $GITHUB_OUTPUT
-            echo "🔍 This is an internal PR - normal comment operations will proceed"
-          fi
-
-      - name: �🔎 Find comment
+      - name: 🔎 Find comment
         if: github.actor != 'dependabot[bot]' && needs.check_pr.outputs.is_fork == 'false'
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
