@@ -48,7 +48,7 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
 
 1. **Immediate Value**
    - Access AI Foundry Studio through Azure Portal
-   - Pre-configured AI models (GPT-4o, o1-mini, text-embedding-3-large)
+   - Choose and configure available, platform-managed model options in AI Foundry Studio; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
    - Ready for AI application development
    - Built-in monitoring with Application Insights
 
