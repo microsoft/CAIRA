@@ -11,8 +11,8 @@ on:
   merge_group:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day
-  workflow_dispatch:
-    inputs: #checkov:skip=CKV_GHA_7
+  workflow_dispatch: #checkov:skip=CKV_GHA_7
+    inputs:
       tf_dirs:
         required: true
         type: string
