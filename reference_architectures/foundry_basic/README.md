@@ -288,6 +288,6 @@ The Integration Complexity Index (ICI) helps teams understand the relative compl
 
 ## Additional Resources
 
-For detailed networking requirements, security configurations, and deployment prerequisites, refer to the [official Azure AI Foundry documentation](https://docs.microsoft.com/azure/ai-foundry).
+For detailed networking requirements, security configurations, and deployment prerequisites, refer to the [official Azure AI Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/).
 
 For Infrastructure-as-Code implementation details, see the individual reference architecture folders in this repository.
