@@ -16,6 +16,28 @@ permissions:
   pull-requests: write
 
 jobs:
+  check_pr:
+    name: 🔄 Check PR
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run: ${{ steps.fork_check.outputs.should_run }}
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: 🔍 Check if PR is from fork
+        id: fork_check
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]; then
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+          fi
+
   check_changelog:
     name: 🔄 Check Changelog
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') && github.actor != 'dependabot[bot]' }}
@@ -45,6 +67,7 @@ jobs:
       - name: 🔎 Find comment
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
+        if: needs.check_pr.outputs.should_run == 'false'
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: github-actions[bot]
@@ -60,13 +83,13 @@ jobs:
 
       - name: 📝 Create comment
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
-        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id == ''
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id == '' && needs.check_pr.outputs.should_run == 'false'
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: changie.md
 
       - name: 📝 Update comment
-        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != ''
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
         uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043 # v4.0.0
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
@@ -75,7 +98,7 @@ jobs:
 
       - name: 🗑️ Delete comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: steps.filter.outputs.exists == 'true' && steps.fc.outputs.comment-id != ''
+        if: steps.filter.outputs.exists == 'true' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
         with:
           script: |
             try {
@@ -98,7 +121,7 @@ jobs:
           exit 0
 
       - name: 🛑 Failure
-        if: steps.filter.outputs.exists == 'false'
+        if: steps.filter.outputs.exists == 'false' && needs.check_pr.outputs.should_run == 'false'
         run: |
           echo "🛑 Changelog entry required to merge."
           exit 1
@@ -108,8 +131,19 @@ jobs:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') || github.actor == 'dependabot[bot]' }}
     runs-on: ubuntu-24.04
     steps:
-      - name: 🔎 Find comment
-        if: github.actor != 'dependabot[bot]'
+      - name: 🔍 Check if PR is from fork
+        id: fork_check
+        run: |
+          if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.event.pull_request.base.repo.full_name }}" ]; then
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+            echo "🔍 This is a fork PR - comment operations will be skipped"
+          else
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+            echo "🔍 This is an internal PR - normal comment operations will proceed"
+          fi
+
+      - name: �🔎 Find comment
+        if: github.actor != 'dependabot[bot]' && needs.check_pr.outputs.should_run == 'false'
         uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
         id: fc
         with:
@@ -119,7 +153,7 @@ jobs:
 
       - name: 🗑️ Delete comment
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: github.actor != 'dependabot[bot]' && steps.fc.outputs.comment-id != ''
+        if: github.actor != 'dependabot[bot]' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.should_run == 'false'
         with:
           script: |
             try {
