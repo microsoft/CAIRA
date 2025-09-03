@@ -75,7 +75,7 @@ jobs:
           body-includes: "<!-- changelog -->"
 
       - name: 🔄 Prepare comment
-        if: steps.filter.outputs.exists == 'false'
+        if: steps.filter.outputs.exists == 'false' && steps.fc.outputs.comment-id != '' && needs.check_pr.outputs.is_fork == 'false'
         run: |
           echo -e "# 🛑 Changelog entry required to merge\n" > changie.md
           echo "Run \`task project:changelog -- <ISSUE_NUMBER>\` to add a new changelog entry" >> changie.md
