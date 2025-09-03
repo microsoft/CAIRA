@@ -20,6 +20,18 @@ keywords:
 
 This troubleshooting guide is designed to help you diagnose and resolve common issues that may arise when using the Composable AI Reference Architectures (CAIRA) with Terraform. If you encounter a problem, please review the sections below before seeking further assistance.
 
+## Quick Deployment Checks
+
+Before encountering deployment issues, run through these essential checks to prevent common problems:
+
+* **Run `terraform plan`** before applying changes to preview what will be deployed
+* **Verify Azure account**: Confirm `az account show` shows the correct subscription
+* **Check variable configuration**: Ensure required variables are set in `terraform.tfvars`
+* **Validate permissions**: Confirm you have "Contributor" and "User Access Administrator" roles
+* **Test connectivity**: Ensure stable internet connection for provider plugin downloads
+
+For detailed troubleshooting of specific issues, see the sections below.
+
 ## Common Issues and Solutions
 
 ### 1. Incorrect Repository or Configuration Path
