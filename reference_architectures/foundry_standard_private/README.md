@@ -79,6 +79,7 @@ Note: This architecture requires existing Cosmos DB, Storage, and AI Search reso
 1. **Register resource providers** (at minimum):
 
     ```shell
+    az provider register --namespace 'Microsoft.App'
     az provider register --namespace 'Microsoft.CognitiveServices'
     az provider register --namespace 'Microsoft.DocumentDB'
     az provider register --namespace 'Microsoft.Search'
