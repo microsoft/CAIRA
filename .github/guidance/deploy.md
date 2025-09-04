@@ -23,14 +23,14 @@ First, check the available reference architectures:
 ls reference_architectures/
 ```
 
-Based on the available architectures, ask the user which one best fits their needs. Review each architecture's README.md to understand:
+Based on the available architectures, **ALWAYS present options and wait for user confirmation** before proceeding. Review each architecture's README.md to understand:
 
 - **Target use case**: Development vs. enterprise workloads
 - **Security requirements**: Basic vs. advanced compliance needs
 - **Resource control**: Simplified vs. explicit resource management
 - **Cost considerations**: Standard vs. optimized pricing tiers
 
-Recommend the most appropriate architecture based on their specific requirements.
+**CRITICAL**: Present ALL relevant architectures that match the user's stated requirements with clear explanations, then **explicitly ask the user to choose** before proceeding to the next step. If there are many options, group them by category (e.g., basic vs enterprise, public vs private). Do not assume or auto-select an architecture.
 
 ### Step 2: Navigate to Architecture Directory
 
@@ -130,7 +130,11 @@ terraform show deployment.tfplan
 - Security configurations match requirements
 - The saved plan file (`deployment.tfplan`) can be used for auditing and compliance
 
-### Step 7: Deploy Architecture
+**MANDATORY USER CONFIRMATION**: After showing the plan output, **explicitly ask the user if they want to proceed with deployment** before running `terraform apply`. Present the plan summary and wait for explicit confirmation.
+
+### Step 7: Deploy Architecture (User Confirmation Required)
+
+**ONLY after explicit user confirmation**, proceed with deployment:
 
 ```bash
 # Deploy using the saved plan
@@ -193,41 +197,9 @@ Example module deployment order:
 naming -> `ai_foundry` -> networking -> security
 ```
 
-## Troubleshooting Common Issues
+## Troubleshooting
 
-### Authentication Errors
-
-- Verify `az login` status: `az account show`
-- Check subscription permissions for resource creation
-- Ensure `ARM_SUBSCRIPTION_ID` environment variable is set
-
-### Resource Naming Conflicts
-
-- Use unique resource prefixes in your terraform.tfvars file
-- Check existing resources in Azure Portal
-- Review the `project_name` variable for uniqueness
-
-### Permission Errors
-
-- Verify Azure RBAC permissions at subscription level
-- Check required permissions in architecture README
-- Ensure service principal has appropriate access
-
-### State Conflicts
-
-For Terraform state issues:
-
-1. Check for existing `terraform.tfstate` files
-1. Offer to help remove conflicting Azure resources
-1. Clean up local state if needed: `terraform state list`
-1. Re-initialize if necessary: `rm -rf .terraform && terraform init`
-
-### Deployment Failures
-
-- Request specific error messages before diagnosing
-- Check Azure resource quotas and limits
-- Verify provider registrations
-- Review security policies that might block deployment
+If you encounter deployment issues, see the [Troubleshooting Guide](../../docs/troubleshooting.md) for comprehensive solutions.
 
 ## Advanced Deployment Patterns
 

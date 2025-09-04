@@ -10,8 +10,10 @@ This doc provides configuration guidance for CAIRA (Composable AI Reference Arch
 
 **Reference Architectures:**
 
+- **ALWAYS present ALL available architectures** and **explicitly ask the user to choose** before providing configuration guidance
 - Dynamically discover available architectures from the `reference_architectures/` directory
 - Each architecture contains its own README.md with complete configuration details and use cases
+- **CRITICAL**: Wait for user confirmation of architecture selection before proceeding with parameter guidance
 - Review architecture-specific variables.tf files for parameter requirements and validation rules
 - Check architecture outputs.tf files for available configuration outputs
 
@@ -35,6 +37,7 @@ This doc provides configuration guidance for CAIRA (Composable AI Reference Arch
 
 1. **Validate Dependency Compatibility**
 
+   - **MANDATORY USER CONFIRMATION**: Before proceeding with dependency validation, **explicitly ask the user to confirm the dependency scope and configuration choices**
    - Check SKU and tier compatibility between dependent resources
    - Verify network connectivity requirements (public/private endpoints)
    - Ensure authentication methods align across dependencies
@@ -95,7 +98,8 @@ This doc provides configuration guidance for CAIRA (Composable AI Reference Arch
 
 **Automatically validate when users ask about:**
 
-- Parameter requirements or valid values
+- **Architecture selection or configuration differences**: **ALWAYS present options and wait for user confirmation**
+- Parameter requirements or valid values: **Confirm parameter scope before providing validation**
 - Architecture selection or differences
 - Environment-specific configurations
 - Model deployments or versions

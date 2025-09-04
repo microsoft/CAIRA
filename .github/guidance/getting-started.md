@@ -24,7 +24,9 @@ For detailed setup instructions, see our [Environment Setup Guide](../../docs/en
 
 ## Choose Your Learning Path
 
-CAIRA provides tailored guidance based on your role, experience level, and objectives. Select the learning path that best matches your needs for the most effective onboarding experience.
+CAIRA provides tailored guidance based on your role, experience level, and objectives. **ALWAYS present ALL relevant learning paths with clear explanations**, then **explicitly ask the user to choose** before proceeding with path-specific guidance. Select the learning path that best matches your needs for the most effective onboarding experience.
+
+**CRITICAL**: Wait for explicit user confirmation of their chosen learning path before providing detailed guidance. Do not assume or auto-select a path.
 
 ### Quick Deployer Path - "I Need AI Infrastructure Now"
 
@@ -37,26 +39,16 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
 1. **Environment Setup** (10 minutes)
    - Use the devcontainer for zero-setup experience (see [Environment Setup Guide](../../docs/environment_setup.md))
    - Or install Azure CLI + Terraform locally
-   - Run `az login` and set your subscription
+   - Complete Azure authentication
 
-1. **Choose Your Architecture** (5 minutes)
-   - Check available architectures: `ls reference_architectures/`
-   - Review each architecture's README.md to understand its purpose
-   - **For Development/Experimentation**: Choose architectures optimized for learning and cost
-   - **For Enterprise/Regulated Workloads**: Choose architectures with enhanced compliance and control
-
-1. **Deploy in Minutes** (15-45 minutes)
-
-   ```bash
-   cd reference_architectures/{chosen_architecture}
-   export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-   terraform init
-   terraform apply
-   ```
+1. **Deploy Your AI Infrastructure** (20-50 minutes)
+   - Follow the comprehensive [Deployment Guide](deploy.md) for step-by-step instructions
+   - **Process includes**: Architecture selection, variable configuration, plan review, and deployment
+   - **Choose based on needs**: Development/experimentation vs. enterprise/regulated workloads
 
 1. **Immediate Value**
    - Access AI Foundry Studio through Azure Portal
-   - Pre-configured AI models (GPT-4.1, o4-mini, text-embedding-3-large)
+   - Choose and configure available, platform-managed model options in AI Foundry Studio; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
    - Ready for AI application development
    - Built-in monitoring with Application Insights
 
@@ -76,7 +68,8 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
    - Understand deployment patterns and configuration options
 
 1. **Solution Design** (60 minutes)
-   - Review available architectures and choose the best foundation for your needs
+   - Review available architectures and **wait for user confirmation** before choosing the foundation for your needs
+   - **MANDATORY**: Present ALL relevant architectures with clear explanations, then **explicitly ask the user to choose** before proceeding
    - Plan specific AI model requirements using available modules
    - Consider environment-specific requirements (dev vs prod configurations)
 
@@ -180,7 +173,7 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
 
 ## Architecture Selection Guide
 
-Choose the right CAIRA architecture based on your specific requirements and constraints. First, check what architectures are available:
+Choose the right CAIRA architecture based on your specific requirements and constraints. **ALWAYS present ALL relevant architectures that match the user's stated requirements** with clear explanations, then **explicitly ask the user to choose** before proceeding to deployment guidance. First, check what architectures are available:
 
 ```bash
 ls reference_architectures/
@@ -238,80 +231,28 @@ When comparing available architectures, consider these factors:
 
 > **New to CAIRA?** Check out our [learning paths](#choose-your-learning-path) above for guided experiences tailored to your role and objectives.
 
-For immediate deployment, follow these streamlined steps:
+For immediate deployment overview:
 
-### 1. Choose Your Development Environment
+### 1. Setup Environment
 
-#### Option A: Devcontainer (Recommended)
+- Use devcontainer (recommended) or follow [Environment Setup Guide](../../docs/environment_setup.md)
+- Ensure Azure CLI, Terraform, and Git are available
 
-1. Open this repository in VS Code
-1. When prompted, click "Reopen in Container"
-1. Wait for the container to build (includes all required tools)
+### 2. Choose Architecture
 
-#### Option B: Local Setup
+- Explore available architectures: `ls reference_architectures/`
+- Review each architecture's README.md for use cases and requirements
+- Select based on your specific needs (development vs. enterprise, compliance requirements, etc.)
 
-1. Follow the [Environment Setup Guide](../../docs/environment_setup.md)
-1. Install required tools: Azure CLI, Terraform, Git
+### 3. Deploy
 
-### 2. Azure Authentication
-
-```bash
-# Login to Azure
-az login
-
-# Set your subscription
-az account set --subscription "<your-subscription-id>"
-
-# Set environment variable for Terraform
-export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-```
-
-### 3. Choose Your Architecture
-
-First, check what architectures are available:
-
-```bash
-ls reference_architectures/
-```
-
-Review each architecture's README.md to understand its purpose and capabilities:
-
-| Architecture | Description | Best For |
-|-------------|-------------|----------|
-| Review each directory | Read individual README files | Match to your specific needs |
-
-Consider factors like:
-
-- **Use case**: Development vs. enterprise workloads
-- **Budget**: Cost optimization vs. dedicated resources
-- **Compliance**: Standard vs. enhanced regulatory features
-- **Team size**: Individual vs. multi-team environments
-
-### 4. Select Your Architecture
-
-Navigate to your chosen architecture directory:
-
-```bash
-# Navigate to your chosen architecture
-cd reference_architectures/{chosen_architecture}/
-```
-
-Review the architecture's README.md for specific setup instructions and configuration options.
-
-### 5. Deploy Your Architecture
-
-```bash
-# Initialize Terraform
-terraform init
-
-# Review the deployment plan
-terraform plan
-
-# Deploy the infrastructure
-terraform apply
-```
-
-**Deployment typically takes 15-30 minutes** depending on the architecture and components.
+- Follow the comprehensive [Deployment Guide](deploy.md) for step-by-step instructions
+- **Key highlights from deployment process:**
+  - Architecture selection with user confirmation
+  - Azure authentication setup
+  - Terraform variable configuration
+  - Plan review and deployment execution
+  - Post-deployment verification
 
 ## Architecture Details
 
