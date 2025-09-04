@@ -32,7 +32,31 @@ This guide provides a complete Infrastructure as Code (IaC) solution for deployi
 
 ### 1. Clone and Setup
 
-// TODO
+#### VS Code Development Containers
+
+The recommended way to engage with this sample is through a [development container using VS Code](https://code.visualstudio.com/docs/devcontainers/containers):
+
+1. Ensure that you have Docker configured. The easiest way is to install Docker Desktop locally, but see other options at the [Development Container documentation](https://code.visualstudio.com/docs/devcontainers/containers#_system-requirements).
+1. Install [Visual Studio Code](https://code.visualstudio.com/).
+1. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+1. Clone the CAIRA repo using your method of choice.
+1. Open the project in VS Code.
+1. Assuming the Dev Containers extension is set up correctly, you should see a popup asking you if you would like to open the project in a dev container:
+    ![Dev Container popup notification](images/dev_container_popup.png)
+
+    Choose "Reopen in Container".
+
+    - If you do not get the popup, you can instead click on the Dev Container extension in the bottom-left of the window, which will open a dropdown at the top of the window with a "Reopen in Container" option.
+
+1. The first time you open the dev container, it will take a while to load and build all the configured settings. Once it has already been created, it will load more quickly in the future. In both cases there should be a notification that it is connecting, with an option to show logs; clicking on that notification will open a terminal showing all the configuration happening.
+    ![Connecting to Dev Container](images/connecting_to_dev_container.png)
+
+1. In the VS Code menu, click Terminal -> New Terminal to open a terminal within the container.
+1. Navigate to this guide's directory:
+
+    ``` bash
+    cd guides/implement_ai_foundry_basic_with_azure_function_integration
+    ```
 
 ### 2. Configure Variables
 
