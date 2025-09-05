@@ -12,7 +12,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: MicrosoftEdge/action-issue-to-workitem@main
+      - uses: MicrosoftEdge/action-issue-to-workitem@67b5ea438e4e45df824e94670af7db99bad80b4c
         env:
           ado_token: "${{ secrets.AZDO_PAT }}"
           github_token: "${{ secrets.GITHUB_TOKEN }}"
