@@ -1,0 +1,26 @@
+
+# terraform.tfvars.example - Example values file
+
+resource_group_name = "rg-ai-foundry-prod"
+location            = "East US"
+environment         = "prod"
+project_name        = "caira"
+
+# Optional: Enable enhanced security
+enable_private_endpoints = false
+
+# Optional: Use premium plan for production
+function_app_sku = "EP1"  # Elastic Premium for production
+
+# Optional: Restrict access to specific IPs
+allowed_ip_ranges = [
+  "192.168.1.0/24",  # Office network
+  "10.0.0.0/16"      # VPN range
+]
+
+tags = {
+  Owner       = "AI Team"
+  CostCenter  = "Engineering"
+  Environment = "Production"
+  Compliance  = "HIPAA"
+}
