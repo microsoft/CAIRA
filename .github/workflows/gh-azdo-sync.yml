@@ -1,0 +1,26 @@
+name: Sync GitHub Issues to Azure DevOps Work Items
+
+permissions:
+  issues: write
+  contents: read
+
+on:
+  issues:
+    types: [opened, labeled, reopened]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: MicrosoftEdge/action-issue-to-workitem@main
+        env:
+          ado_token: "${{ secrets.AZDO_PAT }}"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          ado_organization: "${{ secrets.AZDO_ORGANIZATION }}"
+          ado_project: "${{ secrets.AZDO_PROJECT }}"
+
+          ado_work_item_type: "Task"
+          ado_area_path: "${{ secrets.AZDO_AREA_PATH }}"
+
+          ado_dont_check_if_exist: false
