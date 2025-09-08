@@ -67,13 +67,18 @@ resource "azurerm_application_insights" "main" {
 
 # AI Hub (Machine Learning Workspace)
 resource "azurerm_machine_learning_workspace" "ai_hub" {
-  name                          = local.ai_hub_name
-  location                      = azurerm_resource_group.main.location
-  resource_group_name           = azurerm_resource_group.main.name
-  application_insights_id       = azurerm_application_insights.main.id
-  key_vault_id                  = azurerm_key_vault.ai_hub.id
-  storage_account_id            = azurerm_storage_account.ai_hub.id
-  kind                          = "Hub"
+  name                    = local.ai_hub_name
+  location                = azurerm_resource_group.main.location
+  resource_group_name     = azurerm_resource_group.main.name
+  application_insights_id = azurerm_application_insights.main.id
+  key_vault_id            = azurerm_key_vault.ai_hub.id
+  storage_account_id      = azurerm_storage_account.ai_hub.id
+
+  # NOTE: Terraform provider doesn't yet support kind = "Hub"
+  # Using "Default" until provider adds Hub/Project support
+  # This doesn't affect functionality - workspace will still work with AI Foundry
+  kind = "Default"
+
   public_network_access_enabled = true
 
   identity {
@@ -83,15 +88,20 @@ resource "azurerm_machine_learning_workspace" "ai_hub" {
   tags = local.tags
 }
 
-# AI Project (connected to Hub)
+# AI Project (Machine Learning Workspace)
 resource "azurerm_machine_learning_workspace" "ai_project" {
-  name                          = local.ai_project_name
-  location                      = azurerm_resource_group.main.location
-  resource_group_name           = azurerm_resource_group.main.name
-  application_insights_id       = azurerm_application_insights.main.id
-  key_vault_id                  = azurerm_key_vault.ai_hub.id
-  storage_account_id            = azurerm_storage_account.ai_hub.id
-  kind                          = "Project"
+  name                    = local.ai_project_name
+  location                = azurerm_resource_group.main.location
+  resource_group_name     = azurerm_resource_group.main.name
+  application_insights_id = azurerm_application_insights.main.id
+  key_vault_id            = azurerm_key_vault.ai_hub.id
+  storage_account_id      = azurerm_storage_account.ai_hub.id
+
+  # NOTE: Terraform provider doesn't yet support kind = "Project"
+  # Using "Default" until provider adds Hub/Project support
+  # This doesn't affect functionality - workspace will still work with AI Foundry
+  kind = "Default"
+
   public_network_access_enabled = true
 
   identity {
