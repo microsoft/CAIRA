@@ -16,12 +16,7 @@ provider "azurerm" {
   }
 }
 
-# Configure the Azure AD Provider (only if using Azure AD resources)
-provider "azuread" {
-  # Configuration options
-}
-
-# Configure the Random Provider (usually doesn't need configuration)
+# Configure the Random Provider
 provider "random" {
   # Configuration options
 }

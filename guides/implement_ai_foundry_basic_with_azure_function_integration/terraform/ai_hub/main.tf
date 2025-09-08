@@ -17,17 +17,47 @@ resource "azurerm_resource_group" "main" {
   tags     = local.tags
 }
 
-# Storage Account for AI Hub
-resource "azurerm_storage_account" "ai_hub" {
-  name                      = local.storage_account_name
-  resource_group_name       = azurerm_resource_group.main.name
-  location                  = azurerm_resource_group.main.location
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
-  account_kind              = "StorageV2"
-  shared_access_key_enabled = false
+# Storage Account for AI Hub - Created via Azure CLI to handle key-disabled policy
+# Data source to reference the storage account
+data "azurerm_storage_account" "ai_hub" {
+  name                = local.storage_account_name
+  resource_group_name = azurerm_resource_group.main.name
 
-  tags = local.tags
+  depends_on = [null_resource.create_storage]
+}
+
+# Create storage via Azure CLI to bypass Terraform provider limitations
+resource "null_resource" "create_storage" {
+  triggers = {
+    storage_name = local.storage_account_name
+    rg_name      = azurerm_resource_group.main.name
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      az storage account create \
+        --name ${local.storage_account_name} \
+        --resource-group ${azurerm_resource_group.main.name} \
+        --location ${azurerm_resource_group.main.location} \
+        --sku Standard_LRS \
+        --kind StorageV2 \
+        --allow-shared-key-access false \
+        --tags Environment=${var.environment} Project=${var.project_name} ManagedBy=Terraform Purpose="AI Foundry" \
+        --output none || echo "Storage account may already exist"
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<EOT
+      az storage account delete \
+        --name ${self.triggers.storage_name} \
+        --resource-group ${self.triggers.rg_name} \
+        --yes
+    EOT
+  }
+
+  depends_on = [azurerm_resource_group.main]
 }
 
 # Key Vault for AI Hub
@@ -73,7 +103,7 @@ resource "azurerm_machine_learning_workspace" "ai_hub" {
   resource_group_name     = azurerm_resource_group.main.name
   application_insights_id = azurerm_application_insights.main.id
   key_vault_id            = azurerm_key_vault.ai_hub.id
-  storage_account_id      = azurerm_storage_account.ai_hub.id
+  storage_account_id      = data.azurerm_storage_account.ai_hub.id # Use data source
 
   # NOTE: Terraform provider doesn't yet support kind = "Hub"
   # Using "Default" until provider adds Hub/Project support
@@ -96,7 +126,7 @@ resource "azurerm_machine_learning_workspace" "ai_project" {
   resource_group_name     = azurerm_resource_group.main.name
   application_insights_id = azurerm_application_insights.main.id
   key_vault_id            = azurerm_key_vault.ai_hub.id
-  storage_account_id      = azurerm_storage_account.ai_hub.id
+  storage_account_id      = data.azurerm_storage_account.ai_hub.id # Use data source
 
   # NOTE: Terraform provider doesn't yet support kind = "Project"
   # Using "Default" until provider adds Hub/Project support

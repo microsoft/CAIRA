@@ -81,7 +81,7 @@ output "deployment_instructions" {
     - Key Vault: ${azurerm_key_vault.ai_hub.name}
     - AI Hub: ${azurerm_machine_learning_workspace.ai_hub.name}
     - AI Project: ${azurerm_machine_learning_workspace.ai_project.name}
-    - Storage: ${azurerm_storage_account.ai_hub.name}
+    - Storage: ${data.azurerm_storage_account.ai_hub.name}
 
     Security Note:
     -------------
@@ -125,7 +125,65 @@ output "resource_group_name" {
   description = "Name of the resource group"
 }
 
+output "resource_group_location" {
+  value       = azurerm_resource_group.main.location
+  description = "Location of the resource group"
+}
+
+# Fixed: Changed from azurerm_storage_account.ai_hub to data.azurerm_storage_account.ai_hub
 output "storage_account_name" {
-  value       = azurerm_storage_account.ai_hub.name
+  value       = data.azurerm_storage_account.ai_hub.name
   description = "Name of the storage account for AI Hub"
+}
+
+output "storage_account_id" {
+  value       = data.azurerm_storage_account.ai_hub.id
+  description = "Resource ID of the storage account"
+}
+
+output "ai_hub_id" {
+  value       = azurerm_machine_learning_workspace.ai_hub.id
+  description = "Resource ID of the AI Hub"
+}
+
+output "ai_project_id" {
+  value       = azurerm_machine_learning_workspace.ai_project.id
+  description = "Resource ID of the AI Project"
+}
+
+output "key_vault_id" {
+  value       = azurerm_key_vault.ai_hub.id
+  description = "Resource ID of the Key Vault"
+}
+
+output "application_insights_id" {
+  value       = azurerm_application_insights.main.id
+  description = "Resource ID of Application Insights"
+}
+
+output "application_insights_connection_string" {
+  value       = azurerm_application_insights.main.connection_string
+  description = "Connection string for Application Insights"
+  sensitive   = true
+}
+
+output "application_insights_instrumentation_key" {
+  value       = azurerm_application_insights.main.instrumentation_key
+  description = "Instrumentation key for Application Insights"
+  sensitive   = true
+}
+
+output "random_suffix" {
+  value       = random_string.suffix.result
+  description = "Random suffix used for resource naming"
+}
+
+output "subscription_id" {
+  value       = data.azurerm_client_config.current.subscription_id
+  description = "Current subscription ID"
+}
+
+output "tenant_id" {
+  value       = data.azurerm_client_config.current.tenant_id
+  description = "Current tenant ID"
 }

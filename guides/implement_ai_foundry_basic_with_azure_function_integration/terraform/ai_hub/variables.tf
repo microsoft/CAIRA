@@ -51,3 +51,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# Export suffix for use by Function App deployment
+variable "export_suffix" {
+  description = "Export the random suffix for Function App naming consistency"
+  type        = bool
+  default     = true
+}

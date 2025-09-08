@@ -1,5 +1,4 @@
 # locals.tf - Local values and computed variables
-
 locals {
   # Naming conventions
   ai_hub_name          = "hub-${var.project_name}-${var.environment}-${random_string.suffix.result}"
