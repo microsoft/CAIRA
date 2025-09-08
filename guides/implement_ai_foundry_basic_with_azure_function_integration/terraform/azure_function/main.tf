@@ -121,7 +121,7 @@ resource "azurerm_linux_function_app" "main" {
     "AI_PROJECT_NAME"    = data.azurerm_machine_learning_workspace.ai_project.name
     "AI_RESOURCE_GROUP"  = data.azurerm_resource_group.main.name
     "AI_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
-    "AI_HUB_ENDPOINT"    = data.azurerm_machine_learning_workspace.ai_hub.discovery_url
+    "AI_HUB_ENDPOINT"    = var.ai_hub_discovery_url
   }
 
   tags = local.tags

@@ -24,6 +24,12 @@ variable "key_vault_name" {
   default     = ""
 }
 
+variable "ai_hub_discovery_url" {
+  description = "Discovery URL of the existing AI Hub"
+  type        = string
+  default     = ""
+}
+
 variable "application_insights_name" {
   description = "Name of the existing Application Insights"
   type        = string
