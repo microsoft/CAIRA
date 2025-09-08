@@ -66,7 +66,30 @@ Create a `terraform.tfvars` file:
 
 ### 3. Deploy Infrastructure
 
-// TODO
+1. From the guide directory, run the `init-backend` script to set up the terraform backend.
+
+    ```bash
+    scripts/init-backend.sh
+    ```
+
+1. Change to the terraform directory:
+
+    ```bash
+    cd terraform
+    ```
+
+1. Run the following terraform commands:
+
+    ```bash
+    terraform validate
+    terraform plan
+    ```
+
+1. If the above commands succeed and the plan looks correct, run the following terraform command to deploy the changes:
+
+    ```bash
+    terraform apply
+    ```
 
 ### 4. Deploy Function Code
 
