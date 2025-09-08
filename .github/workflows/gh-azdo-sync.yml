@@ -37,8 +37,6 @@ jobs:
         with:
           ado_organization: "${{ vars.AZDO_ORGANIZATION }}"
           ado_project: "${{ vars.AZDO_PROJECT }}"
-
           ado_work_item_type: "Task"
           ado_area_path: "${{ vars.AZDO_AREA_PATH }}"
-
           ado_dont_check_if_exist: false

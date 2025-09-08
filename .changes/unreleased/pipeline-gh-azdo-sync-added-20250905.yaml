@@ -1,7 +1,0 @@
-project: pipelines
-kind: added
-body: GitHub Issues to Azure DevOps WorkItems sync pipeline added
-time: 2025-09-05T16:07:41.6935631Z
-custom:
-  Author: polatengin
-  Issue: "93708"
