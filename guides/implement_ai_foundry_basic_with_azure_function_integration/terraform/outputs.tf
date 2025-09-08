@@ -1,13 +1,4 @@
-output "function_app_details" {
-  value = {
-    name                = azurerm_linux_function_app.main.name
-    hostname            = azurerm_linux_function_app.main.default_hostname
-    identity_id         = azurerm_linux_function_app.main.identity[0].principal_id
-    resource_group      = azurerm_resource_group.main.name
-    invoke_url_template = "https://${azurerm_linux_function_app.main.default_hostname}/api/{functionName}"
-  }
-  description = "Function App deployment details"
-}
+# outputs.tf - Output values for AI Foundry deployment
 
 output "ai_foundry_details" {
   value = {
@@ -22,9 +13,8 @@ output "ai_foundry_details" {
 
 output "security_details" {
   value = {
-    key_vault_name   = azurerm_key_vault.ai_hub.name
-    key_vault_uri    = azurerm_key_vault.ai_hub.vault_uri
-    managed_identity = azurerm_linux_function_app.main.identity[0].principal_id
+    key_vault_name = azurerm_key_vault.ai_hub.name
+    key_vault_uri  = azurerm_key_vault.ai_hub.vault_uri
   }
   description = "Security configuration details"
   sensitive   = true
@@ -62,24 +52,17 @@ output "deployment_instructions" {
     Next Steps:
     -----------
 
-    1. Deploy your Azure Function code:
-       func azure functionapp publish ${azurerm_linux_function_app.main.name} --python
-
-    2. Access AI Studio to deploy models:
+    1. Access AI Studio to deploy models:
        URL: https://ai.azure.com
        Workspace: ${azurerm_machine_learning_workspace.ai_hub.name}
        Project: ${azurerm_machine_learning_workspace.ai_project.name}
 
-    3. Test the Function endpoint:
-       URL: https://${azurerm_linux_function_app.main.default_hostname}/api/{functionName}
+    2. Deploy AI models via AI Studio:
+       - Navigate to the Model Catalog
+       - Select and deploy your desired models
+       - Configure endpoints and deployments
 
-       Get function key:
-       az functionapp function keys list \
-         --resource-group ${azurerm_resource_group.main.name} \
-         --name ${azurerm_linux_function_app.main.name} \
-         --function-name <your-function-name>
-
-    4. Monitor your application:
+    3. Monitor your AI resources:
        Application Insights: ${azurerm_application_insights.main.name}
 
        View logs:
@@ -88,23 +71,22 @@ output "deployment_instructions" {
          --resource-group ${azurerm_resource_group.main.name} \
          --query "traces | take 20"
 
-    5. For local development:
+    4. For local development:
        - Login: az login
        - Set subscription: az account set --subscription "${data.azurerm_client_config.current.subscription_id}"
-       - Your managed identity will work automatically with DefaultAzureCredential
+       - Use Azure SDK with DefaultAzureCredential for authentication
 
     Important Resources:
     -------------------
-    - Function App: ${azurerm_linux_function_app.main.name}
     - Key Vault: ${azurerm_key_vault.ai_hub.name}
     - AI Hub: ${azurerm_machine_learning_workspace.ai_hub.name}
+    - AI Project: ${azurerm_machine_learning_workspace.ai_project.name}
     - Storage: ${azurerm_storage_account.ai_hub.name}
 
     Security Note:
     -------------
-    The Function App is configured with a system-assigned managed identity.
-    Principal ID: ${azurerm_linux_function_app.main.identity[0].principal_id}
-    This identity has been granted necessary permissions to access AI Foundry resources.
+    The AI Hub and Project are configured with system-assigned managed identities.
+    Storage account has key access disabled for enhanced security.
 
     ========================================
   EOT
@@ -112,22 +94,7 @@ output "deployment_instructions" {
   description = "Post-deployment instructions and quick reference"
 }
 
-# Simple outputs for CLI usage (unchanged)
-output "function_app_name" {
-  value       = azurerm_linux_function_app.main.name
-  description = "Name of the Function App"
-}
-
-output "function_app_default_hostname" {
-  value       = azurerm_linux_function_app.main.default_hostname
-  description = "Default hostname of the Function App"
-}
-
-output "function_app_identity_principal_id" {
-  value       = azurerm_linux_function_app.main.identity[0].principal_id
-  description = "Principal ID of the Function App's managed identity"
-}
-
+# Simple outputs for CLI usage
 output "ai_hub_name" {
   value       = azurerm_machine_learning_workspace.ai_hub.name
   description = "Name of the AI Hub"
@@ -156,4 +123,9 @@ output "application_insights_name" {
 output "resource_group_name" {
   value       = azurerm_resource_group.main.name
   description = "Name of the resource group"
+}
+
+output "storage_account_name" {
+  value       = azurerm_storage_account.ai_hub.name
+  description = "Name of the storage account for AI Hub"
 }

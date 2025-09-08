@@ -1,5 +1,5 @@
 #!/bin/bash
-# init-backend.sh - Initialize Terraform backend for AI Foundry
+# init-backend.sh - Initialize Terraform backend for AI Foundry & Azure Function modules
 
 set -e
 
@@ -36,9 +36,6 @@ echo ""
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
-
-# Move to terraform directory
-cd "$TERRAFORM_DIR" || { echo "Terraform directory not found"; exit 1; }
 
 # Create resource group if needed
 echo "Setting up backend storage..."
@@ -115,44 +112,71 @@ else
         --output none 2>/dev/null || true
 fi
 
-# Create backend.hcl
-cat > backend.hcl <<EOF
+# Initialize backend for both modules
+MODULES=("ai_hub" "azure_function")
+for MODULE in "${MODULES[@]}"; do
+    MODULE_DIR="$TERRAFORM_DIR/$MODULE"
+
+    # Check if module directory exists
+    if [ ! -d "$MODULE_DIR" ]; then
+        echo -e "${YELLOW}Warning: Module directory not found: $MODULE_DIR - skipping${NC}"
+        continue
+    fi
+
+    echo ""
+    echo -e "${GREEN}Configuring backend for: $MODULE${NC}"
+    cd "$MODULE_DIR"
+
+    # Determine state key based on module
+    if [ "$MODULE" = "ai_hub" ]; then
+        STATE_KEY="ai-hub/$ENVIRONMENT/terraform.tfstate"
+    else
+        STATE_KEY="azure-function/$ENVIRONMENT/terraform.tfstate"
+    fi
+
+    # Create backend.hcl
+    cat > backend.hcl <<EOF
 # Generated: $(date)
+# Module: $MODULE
 # Environment: $ENVIRONMENT
 resource_group_name  = "$BACKEND_RG"
 storage_account_name = "$STORAGE"
 container_name       = "$BACKEND_CONTAINER"
-key                  = "ai-foundry/$ENVIRONMENT/terraform.tfstate"
+key                  = "$STATE_KEY"
 EOF
 
-if [ "$USE_AZUREAD" = true ]; then
-    echo "use_azuread_auth = true" >> backend.hcl
-fi
-
-echo "Created backend.hcl"
-
-# Initialize Terraform
-echo "Initializing Terraform..."
-rm -rf .terraform .terraform.lock.hcl 2>/dev/null || true
-
-if terraform init -backend-config="backend.hcl" -upgrade; then
-    echo -e "${GREEN}✓ Setup complete!${NC}"
-    echo ""
-    echo "State will be stored in:"
-    echo "  Storage: $STORAGE"
-    echo "  Container: $BACKEND_CONTAINER"
-    echo "  Key: ai-foundry/$ENVIRONMENT/terraform.tfstate"
-    echo ""
-    echo -e "${YELLOW}Remember: Don't commit backend.hcl to git${NC}"
-    echo ""
-    echo "Next steps:"
-    echo "  terraform validate"
-    echo "  terraform plan"
-    echo "  terraform apply"
-else
-    echo -e "${RED}Terraform init failed${NC}"
     if [ "$USE_AZUREAD" = true ]; then
-        echo "If using Azure AD, wait 30 seconds for role propagation and try again"
+        echo "use_azuread_auth = true" >> backend.hcl
     fi
-    exit 1
-fi
+
+    echo "Created backend.hcl in $MODULE_DIR"
+
+    # Initialize Terraform
+    echo "Initializing Terraform for $MODULE..."
+    rm -rf .terraform .terraform.lock.hcl 2>/dev/null || true
+
+    if terraform init -backend-config="backend.hcl" -upgrade; then
+        echo -e "${GREEN}✓ Backend initialized for $MODULE${NC}"
+    else
+        echo -e "${RED}Warning: Terraform init failed for $MODULE${NC}"
+        if [ "$USE_AZUREAD" = true ]; then
+            echo "If using Azure AD, wait 30 seconds for role propagation and try again"
+        fi
+    fi
+done
+
+echo ""
+echo -e "${GREEN}=== Setup Complete! ===${NC}"
+echo ""
+echo "State will be stored in:"
+echo "  Storage: $STORAGE"
+echo "  Container: $BACKEND_CONTAINER"
+echo "  AI Hub Key: ai-hub/$ENVIRONMENT/terraform.tfstate"
+echo "  Function Key: azure-function/$ENVIRONMENT/terraform.tfstate"
+echo ""
+echo -e "${YELLOW}Remember: Don't commit backend.hcl files to git${NC}"
+echo ""
+echo "Next steps:"
+echo "  cd terraform/ai_hub"
+echo "  terraform plan"
+echo "  terraform apply"

@@ -46,18 +46,6 @@ variable "enable_private_endpoints" {
   default     = false
 }
 
-variable "function_app_sku" {
-  description = "SKU for the Function App service plan"
-  type        = string
-  default     = "Y1" # Consumption plan
-}
-
-variable "allowed_ip_ranges" {
-  description = "List of allowed IP ranges for Function App"
-  type        = list(string)
-  default     = []
-}
-
 variable "tags" {
   description = "Additional tags for resources"
   type        = map(string)
