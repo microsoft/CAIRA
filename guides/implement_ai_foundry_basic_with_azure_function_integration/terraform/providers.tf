@@ -1,24 +1,6 @@
 # providers.tf - Provider configuration
 
-terraform {
-  required_version = ">= 1.5.0"
-
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.85.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.5.0"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.45.0"
-    }
-  }
-}
-
+# Configure the Azure Provider
 provider "azurerm" {
   features {
     key_vault {
@@ -34,6 +16,12 @@ provider "azurerm" {
   }
 }
 
+# Configure the Azure AD Provider (only if using Azure AD resources)
 provider "azuread" {
+  # Configuration options
+}
+
+# Configure the Random Provider (usually doesn't need configuration)
+provider "random" {
   # Configuration options
 }
