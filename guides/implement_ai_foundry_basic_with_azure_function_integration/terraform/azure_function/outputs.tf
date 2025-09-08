@@ -27,7 +27,7 @@ output "function_app_identity_principal_id" {
 }
 
 output "storage_account_name" {
-  value       = azurerm_storage_account.function_app.name
+  value       = data.azurerm_storage_account.function_app.name
   description = "Name of the Function App storage account"
 }
 
