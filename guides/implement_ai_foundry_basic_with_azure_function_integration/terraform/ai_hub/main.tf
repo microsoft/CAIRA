@@ -93,6 +93,10 @@ resource "azurerm_application_insights" "main" {
   resource_group_name = azurerm_resource_group.main.name
   application_type    = "web"
 
+  lifecycle {
+    ignore_changes = [workspace_id]
+  }
+
   tags = local.tags
 }
 
