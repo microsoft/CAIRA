@@ -189,9 +189,6 @@ resource "azurerm_linux_function_app" "main" {
     "AI_RESOURCE_GROUP"  = azurerm_resource_group.main.name
     "AI_SUBSCRIPTION_ID" = data.azurerm_client_config.current.subscription_id
     "AI_HUB_ENDPOINT"    = azurerm_machine_learning_workspace.ai_hub.discovery_url
-
-    # Enable managed identity for authentication
-    "AZURE_CLIENT_ID" = azurerm_linux_function_app.main.identity[0].principal_id
   }
 
   tags = local.tags
