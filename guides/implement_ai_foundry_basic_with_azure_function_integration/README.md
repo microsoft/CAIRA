@@ -261,9 +261,6 @@ cd function-app
 
 # Deploy using Azure Functions Core Tools
 func azure functionapp publish func-aifoundry-dev-<suffix> --python
-
-# Or use the provided deployment script
-../scripts/deploy-function.sh
 ```
 
 The deployment script automatically:
