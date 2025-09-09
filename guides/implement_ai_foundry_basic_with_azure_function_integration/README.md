@@ -569,10 +569,6 @@ Approximate monthly costs (varies by region and usage):
 - [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Azure AI ML SDK](http://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml?view=azure-python)
 
-## License
-
-// TODO
-
 ## Contributing
 
 Please submit issues and pull requests for improvements to this guide.
