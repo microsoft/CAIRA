@@ -98,7 +98,7 @@ When implementing this solution, GitHub Copilot can assist with code generation.
 # Prompt: "Write a script to configure local.settings.json from deployed resources"
 ```
 
-## HAVE (HyperVelocity Engineering) Prompts
+## HVE (HyperVelocity Engineering) Prompts
 
 For step-by-step guidance, use these Copilot prompts at each stage:
 
