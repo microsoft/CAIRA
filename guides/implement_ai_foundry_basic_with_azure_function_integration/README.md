@@ -43,6 +43,27 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 └── README.md                        # This guide
 ```
 
+## Complete Resource Files
+
+All code and configuration files referenced in this guide are located in the same repository folder structure shown above. Key files include:
+
+### Terraform Files
+
+- **terraform/ai_hub/**: Complete Terraform module for AI Foundry Hub deployment
+- **terraform/azure_function/**: Complete Terraform module for Function App deployment
+
+### Scripts
+
+- **scripts/init-backend.sh**: Automated Terraform backend initialization
+- **scripts/create-function-tfvars.sh**: Auto-generates Function App variables from AI Hub outputs
+- **scripts/configure-local-settings.sh**: Sets up local development environment
+
+### Function App Code
+
+- **function-app/function_app.py**: Complete Python implementation with DefaultAzureCredential
+- **function-app/requirements.txt**: All required Python packages
+- **function-app/host.json**: Function runtime configuration
+
 ## Architecture Components
 
 - **Azure AI Hub** (AI Foundry): Central workspace for AI models and experiments
@@ -51,6 +72,59 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 - **Azure Key Vault**: Secure storage for secrets and keys
 - **Application Insights**: Monitoring and diagnostics
 - **Storage Accounts**: Data storage for AI Hub and Function App (with key-disabled policy workarounds)
+
+## Using GitHub Copilot for Implementation
+
+When implementing this solution, GitHub Copilot can assist with code generation. Here are effective prompts:
+
+### For Terraform Resources
+
+```plaintext
+# Prompt: "Create an Azure Machine Learning workspace with system-assigned identity and Key Vault integration"
+# Prompt: "Add a Function App with managed identity that can access the ML workspace"
+```
+
+### For Python Functions
+
+```plaintext
+# Prompt: "Create an Azure Function that uses DefaultAzureCredential to authenticate with AI Foundry"
+# Prompt: "Implement error handling for AI model endpoint calls with retry logic"
+```
+
+### For Scripts
+
+```plaintext
+# Prompt: "Create a bash script that reads Terraform outputs and generates a tfvars file"
+# Prompt: "Write a script to configure local.settings.json from deployed resources"
+```
+
+## HAVE (HyperVelocity Engineering) Prompts
+
+For step-by-step guidance, use these Copilot prompts at each stage:
+
+### Initial Setup
+
+1. "How do I get the principal ID for the foundry instance?"
+   - Copilot will guide you to use Terraform outputs or Azure CLI commands
+
+1. "Generate Terraform code for Azure Machine Learning workspace with AI Hub kind"
+   - Note: Current limitation requires CLI workaround for Hub kind
+
+### Function Development
+
+1. "Create a Python Azure Function that calls an AI model endpoint using managed identity"
+   - Ensures DefaultAzureCredential usage
+
+1. "Add retry logic and error handling for AI model calls in Azure Functions"
+   - Implements production-ready resilience
+
+### Testing & Deployment
+
+1. "Generate curl commands to test my Azure Function locally and in Azure"
+   - Creates test scenarios for both environments
+
+1. "Create a script to deploy my function app and configure app settings from Terraform outputs"
+   - Automates the deployment pipeline
 
 ## Prerequisites
 
@@ -208,7 +282,34 @@ The function app implementation provided in the `function-app/` directory includ
 - **function_app.py**: Main function implementation with HTTP trigger endpoints
 - **host.json**: Function app global configuration settings
 - **requirements.txt**: Python dependencies for AI integration
-- **local.settings.json**: Local development settings (create from template)
+- **local.settings.json**: Local development settings (generated via script)
+
+### DefaultAzureCredential Implementation
+
+The function app uses `DefaultAzureCredential` from Azure Identity library for seamless authentication:
+
+```python
+# function_app.py excerpt
+from azure.identity import DefaultAzureCredential
+from azure.ai.ml import MLClient
+
+# Initialize with DefaultAzureCredential - works both locally and in Azure
+credential = DefaultAzureCredential()
+
+# Connect to AI Foundry using managed identity in Azure, or user credentials locally
+ml_client = MLClient(
+    credential=credential,
+    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
+    resource_group_name=os.getenv("AI_RESOURCE_GROUP"),
+    workspace_name=os.getenv("AI_HUB_NAME")
+)
+```
+
+This approach ensures:
+
+- **In Azure**: Uses the Function App's system-assigned managed identity
+- **Locally**: Uses your Azure CLI credentials (`az login`)
+- **No code changes required** between environments
 
 ### Key Features
 
@@ -475,3 +576,26 @@ Approximate monthly costs (varies by region and usage):
 ## Contributing
 
 Please submit issues and pull requests for improvements to this guide.
+
+### Tracking Friction Points
+
+When encountering issues or friction points during implementation:
+
+1. **Document the issue** in the repository's Issues section with:
+   - Clear description of the problem
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - Workaround if found
+   - Label as `friction-point` or `enhancement`
+
+1. **Create work items** for the CAIRA team to address:
+   - Use the issue template for consistency
+   - Link to relevant code or documentation
+   - Suggest potential solutions
+
+1. **Current known friction points** are documented in:
+   - **Troubleshooting** section of this guide
+   - **Known Limitations** section
+   - GitHub Issues with `friction-point` label
+
+This feedback helps improve the guide and tooling for future implementations.
