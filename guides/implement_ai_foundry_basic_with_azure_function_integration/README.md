@@ -6,7 +6,7 @@ This guide provides a complete Infrastructure as Code (IaC) solution for deployi
 
 ## Project Directory Structure
 
-```
+```plaintext
 guides/implement_ai_foundry_basic_with_azure_function_integration/
 ├── function-app/                    # Azure Function application code
 │   ├── __pycache__/                # Python cache (auto-generated)
