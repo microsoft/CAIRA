@@ -113,6 +113,7 @@ else
 fi
 
 # Initialize backend for both modules
+ALL_SUCCEED=true
 MODULES=("ai_hub" "azure_function")
 for MODULE in "${MODULES[@]}"; do
     MODULE_DIR="$TERRAFORM_DIR/$MODULE"
@@ -162,21 +163,24 @@ EOF
         if [ "$USE_AZUREAD" = true ]; then
             echo "If using Azure AD, wait 30 seconds for role propagation and try again"
         fi
+        ALL_SUCCEED=false
     fi
 done
 
-echo ""
-echo -e "${GREEN}=== Setup Complete! ===${NC}"
-echo ""
-echo "State will be stored in:"
-echo "  Storage: $STORAGE"
-echo "  Container: $BACKEND_CONTAINER"
-echo "  AI Hub Key: ai-hub/$ENVIRONMENT/terraform.tfstate"
-echo "  Function Key: azure-function/$ENVIRONMENT/terraform.tfstate"
-echo ""
-echo -e "${YELLOW}Remember: Don't commit backend.hcl files to git${NC}"
-echo ""
-echo "Next steps:"
-echo "  cd terraform/ai_hub"
-echo "  terraform plan"
-echo "  terraform apply"
+if  [ "$ALL_SUCCEED" = true ]; then
+    echo ""
+    echo -e "${GREEN}=== Setup Complete! ===${NC}"
+    echo ""
+    echo "State will be stored in:"
+    echo "  Storage: $STORAGE"
+    echo "  Container: $BACKEND_CONTAINER"
+    echo "  AI Hub Key: ai-hub/$ENVIRONMENT/terraform.tfstate"
+    echo "  Function Key: azure-function/$ENVIRONMENT/terraform.tfstate"
+    echo ""
+    echo -e "${YELLOW}Remember: Don't commit backend.hcl files to git${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "  cd terraform/ai_hub"
+    echo "  terraform plan"
+    echo "  terraform apply"
+fi
