@@ -7,7 +7,7 @@ set -e
 ENVIRONMENT="${1:-dev}"
 BACKEND_RG="rg-terraform-state"
 BACKEND_CONTAINER="tfstate"
-LOCATION="westus"
+LOCATION="westus2"
 
 # Colors
 GREEN='\033[0;32m'

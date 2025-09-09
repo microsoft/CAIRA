@@ -1,7 +1,7 @@
 # terraform.tfvars.example - Example values file
 
 resource_group_name = "rg-ai-foundry-prod"
-location            = "West US"
+location            = "westus2"
 environment         = "prod"
 project_name        = "caira"
 
