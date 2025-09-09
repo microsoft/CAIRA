@@ -60,22 +60,22 @@ The recommended way to engage with this sample is through a [development contain
 
 ### 2. Configure Variables
 
-Create a `terraform.tfvars` file:
+Create a `terraform.tfvars` file by copying the `terraform.tfvars.example` file and filling in the details you wish to use.
 
 // TODO
 
 ### 3. Deploy Infrastructure
 
-1. From the guide directory, run the `init-backend` script to set up the terraform backend.
+1. From the guide directory, run the `init-backend` script to set up the terraform backend. This will create a resource group named `rg-terraform-state` with a storage account to contain your terraform state.
 
     ```bash
     scripts/init-backend.sh
     ```
 
-1. Change to the terraform directory:
+1. Change to the `terraform/ai_hub` directory:
 
     ```bash
-    cd terraform
+    cd terraform/ai_hub
     ```
 
 1. Run the following terraform commands:
