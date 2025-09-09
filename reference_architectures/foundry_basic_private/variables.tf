@@ -53,6 +53,6 @@ variable "tags" {
 }
 
 variable "foundry_subnet_id" {
-  description = "The subnet ID where for the AI Foundry private endpoints."
+  description = "The subnet ID for the AI Foundry private endpoints."
   type        = string
 }
