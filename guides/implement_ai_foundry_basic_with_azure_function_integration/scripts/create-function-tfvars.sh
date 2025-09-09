@@ -71,7 +71,8 @@ existing_suffix = "$RANDOM_SUFFIX"
 # Function App configuration
 environment = "dev"
 project_name = "aifoundry"
-function_app_sku = "F1"  # Consumption plan
+function_app_sku = "F1"  # Free tier
+location = "westus2"  # Using West US 2 as it has Free tier quota available
 
 # Optional: Add IP restrictions if needed
 # allowed_ip_ranges = ["192.168.1.0/24"]
@@ -95,3 +96,5 @@ echo "4. Run: terraform apply"
 echo ""
 echo -e "${YELLOW}Note: Function App requires storage keys to be enabled.${NC}"
 echo "If your Azure Policy blocks this, you'll need to create an exemption."
+echo ""
+echo -e "${YELLOW}Location: Set to westus2 (Free tier quota available)${NC}"

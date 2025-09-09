@@ -84,8 +84,8 @@ variable "function_app_sku" {
   default     = "Y1" # Consumption plan
 
   validation {
-    condition     = contains(["F1", "Y1", "EP1", "EP2", "EP3"], var.function_app_sku)
-    error_message = "Function App SKU must be F1 (Free), Y1 (Consumption), or EP1-3 (Elastic Premium)."
+    condition     = contains(["F1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2", "Y1", "EP1", "EP2", "EP3"], var.function_app_sku)
+    error_message = "Function App SKU must be a valid App Service Plan SKU."
   }
 }
 
