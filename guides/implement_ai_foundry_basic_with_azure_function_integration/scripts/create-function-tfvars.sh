@@ -71,7 +71,7 @@ existing_suffix = "$RANDOM_SUFFIX"
 # Function App configuration
 environment = "dev"
 project_name = "aifoundry"
-function_app_sku = "F1"  # Free tier
+function_app_sku = "B1"  #  Basic Tier
 
 # Optional: Add IP restrictions if needed
 # allowed_ip_ranges = ["192.168.1.0/24"]
