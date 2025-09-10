@@ -129,7 +129,6 @@ output "resource_group_location" {
   description = "Location of the resource group"
 }
 
-# Fixed: Changed from azurerm_storage_account.ai_hub to data.azurerm_storage_account.ai_hub
 output "storage_account_name" {
   value       = data.azurerm_storage_account.ai_hub.name
   description = "Name of the storage account for AI Hub"

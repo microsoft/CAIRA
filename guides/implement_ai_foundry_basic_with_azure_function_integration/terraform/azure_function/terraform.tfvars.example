@@ -16,7 +16,7 @@ use_existing_suffix = true
 existing_suffix     = "abc12345"
 
 # Function App configuration
-environment    = "prod"
+environment    = "dev"
 project_name   = "caira"
 function_app_sku = "EP1"  # Elastic Premium for production
 

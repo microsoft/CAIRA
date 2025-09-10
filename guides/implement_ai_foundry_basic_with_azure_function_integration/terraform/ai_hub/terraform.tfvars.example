@@ -2,7 +2,7 @@
 
 resource_group_name = "rg-ai-foundry-prod"
 location            = "westus2"
-environment         = "prod"
+environment         = "dev"
 project_name        = "caira"
 
 tags = {
