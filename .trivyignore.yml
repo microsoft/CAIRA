@@ -4,3 +4,5 @@ misconfigurations:
   # Offending values are hardcoded within core module variable `connectivty`. Until networking is removed, these must be ignored.
   - id: AVD-AZU-0050 # Security group rule allows unrestricted ingress to SSH port from any IP address.
   - id: AVD-AZU-0047 # Security group rule allows unrestricted ingress from any IP address.
+  # Development environment - purge protection disabled for testing
+  - id: AVD-AZU-0016 # Vault does not have purge protection enabled.
