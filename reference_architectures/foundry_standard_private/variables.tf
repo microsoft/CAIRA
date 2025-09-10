@@ -58,7 +58,7 @@ variable "agents_subnet_id" {
 }
 
 variable "foundry_subnet_id" {
-  description = "The subnet ID where the AI Foundry will be injected."
+  description = "The subnet ID for the AI Foundry private endpoints."
   type        = string
 }
 

@@ -85,7 +85,7 @@ jobs:
 
       - name: 📂 Dirs
         id: dirs
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -162,7 +162,7 @@ jobs:
 
       - name: 👮 Create Issue on Plan Failure
         if: steps.plan.outputs.exitcode == 1
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -199,7 +199,7 @@ jobs:
 
       - name: 👮 Create Issue on Test Failure (unit)
         if: steps.testunit.outputs.exitcode == 1
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -228,7 +228,7 @@ jobs:
 
       - name: 👮 Create Issue on Test Failure (acceptance)
         if: steps.testacc.outputs.exitcode == 1
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -258,7 +258,7 @@ jobs:
 
       - name: 👮 Create Issue on Test Failure (integration)
         if: steps.testint.outputs.exitcode == 1
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
@@ -281,7 +281,7 @@ jobs:
 
       - name: 👮 Create summary comment
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ github.token }}
           script: |
