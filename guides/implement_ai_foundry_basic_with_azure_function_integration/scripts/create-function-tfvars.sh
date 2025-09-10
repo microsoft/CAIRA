@@ -10,7 +10,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # Get script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TERRAFORM_DIR="$(dirname "$SCRIPT_DIR")/terraform"
 AI_HUB_DIR="$TERRAFORM_DIR/ai_hub"
 FUNCTION_DIR="$TERRAFORM_DIR/azure_function"
@@ -26,11 +26,11 @@ echo "Checking AI Hub deployment..."
 AI_HUB_NAME=$(terraform output -raw ai_hub_name 2>/dev/null || echo "")
 
 if [ -z "$AI_HUB_NAME" ]; then
-    echo -e "${RED}Error: Cannot retrieve AI Hub outputs.${NC}"
-    echo "Please ensure AI Hub has been deployed:"
-    echo "  cd $AI_HUB_DIR"
-    echo "  terraform apply"
-    exit 1
+  echo -e "${RED}Error: Cannot retrieve AI Hub outputs.${NC}"
+  echo "Please ensure AI Hub has been deployed:"
+  echo "  cd $AI_HUB_DIR"
+  echo "  terraform apply"
+  exit 1
 fi
 
 echo "Retrieving AI Hub outputs..."
@@ -43,9 +43,9 @@ RESOURCE_GROUP=$(terraform output -raw resource_group_name 2>/dev/null || echo "
 
 # Check if we got all required values
 if [ -z "$AI_HUB_NAME" ] || [ -z "$RESOURCE_GROUP" ]; then
-    echo -e "${RED}Error: Could not retrieve AI Hub outputs.${NC}"
-    echo "Make sure AI Hub deployment completed successfully."
-    exit 1
+  echo -e "${RED}Error: Could not retrieve AI Hub outputs.${NC}"
+  echo "Make sure AI Hub deployment completed successfully."
+  exit 1
 fi
 
 # Navigate to Function App directory
@@ -54,7 +54,7 @@ cd "$FUNCTION_DIR"
 # Create terraform.tfvars
 echo -e "${YELLOW}Creating terraform.tfvars in $FUNCTION_DIR${NC}"
 
-cat > terraform.tfvars <<EOF
+cat >terraform.tfvars <<EOF
 # Auto-generated from AI Hub deployment - $(date)
 # AI Hub resource references
 ai_hub_resource_group = "$RESOURCE_GROUP"

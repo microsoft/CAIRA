@@ -9,9 +9,9 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_message() {
-    local color=$1
-    local message=$2
-    echo -e "${color}${message}${NC}"
+  local color=$1
+  local message=$2
+  echo -e "${color}${message}${NC}"
 }
 
 print_message "$GREEN" "Configuring local.settings.json..."
@@ -26,7 +26,7 @@ RESOURCE_GROUP=$(terraform output -raw resource_group_name)
 cd ../../function-app
 
 # Create or update local.settings.json
-cat > local.settings.json <<EOF
+cat >local.settings.json <<EOF
 {
   "IsEncrypted": false,
   "Values": {

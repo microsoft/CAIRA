@@ -34,27 +34,9 @@ variable "project_name" {
   }
 }
 
-variable "ai_model_deployment_name" {
-  description = "Name of the AI model deployment"
-  type        = string
-  default     = "gpt-4-deployment"
-}
-
-variable "enable_private_endpoints" {
-  description = "Enable private endpoints for enhanced security"
-  type        = bool
-  default     = false
-}
-
 variable "tags" {
   description = "Additional tags for resources"
   type        = map(string)
   default     = {}
 }
 
-# Export suffix for use by Function App deployment
-variable "export_suffix" {
-  description = "Export the random suffix for Function App naming consistency"
-  type        = bool
-  default     = true
-}

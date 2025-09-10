@@ -436,7 +436,6 @@ The Function App uses system-assigned managed identity with the following roles:
 
 - Storage accounts have key access disabled (AI Hub) or enabled (Function App) based on requirements
 - Function App can be configured with IP restrictions via `allowed_ip_ranges` variable
-- Private endpoints can be enabled via `enable_private_endpoints` variable
 
 ### 3. Key Vault Integration
 

@@ -22,7 +22,7 @@ locals {
   tags = merge(local.common_tags, var.tags)
 
   # IP restrictions for Function App
-  ip_restrictions = var.allowed_ip_ranges != [] ? [
+  ip_restrictions = length(var.allowed_ip_ranges) != 0 ? [
     for ip in var.allowed_ip_ranges : {
       name                      = "AllowedIP-${index(var.allowed_ip_ranges, ip)}"
       ip_address                = ip
