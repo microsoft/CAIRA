@@ -1,4 +1,4 @@
-#locals.tf - Local values for Azure Function Configuration
+# locals.tf - Local values for Azure Function Configuration
 
 locals {
   # Use existing suffix or generate new one

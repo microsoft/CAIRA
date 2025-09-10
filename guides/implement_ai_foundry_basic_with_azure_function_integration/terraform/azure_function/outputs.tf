@@ -1,4 +1,4 @@
-#outputs.tf - Output definitions for Azure Function Configuration
+# outputs.tf - Output definitions for Azure Function Configuration
 
 output "function_app_details" {
   value = {

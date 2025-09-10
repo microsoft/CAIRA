@@ -1,4 +1,4 @@
-#providers.tf - Terraform providers configuration
+# providers.tf - Terraform providers configuration
 
 # Configure the Azure Provider
 provider "azurerm" {
