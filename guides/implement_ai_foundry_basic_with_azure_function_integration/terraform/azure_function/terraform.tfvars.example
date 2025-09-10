@@ -1,14 +1,14 @@
 # terraform.tfvars.example - - Example values file
 
 # Required: Reference to existing AI Hub resources
-ai_hub_resource_group = "rg-ai-foundry-prod"
+ai_hub_resource_group = "rg-ai-foundry-dev"
 
 # These can be automatically discovered if you use the import script
 # Or manually specify them:
-ai_hub_name                 = "hub-caira-prod-abc12345"
-ai_project_name              = "project-caira-prod-abc12345"
-key_vault_name               = "kv-caira-prod-abc12345"
-application_insights_name    = "appi-caira-prod-abc12345"
+ai_hub_name                 = "hub-caira-dev-abc12345"
+ai_project_name              = "project-caira-dev-abc12345"
+key_vault_name               = "kv-caira-dev-abc12345"
+application_insights_name    = "appi-caira-dev-abc12345"
 ai_hub_storage_account_name  = "stcairaabc12345"
 
 # Optional: Use the same suffix as AI Hub for consistency
@@ -35,5 +35,5 @@ cors_allowed_origins = [
 tags = {
   Owner       = "AI Team"
   CostCenter  = "Engineering"
-  Environment = "Production"
+  Environment = "Development"
 }

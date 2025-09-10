@@ -1,6 +1,6 @@
 # terraform.tfvars.example - Example values file
 
-resource_group_name = "rg-ai-foundry-prod"
+resource_group_name = "rg-ai-foundry-dev"
 location            = "westus2"
 environment         = "dev"
 project_name        = "caira"
@@ -8,6 +8,6 @@ project_name        = "caira"
 tags = {
   Owner       = "AI Team"
   CostCenter  = "Engineering"
-  Environment = "Production"
+  Environment = "Development"
   Compliance  = "HIPAA"
 }
