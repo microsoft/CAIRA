@@ -157,6 +157,7 @@ The recommended way to engage with this sample is through a [development contain
 1. Clone the CAIRA repo using your method of choice.
 1. Open the project in VS Code.
 1. Assuming the Dev Containers extension is set up correctly, you should see a popup asking you if you would like to open the project in a dev container:
+
     ![Dev Container popup notification](images/dev_container_popup.png)
 
     Choose "Reopen in Container".
@@ -164,6 +165,7 @@ The recommended way to engage with this sample is through a [development contain
     - If you do not get the popup, you can instead click on the Dev Container extension in the bottom-left of the window, which will open a dropdown at the top of the window with a "Reopen in Container" option.
 
 1. The first time you open the dev container, it will take a while to load and build all the configured settings. Once it has already been created, it will load more quickly in the future. In both cases there should be a notification that it is connecting, with an option to show logs; clicking on that notification will open a terminal showing all the configuration happening.
+
     ![Connecting to Dev Container](images/connecting_to_dev_container.png)
 
 1. In the VS Code menu, click Terminal -> New Terminal to open a terminal within the container.
