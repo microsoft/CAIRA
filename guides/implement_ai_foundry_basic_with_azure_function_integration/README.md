@@ -9,7 +9,7 @@ This guide provides a complete Infrastructure as Code (IaC) solution for deployi
 ```plaintext
 guides/implement_ai_foundry_basic_with_azure_function_integration/
 ├── function-app/                    # Azure Function application code
-│   ├── __pycache__/                # Python cache (auto-generated)
+│   ├── __pycache__/                 # Python cache (auto-generated)
 │   ├── .python_packages/            # Function app packages (deployment)
 │   ├── .venv/                       # Virtual environment (local dev)
 │   ├── function_app.py              # Main function implementation
@@ -18,28 +18,28 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 │   └── requirements.txt             # Python dependencies
 ├── images/                          # Documentation images
 ├── scripts/                         # Automation scripts
-│   ├── configure-local-settings.sh # Configure local development
-│   ├── create-function-tfvars.sh   # Generate Function App terraform.tfvars
-│   └── init-backend.sh            # Initialize Terraform backend
+│   ├── configure-local-settings.sh  # Configure local development
+│   ├── create-function-tfvars.sh    # Generate Function App terraform.tfvars
+│   └── init-backend.sh              # Initialize Terraform backend
 ├── terraform/                       # Infrastructure as Code
-│   ├── ai_hub/                    # AI Hub infrastructure
-│   │   ├── backend.tf             # Backend configuration
-│   │   ├── locals.tf              # Local variables
-│   │   ├── main.tf                # Main resources
-│   │   ├── outputs.tf             # Output values
-│   │   ├── providers.tf           # Provider configuration
+│   ├── ai_hub/                      # AI Hub infrastructure
+│   │   ├── backend.tf               # Backend configuration
+│   │   ├── locals.tf                # Local variables
+│   │   ├── main.tf                  # Main resources
+│   │   ├── outputs.tf               # Output values
+│   │   ├── providers.tf             # Provider configuration
 │   │   ├── terraform.tfvars.example # Example variables file
-│   │   ├── variables.tf           # Variable definitions
-│   │   └── versions.tf            # Version constraints
-│   └── azure_function/             # Function App infrastructure
-│       ├── backend.tf             # Backend configuration
-│       ├── locals.tf              # Local variables
-│       ├── main.tf                # Main resources
-│       ├── outputs.tf             # Output values
-│       ├── providers.tf           # Provider configuration
+│   │   ├── variables.tf             # Variable definitions
+│   │   └── versions.tf              # Version constraints
+│   └── azure_function/              # Function App infrastructure
+│       ├── backend.tf               # Backend configuration
+│       ├── locals.tf                # Local variables
+│       ├── main.tf                  # Main resources
+│       ├── outputs.tf               # Output values
+│       ├── providers.tf             # Provider configuration
 │       ├── terraform.tfvars.example # Example variables file
-│       ├── variables.tf           # Variable definitions
-│       └── versions.tf            # Version constraints
+│       ├── variables.tf             # Variable definitions
+│       └── versions.tf              # Version constraints
 └── README.md                        # This guide
 ```
 
