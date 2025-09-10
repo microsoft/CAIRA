@@ -52,28 +52,28 @@ Next Steps:
 -----------
 
 1. Access AI Studio to deploy models:
-   URL: https://ai.azure.com
-   Workspace: ${azurerm_machine_learning_workspace.ai_hub.name}
-   Project: ${azurerm_machine_learning_workspace.ai_project.name}
+URL: https://ai.azure.com
+Workspace: ${azurerm_machine_learning_workspace.ai_hub.name}
+Project: ${azurerm_machine_learning_workspace.ai_project.name}
 
 2. Deploy AI models via AI Studio:
-   - Navigate to the Model Catalog
-   - Select and deploy your desired models
-   - Configure endpoints and deployments
+- Navigate to the Model Catalog
+- Select and deploy your desired models
+- Configure endpoints and deployments
 
 3. Monitor your AI resources:
-   Application Insights: ${azurerm_application_insights.main.name}
+Application Insights: ${azurerm_application_insights.main.name}
 
-   View logs:
-   az monitor app-insights query \
-     --app ${azurerm_application_insights.main.name} \
-     --resource-group ${azurerm_resource_group.main.name} \
-     --query "traces | take 20"
+View logs:
+az monitor app-insights query \
+--app ${azurerm_application_insights.main.name} \
+--resource-group ${azurerm_resource_group.main.name} \
+--query "traces | take 20"
 
 4. For local development:
-   - Login: az login
-   - Set subscription: az account set --subscription "${data.azurerm_client_config.current.subscription_id}"
-   - Use Azure SDK with DefaultAzureCredential for authentication
+- Login: az login
+- Set subscription: az account set --subscription "${data.azurerm_client_config.current.subscription_id}"
+- Use Azure SDK with DefaultAzureCredential for authentication
 
 Important Resources:
 -------------------
