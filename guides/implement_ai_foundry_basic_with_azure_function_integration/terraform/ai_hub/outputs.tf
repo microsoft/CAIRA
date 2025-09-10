@@ -41,55 +41,54 @@ output "connection_strings" {
 # Deployment instructions output
 output "deployment_instructions" {
   value = <<-EOT
+========================================
+Deployment Complete! 🎉
+========================================
 
-    ========================================
-    Deployment Complete! 🎉
-    ========================================
+Environment: ${var.environment}
+Resource Group: ${azurerm_resource_group.main.name}
 
-    Environment: ${var.environment}
-    Resource Group: ${azurerm_resource_group.main.name}
+Next Steps:
+-----------
 
-    Next Steps:
-    -----------
+1. Access AI Studio to deploy models:
+   URL: https://ai.azure.com
+   Workspace: ${azurerm_machine_learning_workspace.ai_hub.name}
+   Project: ${azurerm_machine_learning_workspace.ai_project.name}
 
-    1. Access AI Studio to deploy models:
-       URL: https://ai.azure.com
-       Workspace: ${azurerm_machine_learning_workspace.ai_hub.name}
-       Project: ${azurerm_machine_learning_workspace.ai_project.name}
+2. Deploy AI models via AI Studio:
+   - Navigate to the Model Catalog
+   - Select and deploy your desired models
+   - Configure endpoints and deployments
 
-    2. Deploy AI models via AI Studio:
-       - Navigate to the Model Catalog
-       - Select and deploy your desired models
-       - Configure endpoints and deployments
+3. Monitor your AI resources:
+   Application Insights: ${azurerm_application_insights.main.name}
 
-    3. Monitor your AI resources:
-       Application Insights: ${azurerm_application_insights.main.name}
+   View logs:
+   az monitor app-insights query \
+     --app ${azurerm_application_insights.main.name} \
+     --resource-group ${azurerm_resource_group.main.name} \
+     --query "traces | take 20"
 
-       View logs:
-       az monitor app-insights query \
-         --app ${azurerm_application_insights.main.name} \
-         --resource-group ${azurerm_resource_group.main.name} \
-         --query "traces | take 20"
+4. For local development:
+   - Login: az login
+   - Set subscription: az account set --subscription "${data.azurerm_client_config.current.subscription_id}"
+   - Use Azure SDK with DefaultAzureCredential for authentication
 
-    4. For local development:
-       - Login: az login
-       - Set subscription: az account set --subscription "${data.azurerm_client_config.current.subscription_id}"
-       - Use Azure SDK with DefaultAzureCredential for authentication
+Important Resources:
+-------------------
+- Key Vault: ${azurerm_key_vault.ai_hub.name}
+- AI Hub: ${azurerm_machine_learning_workspace.ai_hub.name}
+- AI Project: ${azurerm_machine_learning_workspace.ai_project.name}
+- Storage: ${data.azurerm_storage_account.ai_hub.name}
 
-    Important Resources:
-    -------------------
-    - Key Vault: ${azurerm_key_vault.ai_hub.name}
-    - AI Hub: ${azurerm_machine_learning_workspace.ai_hub.name}
-    - AI Project: ${azurerm_machine_learning_workspace.ai_project.name}
-    - Storage: ${data.azurerm_storage_account.ai_hub.name}
+Security Note:
+-------------
+The AI Hub and Project are configured with system-assigned managed identities.
+Storage account has key access disabled for enhanced security.
 
-    Security Note:
-    -------------
-    The AI Hub and Project are configured with system-assigned managed identities.
-    Storage account has key access disabled for enhanced security.
-
-    ========================================
-  EOT
+========================================
+EOT
 
   description = "Post-deployment instructions and quick reference"
 }
