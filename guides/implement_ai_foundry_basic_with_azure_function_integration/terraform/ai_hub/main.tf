@@ -83,6 +83,17 @@ resource "azurerm_key_vault" "ai_hub" {
     ]
   }
 
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+
+    # Optionally, add your IP for development access
+    # ip_rules = ["YOUR_PUBLIC_IP/32"]
+
+    # Or add virtual network rules if using private endpoints
+    # virtual_network_subnet_ids = [azurerm_subnet.example.id]
+  }
+
   tags = local.tags
 }
 
