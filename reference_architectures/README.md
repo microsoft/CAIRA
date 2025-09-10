@@ -50,3 +50,57 @@ This configuration includes everything in the standard setup but exposes the Fou
 - Built-in observability via Log Analytics and Application Insights
 
 See the reference architecture at `reference_architectures/foundry_standard`.
+
+## Available Reference Architectures
+
+- **foundry_basic** - Public networking with portal deployment support
+- **foundry_basic_private** - Basic configuration with network isolation
+- **foundry_standard** - Enterprise features with Bring Your Own Resource (BYOR) approach
+- **foundry_standard_private** - Enterprise configuration with protected agent support
+
+## Deployment Decision Matrix
+
+| Customer Requirement   | Portal Possible | IaC Required  | Recommended RA           |
+|------------------------|-----------------|---------------|--------------------------|
+| Basic PoC/Development  | ✅ Yes           | ❌ No          | foundry_basic            |
+| Network Isolation Only | ⚠️ Limited      | ✅ Yes         | foundry_basic_private    |
+| Enterprise Features    | ⚠️ Limited      | ✅ Yes         | foundry_standard         |
+| Protected Agents       | ❌ No            | ✅ Yes         | foundry_standard_private |
+| Multi-Project          | ✅ Yes           | ✅ Recommended | Any RA                   |
+
+## Resource Selection Matrix
+
+| Reference Architecture   | AI Search | Cosmos DB | Storage Account | App Insights | Container Apps |
+|--------------------------|-----------|-----------|-----------------|--------------|----------------|
+| foundry_basic            | Optional  | Optional  | Required        | Required     | Not Supported  |
+| foundry_basic_private    | Optional  | Optional  | Required        | Required     | Not Supported  |
+| foundry_standard         | Required  | Optional  | Required        | Required     | Not Required   |
+| foundry_standard_private | Required  | Required  | Required        | Required     | Required       |
+
+## Implementation Complexity Guide
+
+The Integration Complexity Index (ICI) helps teams understand the relative complexity of each reference architecture and set appropriate expectations for implementation time and expertise required.
+
+### Complexity Scoring
+
+| Reference Architecture        | ICI Score | Implementation Approach    | Typical Timeline |
+|-------------------------------|-----------|----------------------------|------------------|
+| foundry_basic                 | **2**     | Full Automation            | 30 minutes       |
+| foundry_basic (multi-project) | **5**     | Full Automation            | 45 minutes       |
+| foundry_basic_private         | **19**    | Semi-Automation with Gates | 2-4 hours        |
+| foundry_standard              | **19**    | Semi-Automation with Gates | 2-4 hours        |
+| foundry_standard_private      | **36**    | Expert Guidance Required   | 1-2 days         |
+
+**Complexity Levels:**
+
+- **Low (ICI 0-5)**: Straightforward deployment, minimal configuration required
+- **Medium (ICI 6-20)**: Moderate complexity, prerequisites and validation checkpoints needed
+- **High (ICI 21+)**: High complexity, significant planning and expertise required
+
+*Complexity factors include: integration points, network configuration requirements, infrastructure dependencies, and asynchronous operations.*
+
+## Additional Resources
+
+For detailed networking requirements, security configurations, and deployment prerequisites, refer to the [official Azure AI Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/).
+
+For Infrastructure-as-Code implementation details, see the individual reference architecture folders in this repository.
