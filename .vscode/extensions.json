@@ -26,7 +26,6 @@
     "timonwong.shellcheck",
     "streetsidesoftware.code-spell-checker",
     "hashicorp.hcl",
-    "esbenp.prettier-vscode",
-    "ms-azuretools.vscode-azurefunctions"
+    "esbenp.prettier-vscode"
   ]
 }

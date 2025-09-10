@@ -181,6 +181,12 @@ The recommended way to engage with this sample is through a [development contain
    sudo apt-get install azure-functions-core-tools-4
    ```
 
+1. Log in to the Azure CLI and choose the subscription you wish to deploy to:
+
+   ```bash
+   az login
+   ```
+
 ### 2. Configure Variables
 
 Create terraform.tfvars files for both AI Hub and Function App:
@@ -188,6 +194,7 @@ Create terraform.tfvars files for both AI Hub and Function App:
 #### AI Hub Configuration
 
 ```bash
+# From the guide root directory
 cd terraform/ai_hub
 cat > terraform.tfvars <<EOF
 resource_group_name = "rg-ai-foundry-demo"
@@ -203,23 +210,12 @@ The Function App configuration is auto-generated from AI Hub outputs using the p
 
 ### 3. Deploy Infrastructure
 
-#### Step 1: Initialize Terraform Backend
+#### Step 1: Deploy AI Hub
 
 ```bash
 # From the guide root directory
-scripts/init-backend.sh dev
-```
-
-This creates:
-
-- Resource group: `rg-terraform-state`
-- Storage account for Terraform state
-- Backend configuration for both modules
-
-#### Step 2: Deploy AI Hub
-
-```bash
 cd terraform/ai_hub
+terraform init
 terraform validate
 terraform plan
 terraform apply
@@ -233,7 +229,7 @@ This deploys:
 - Application Insights
 - Storage Account (with keys disabled via Azure CLI workaround)
 
-#### Step 3: Configure Function App
+#### Step 2: Configure Function App
 
 ```bash
 # Generate Function App configuration from AI Hub outputs
@@ -241,10 +237,11 @@ cd ../.. # return to root guide directory
 scripts/create-function-tfvars.sh
 ```
 
-#### Step 4: Deploy Function App
+#### Step 3: Deploy Function App
 
 ```bash
 cd terraform/azure_function
+terraform init
 terraform validate
 terraform plan
 terraform apply
