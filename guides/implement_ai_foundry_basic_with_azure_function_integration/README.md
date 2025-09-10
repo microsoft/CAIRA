@@ -173,6 +173,12 @@ The recommended way to engage with this sample is through a [development contain
     cd guides/implement_ai_foundry_basic_with_azure_function_integration
     ```
 
+1. Install the Azure Functions Core Tools (will be needed for deploying the Azure Function):
+
+   ``` bash
+   sudo apt-get install azure-functions-core-tools-4
+   ```
+
 ### 2. Configure Variables
 
 Create terraform.tfvars files for both AI Hub and Function App:
@@ -229,14 +235,14 @@ This deploys:
 
 ```bash
 # Generate Function App configuration from AI Hub outputs
-cd ../../scripts
-./create-function-tfvars.sh
+cd ../.. # return to root guide directory
+scripts/create-function-tfvars.sh
 ```
 
 #### Step 4: Deploy Function App
 
 ```bash
-cd ../terraform/azure_function
+cd terraform/azure_function
 terraform validate
 terraform plan
 terraform apply
@@ -259,16 +265,12 @@ The function app implementation is provided in the `function-app/` directory.
 # Navigate to the function app directory
 cd function-app
 
+# Get the function app name from Terraform outputs
+FUNCTION_APP_NAME=$(cd ../terraform/azure_function && terraform output -raw function_app_name)
+
 # Deploy using Azure Functions Core Tools
-func azure functionapp publish func-aifoundry-dev-<suffix> --python
+func azure functionapp publish $FUNCTION_APP_NAME --python
 ```
-
-The deployment script automatically:
-
-- Identifies the correct Function App name from Terraform outputs
-- Packages the Python function code
-- Deploys to the Azure Function App
-- Configures environment variables
 
 ## Function App Implementation
 
