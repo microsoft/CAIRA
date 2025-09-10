@@ -1,8 +1,0 @@
----
-project: pipelines
-kind: modified
-body: Enhanced GitHub Actions workflows security with proper fork PR handling, secure pull_request_target usage
-time: 2025-09-05T17:40:51.944813616Z
-custom:
-  Author: polatengin
-  Issue: "github-actions-security"
