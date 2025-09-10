@@ -55,9 +55,12 @@ jobs:
       - name: ⤵️ Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          repository: microsoft/CAIRA
+          ref: main
+          fetch-depth: 0
           sparse-checkout: |
             .github/scripts
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: true
 
       - name: 🔍 Check if PR is from fork and should run
         id: check

@@ -3,8 +3,8 @@
 name: Generate release PR
 
 on:
-  workflow_dispatch: #checkov:skip=CKV_GHA_7
-    inputs:
+  workflow_dispatch:
+    inputs: #checkov:skip=CKV_GHA_7
       project:
         type: choice
         description: Project to release
