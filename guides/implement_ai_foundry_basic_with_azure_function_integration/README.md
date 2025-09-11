@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide provides a complete Infrastructure as Code (IaC) solution for deploying AI Foundry Basic Reference Architecture integrated with Azure Functions using Terraform. The solution enables secure, serverless compute capabilities with AI Foundry's AI models.
+This guide provides a complete Infrastructure as Code (IaC) solution for deploying AI Foundry Basic Reference Architecture integrated with Azure Functions using Terraform. The solution enables secure, serverless compute capabilities with AI models deployed to Azure AI Foundry.
 
 ## Project Directory Structure
 
@@ -20,6 +20,7 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 ├── scripts/                         # Automation scripts
 │   ├── configure-local-settings.sh  # Configure local development
 │   ├── create-function-tfvars.sh    # Generate Function App terraform.tfvars
+│   ├── deploy-ai-model.sh           # Deploy model to AI Foundry
 │   └── init-backend.sh              # Initialize Terraform backend
 ├── terraform/                       # Infrastructure as Code
 │   ├── ai_hub/                      # AI Hub infrastructure
@@ -56,12 +57,13 @@ All code and configuration files referenced in this guide are located in the sam
 
 - **scripts/init-backend.sh**: Automated Terraform backend initialization
 - **scripts/create-function-tfvars.sh**: Auto-generates Function App variables from AI Hub outputs
-- **scripts/configure-local-settings.sh**: Sets up local development environment
+- **scripts/configure-local-settings.sh**: Sets up local development environment with AI Foundry endpoints
+- **scripts/deploy-ai-model.sh**: Deploys a model to AI Foundry workspace
 
 ### Function App Code
 
-- **function-app/function_app.py**: Complete Python implementation with DefaultAzureCredential
-- **function-app/requirements.txt**: All required Python packages
+- **function-app/function_app.py**: Complete Python implementation with DefaultAzureCredential for AI Foundry
+- **function-app/requirements.txt**: Python packages for AI Foundry integration
 - **function-app/host.json**: Function runtime configuration
 
 ## Architecture Components
@@ -69,9 +71,10 @@ All code and configuration files referenced in this guide are located in the sam
 - **Azure AI Hub** (AI Foundry): Central workspace for AI models and experiments
 - **Azure AI Project**: Connected project for organizing AI workloads
 - **Azure Function App**: Serverless compute with system-assigned managed identity
+- **AI Model Endpoint**: Managed or serverless endpoint in AI Foundry
 - **Azure Key Vault**: Secure storage for secrets and keys
 - **Application Insights**: Monitoring and diagnostics
-- **Storage Accounts**: Data storage for AI Hub and Function App (with key-disabled policy workarounds)
+- **Storage Accounts**: Data storage for AI Hub and Function App
 
 ## Using GitHub Copilot for Implementation
 
@@ -94,8 +97,8 @@ When implementing this solution, GitHub Copilot can assist with code generation.
 ### For Scripts
 
 ```plaintext
-# Prompt: "Create a bash script that reads Terraform outputs and generates a tfvars file"
-# Prompt: "Write a script to configure local.settings.json from deployed resources"
+# Prompt: "Create a bash script that deploys a model to Azure ML workspace"
+# Prompt: "Write a script to configure local.settings.json from AI Foundry endpoints"
 ```
 
 ## HVE (HyperVelocity Engineering) Prompts
@@ -138,10 +141,16 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 
 ### Azure Requirements
 
-- Active Azure subscription with App Service quota
+- Active Azure subscription
 - Sufficient permissions to create resources
 - Contributor or Owner role at subscription level
 - App Service Plan quota in target region (B1 tier or higher for Function Apps)
+- **ML Compute Quota** in target region (see note below)
+
+> **Note on ML Compute Quota**: Deploying models to AI Foundry requires ML compute quota in your Azure subscription. If you encounter quota limitations (showing 0 for all ML compute families), you have two options:
+>
+> 1. Request ML compute quota increase via Azure Support (recommended for production)
+> 1. Use Azure OpenAI Service as an alternative (requires minimal code changes)
 
 ## Quick Start
 
@@ -198,7 +207,7 @@ Create terraform.tfvars files for both AI Hub and Function App:
 cd terraform/ai_hub
 cat > terraform.tfvars <<EOF
 resource_group_name = "rg-ai-foundry-demo"
-location            = "westus2"  # Or your preferred region with quota
+location            = "westus2"  # Or your preferred region with ML quota
 environment         = "dev"
 project_name        = "aifoundry"
 EOF
@@ -208,13 +217,29 @@ EOF
 
 The Function App configuration is auto-generated from AI Hub outputs using the provided script.
 
-### 3. Deploy Infrastructure
+## Deployment Steps
 
-#### Step 1: Deploy AI Hub
+### Step 1: Initialize Terraform Backend
+
+Set up the Terraform backend for state management:
 
 ```bash
-# From the guide root directory
-cd terraform/ai_hub
+cd scripts
+./init-backend.sh
+```
+
+This creates:
+
+- Resource group for Terraform state
+- Storage account for state files
+- Container for state blobs
+
+### Step 2: Deploy AI Hub Infrastructure
+
+Deploy the AI Foundry Hub and associated resources:
+
+```bash
+cd ../terraform/ai_hub
 terraform init
 terraform validate
 terraform plan
@@ -227,19 +252,18 @@ This deploys:
 - AI Project
 - Key Vault
 - Application Insights
-- Storage Account (with keys disabled via Azure CLI workaround)
+- Storage Account
 
-#### Step 2: Configure Function App
+### Step 3: Deploy Azure Function Infrastructure
+
+Deploy the Function App and supporting resources:
 
 ```bash
 # Generate Function App configuration from AI Hub outputs
-cd ../.. # return to root guide directory
+cd ../..
 scripts/create-function-tfvars.sh
-```
 
-#### Step 3: Deploy Function App
-
-```bash
+# Deploy Function App
 cd terraform/azure_function
 terraform init
 terraform validate
@@ -254,20 +278,42 @@ This deploys:
 - Storage Account for Function App
 - Role assignments for AI Hub access
 
-### 4. Deploy Function Code
+### Step 4: Deploy Model to AI Foundry
 
-The function app implementation is provided in the `function-app/` directory.
-
-#### Deploy to Azure
+Deploy a model to your AI Foundry workspace:
 
 ```bash
-# Navigate to the function app directory
-cd function-app
+cd scripts
+./deploy-ai-model.sh
+```
 
-# Get the function app name from Terraform outputs
+This script will:
+
+- Check available compute quota
+- Deploy a model endpoint (managed or serverless)
+- Configure the endpoint for access
+
+**Manual Model Deployment via Azure AI Studio:**
+
+1. Navigate to [Azure AI Studio](https://ai.azure.com)
+1. Select your workspace: `hub-aifoundry-dev-<suffix>`
+1. Go to "Models" → "Model catalog"
+1. Select a model (e.g., GPT-4, Phi-3, Llama)
+1. Click "Deploy" → Choose deployment type
+1. Configure and deploy
+
+### Step 5: Configure and Deploy Function Code
+
+Configure and deploy the function app code:
+
+```bash
+# Configure local settings with AI Foundry endpoints
+cd scripts
+./configure-local-settings.sh
+
+# Deploy function code
+cd ../function-app
 FUNCTION_APP_NAME=$(cd ../terraform/azure_function && terraform output -raw function_app_name)
-
-# Deploy using Azure Functions Core Tools
 func azure functionapp publish $FUNCTION_APP_NAME --python
 ```
 
@@ -277,45 +323,59 @@ The function app implementation provided in the `function-app/` directory includ
 
 ### Key Files
 
-- **function_app.py**: Main function implementation with HTTP trigger endpoints
+- **function_app.py**: Main function implementation with AI Foundry integration
 - **host.json**: Function app global configuration settings
-- **requirements.txt**: Python dependencies for AI integration
+- **requirements.txt**: Python dependencies (azure-functions, azure-ai-ml, azure-identity)
 - **local.settings.json**: Local development settings (generated via script)
+
+### Function Endpoints
+
+The deployed function app includes three endpoints:
+
+#### 1. HttpExample Endpoint
+
+- **Route**: `/api/HttpExample`
+- **Purpose**: Basic connectivity test
+- **Auth**: Anonymous
+
+#### 2. Chat Endpoint
+
+- **Route**: `/api/chat`
+- **Purpose**: AI-powered chat using AI Foundry model
+- **Auth**: Function key required
+- **Authentication**: DefaultAzureCredential (Managed Identity in Azure, CLI locally)
+
+#### 3. Health Check Endpoint
+
+- **Route**: `/api/health`
+- **Purpose**: Verify configuration and AI Foundry connectivity
+- **Auth**: Anonymous
 
 ### DefaultAzureCredential Implementation
 
-The function app uses `DefaultAzureCredential` from Azure Identity library for seamless authentication:
+The function app uses `DefaultAzureCredential` for seamless authentication:
 
 ```python
-# function_app.py excerpt
 from azure.identity import DefaultAzureCredential
 from azure.ai.ml import MLClient
 
-# Initialize with DefaultAzureCredential - works both locally and in Azure
+# Initialize with DefaultAzureCredential
 credential = DefaultAzureCredential()
 
-# Connect to AI Foundry using managed identity in Azure, or user credentials locally
+# Connect to AI Foundry
 ml_client = MLClient(
     credential=credential,
-    subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
+    subscription_id=os.getenv("AI_SUBSCRIPTION_ID"),
     resource_group_name=os.getenv("AI_RESOURCE_GROUP"),
     workspace_name=os.getenv("AI_HUB_NAME")
 )
 ```
 
-This approach ensures:
+This ensures:
 
-- **In Azure**: Uses the Function App's system-assigned managed identity
-- **Locally**: Uses your Azure CLI credentials (`az login`)
-- **No code changes required** between environments
-
-### Key Features
-
-- **AI Model Integration**: Pre-configured to connect with deployed AI models
-- **Managed Identity**: Uses system-assigned identity for secure authentication
-- **Environment Variables**: Automatic configuration from Terraform outputs
-- **Error Handling**: Comprehensive error handling and logging
-- **Response Formatting**: Standardized JSON responses
+- **In Azure**: Uses Function App's system-assigned managed identity
+- **Locally**: Uses your Azure CLI credentials
+- **No code changes** required between environments
 
 ## Local Development
 
@@ -328,11 +388,18 @@ cd scripts
 ./configure-local-settings.sh
 ```
 
-This script automatically generates the `local.settings.json` file with the correct values from your deployed infrastructure.
+This script automatically:
+
+- Retrieves AI Hub configuration from Terraform outputs
+- Finds deployed model endpoints in AI Foundry
+- Generates local.settings.json with endpoint details
 
 ### 2. Install Dependencies
 
 ```bash
+# Navigate to function app directory
+cd ../function-app
+
 # Create and activate virtual environment
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -353,75 +420,106 @@ The function will be available at: `http://localhost:7071/api/`
 ### 4. Test Locally
 
 ```bash
-# Test with query parameter
-curl "http://localhost:7071/api/HttpTrigger?name=Test"
+# Test HttpExample endpoint
+curl "http://localhost:7071/api/HttpExample?name=Local"
 
-# Test with JSON body
-curl -X POST http://localhost:7071/api/HttpTrigger \
+# Test chat endpoint
+curl -X POST http://localhost:7071/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test"}'
+  -d '{"prompt": "Hello from local development"}'
+
+# Test health endpoint
+curl http://localhost:7071/api/health
 ```
 
 ## Testing in Azure
 
-### 1. Get Function URL
+### 1. Get Function App Details
 
 ```bash
-# Get the function app base URL
+# Get the function app name
 FUNCTION_APP_NAME=$(cd terraform/azure_function && terraform output -raw function_app_name)
-echo "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/"
+echo "Function App: ${FUNCTION_APP_NAME}"
 
-# For FUNCTION level auth, get the function keys:
-az functionapp keys list \
+# Get the base URL
+echo "Base URL: https://${FUNCTION_APP_NAME}.azurewebsites.net/api/"
+
+# For endpoints with FUNCTION level auth, get the function keys
+FUNCTION_KEY=$(az functionapp keys list \
   --resource-group rg-ai-foundry-demo \
-  --name ${FUNCTION_APP_NAME}
-```
-
-### 2. Test the Deployed Function
-
-```bash
-# Test the deployed function (adjust endpoint based on your function_app.py routes)
-FUNCTION_URL="https://${FUNCTION_APP_NAME}.azurewebsites.net/api/HttpTrigger"
-curl "${FUNCTION_URL}?name=Azure"
-```
-
-## AI Model Deployment in AI Foundry
-
-### 1. Access AI Foundry
-
-Navigate to the Azure Machine Learning workspace (since Terraform creates standard ML workspaces):
-
-1. Go to [Azure Portal](https://portal.azure.com)
-1. Navigate to your resource group: `rg-ai-foundry-demo`
-1. Open the AI Hub: `hub-aifoundry-dev-<suffix>`
-1. Click "Launch studio"
-
-Or directly access: <https://ml.azure.com>
-
-### 2. Deploy a Model
-
-1. In Azure Machine Learning Studio:
-   - Navigate to "Models" → "Model catalog"
-   - Select a model (e.g., GPT-4, Llama 2)
-   - Click "Deploy" → "Real-time endpoint"
-   - Configure deployment settings
-   - Deploy the model
-
-1. Get the endpoint details:
-   - Navigate to "Endpoints"
-   - Select your deployed model
-   - Copy the REST endpoint URL and key
-
-### 3. Update Function Configuration
-
-Add model endpoint to Function App settings:
-
-```bash
-az functionapp config appsettings set \
   --name ${FUNCTION_APP_NAME} \
-  --resource-group rg-ai-foundry-demo \
-  --settings "MODEL_ENDPOINT=<your-endpoint-url>" "MODEL_KEY=<your-key>"
+  --query "functionKeys.default" -o tsv)
+echo "Function Key: ${FUNCTION_KEY}"
 ```
+
+### 2. Test the Deployed Endpoints
+
+#### Test HttpExample (Anonymous)
+
+```bash
+# Simple test with query parameter
+curl "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/HttpExample?name=Azure"
+
+# Test with JSON body
+curl -X POST "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/HttpExample" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Azure Functions"}'
+```
+
+#### Test Health Check (Anonymous)
+
+```bash
+# Check service health and configuration
+curl "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/health"
+
+# Pretty print the JSON response
+curl -s "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/health" | python -m json.tool
+```
+
+#### Test Chat Endpoint (Function Auth Required)
+
+```bash
+# Test AI chat with function key
+curl -X POST "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/chat?code=${FUNCTION_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "What is Azure Functions?"}'
+
+# Test with a more complex prompt
+curl -X POST "https://${FUNCTION_APP_NAME}.azurewebsites.net/api/chat?code=${FUNCTION_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Explain serverless computing benefits in 3 bullet points"}' \
+  | python -m json.tool
+```
+
+### 3. Verify AI Foundry Model Endpoint
+
+```bash
+# Get endpoint details
+ENDPOINT_NAME=$(az ml online-endpoint list \
+  --resource-group rg-ai-foundry-demo \
+  --workspace-name hub-aifoundry-dev-<suffix> \
+  --query "[0].name" -o tsv)
+
+# Test the endpoint directly
+az ml online-endpoint invoke \
+  --name $ENDPOINT_NAME \
+  --resource-group rg-ai-foundry-demo \
+  --workspace-name hub-aifoundry-dev-<suffix> \
+  --request-file <(echo '{"prompt": "test"}')
+```
+
+## Configuration
+
+### Environment Variables
+
+The function app requires these environment variables (automatically configured):
+
+- `AI_HUB_NAME`: AI Foundry Hub name
+- `AI_PROJECT_NAME`: AI Project name
+- `AI_RESOURCE_GROUP`: Resource group name
+- `AI_SUBSCRIPTION_ID`: Azure subscription ID
+- `MODEL_ENDPOINT_NAME`: Deployed model endpoint name
+- `MODEL_DEPLOYMENT_NAME`: Model deployment name
 
 ## Security Best Practices
 
@@ -435,25 +533,26 @@ The Function App uses system-assigned managed identity with the following roles:
 
 ### 2. Network Security
 
-- Storage accounts have key access disabled (AI Hub) or enabled (Function App) based on requirements
-- Function App can be configured with IP restrictions via `allowed_ip_ranges` variable
+- Storage accounts have appropriate key access policies
+- Function App can be configured with IP restrictions
+- Model endpoints use key-based or token-based authentication
 
 ### 3. Key Vault Integration
 
 Store sensitive configuration in Key Vault:
 
 ```bash
-# Store secret in Key Vault
+# Store endpoint key in Key Vault
 az keyvault secret set \
   --vault-name kv-aifoundr-dev-<suffix> \
-  --name "model-api-key" \
-  --value "<your-api-key>"
+  --name "model-endpoint-key" \
+  --value "<your-endpoint-key>"
 
 # Reference in Function App
 az functionapp config appsettings set \
   --name ${FUNCTION_APP_NAME} \
   --resource-group rg-ai-foundry-demo \
-  --settings "MODEL_KEY=@Microsoft.KeyVault(SecretUri=https://kv-aifoundr-dev-<suffix>.vault.azure.net/secrets/model-api-key/)"
+  --settings "MODEL_KEY=@Microsoft.KeyVault(SecretUri=https://kv-aifoundr-dev-<suffix>.vault.azure.net/secrets/model-endpoint-key/)"
 ```
 
 ## Monitoring and Diagnostics
@@ -490,17 +589,17 @@ az webapp log tail \
 
 ### Common Issues
 
+1. **ML Compute Quota**
+   - **Issue**: `Not enough subscription CPU quota`
+   - **Solution**: Request ML compute quota via Azure Support or use serverless endpoints
+
 1. **Storage Key Policy Errors**
    - **Issue**: `403 Key based authentication is not permitted`
    - **Solution**: The deployment uses Azure CLI workarounds to create storage with appropriate key settings
 
-1. **Function App Quota Errors**
-   - **Issue**: `Current Limit (Free VMs): 0`
-   - **Solution**: Use B1 tier instead of F1, or check quota in different regions:
-
-   ```bash
-   az appservice plan create --name test --resource-group test --location westus2 --sku B1 --is-linux
-   ```
+1. **Model Deployment Failures**
+   - **Issue**: Model deployment fails with provisioning errors
+   - **Solution**: Check compute quota, try different instance types, or use serverless deployment
 
 1. **Permission Issues**
    - **Issue**: Function App can't access AI Hub resources
@@ -509,6 +608,14 @@ az webapp log tail \
    ```bash
    PRINCIPAL_ID=$(az functionapp identity show --name ${FUNCTION_APP_NAME} --resource-group rg-ai-foundry-demo --query principalId -o tsv)
    az role assignment list --assignee ${PRINCIPAL_ID} --output table
+   ```
+
+1. **Function App Quota Errors**
+   - **Issue**: `Current Limit (Free VMs): 0`
+   - **Solution**: Use B1 tier instead of F1, or check quota in different regions:
+
+   ```bash
+   az appservice plan create --name test --resource-group test --location westus2 --sku B1 --is-linux
    ```
 
 1. **Python Dependencies**
@@ -520,75 +627,57 @@ az webapp log tail \
 Remove all resources:
 
 ```bash
-# Destroy Function App first
+# Delete model endpoints first
+az ml online-endpoint delete \
+  --name <endpoint-name> \
+  --resource-group rg-ai-foundry-demo \
+  --workspace-name hub-aifoundry-dev-<suffix> \
+  --yes
+
+# Delete Function App
 cd terraform/azure_function
 terraform destroy -auto-approve
 
-# Destroy AI Hub
+# Delete AI Hub
 cd ../ai_hub
 terraform destroy -auto-approve
 
 # Delete backend storage (optional)
 az group delete --name rg-terraform-state --yes
-
-# Verify cleanup
-az group list --query "[?contains(name, 'ai-foundry')]" -o table
 ```
 
 ## Cost Optimization
 
 ### Recommendations
 
-- **Function App**: Use Consumption plan (Y1) for development, B1 for production
+- **Function App**: Use Consumption plan for development, B1 for production
+- **Model Endpoints**: Use serverless when available, or smallest instance type
 - **Storage**: Use LRS replication for non-critical data
-- **AI Models**: Start with smaller models for testing
 - **Application Insights**: Configure sampling for high-volume scenarios
 
 ### Cost Estimation
 
 Approximate monthly costs (varies by region and usage):
 
-- B1 App Service Plan: ~$55/month
-- Storage Accounts: ~$20/month (minimal usage)
-- Application Insights: ~$5/month (low volume)
-- AI Model endpoints: Pay-per-token (varies by model)
+- **Function App (B1 tier)**: ~$55/month
+- **Model Endpoint (DS2_v2)**: ~$150/month (managed) or pay-per-request (serverless)
+- **Storage Accounts**: ~$20/month (minimal usage)
+- **Application Insights**: ~$5/month (low volume)
 
 ## Known Limitations
 
 - Terraform AzureRM provider doesn't support AI Foundry Hub/Project kinds (uses standard ML workspaces)
-- Storage accounts with disabled keys require CLI workarounds for Terraform
-- Function Apps require storage keys enabled (B1 tier avoids file share requirement)
+- ML compute quota required for managed endpoints
+- Serverless model availability varies by region
+- Storage accounts with disabled keys require CLI workarounds
 
 ## Support and Resources
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/)
 - [Azure Functions Documentation](https://learn.microsoft.com/en-us/azure/azure-functions/)
+- [Azure ML Model Catalog](https://learn.microsoft.com/en-us/azure/machine-learning/concept-model-catalog)
 - [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
-- [Azure AI ML SDK](http://learn.microsoft.com/en-us/python/api/azure-ai-ml/azure.ai.ml?view=azure-python)
 
 ## Contributing
 
-Please submit issues and pull requests for improvements to this guide.
-
-### Tracking Friction Points
-
-When encountering issues or friction points during implementation:
-
-1. **Document the issue** in the repository's Issues section with:
-   - Clear description of the problem
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Workaround if found
-   - Label as `friction-point` or `enhancement`
-
-1. **Create work items** for the CAIRA team to address:
-   - Use the issue template for consistency
-   - Link to relevant code or documentation
-   - Suggest potential solutions
-
-1. **Current known friction points** are documented in:
-   - **Troubleshooting** section of this guide
-   - **Known Limitations** section
-   - GitHub Issues with `friction-point` label
-
-This feedback helps improve the guide and tooling for future implementations.
+Please submit issues and pull requests for improvements to this guide. See the main [CAIRA Contributing Guide](../../CONTRIBUTING.md) for detailed information.
