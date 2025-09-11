@@ -67,10 +67,11 @@ resource "azurerm_linux_function_app" "main" {
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"    = "python"
     "FUNCTIONS_EXTENSION_VERSION" = "~4"
+    "AI_FOUNDRY_ENDPOINT"         = module.foundry_basic.ai_foundry_endpoint
     "AI_FOUNDRY_PROJECT_ID"       = module.foundry_basic.ai_foundry_project_id
     "AI_FOUNDRY_PROJECT_NAME"     = module.foundry_basic.ai_foundry_project_name
-    "AI_FOUNDRY_NAME"             = module.foundry_basic.ai_foundry_name
-    "RESOURCE_GROUP_NAME"         = local.resource_group_name
+    "AI_FOUNDRY_NAME"             = module.foundry_basic.ai_foundry_name # Optional, for reference
+    "RESOURCE_GROUP"              = local.resource_group_name
     "AZURE_SUBSCRIPTION_ID"       = data.azurerm_client_config.current.subscription_id
   }
 
@@ -102,5 +103,19 @@ resource "azurerm_role_assignment" "function_ai_foundry_contributor" {
 resource "azurerm_role_assignment" "function_ai_project_contributor" {
   scope                = module.foundry_basic.ai_foundry_project_id
   role_definition_name = "Contributor"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+
+# Additional role for OpenAI access
+resource "azurerm_role_assignment" "function_ai_openai_user" {
+  scope                = module.foundry_basic.ai_foundry_id
+  role_definition_name = "Cognitive Services OpenAI User"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+
+# For listing deployments
+resource "azurerm_role_assignment" "function_ai_contributor" {
+  scope                = module.foundry_basic.ai_foundry_id
+  role_definition_name = "Cognitive Services Contributor"
   principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
 }

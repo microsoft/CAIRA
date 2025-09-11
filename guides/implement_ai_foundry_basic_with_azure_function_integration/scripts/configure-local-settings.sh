@@ -10,6 +10,9 @@ AI_FOUNDRY_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
 AI_FOUNDRY_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
 RESOURCE_GROUP=$(terraform output -raw resource_group_name)
 
+# Get subscription ID from Azure CLI
+AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
 # Create local.settings.json
 cd ../function-app
 cat >local.settings.json <<EOF
@@ -21,7 +24,8 @@ cat >local.settings.json <<EOF
     "AI_FOUNDRY_ENDPOINT": "$AI_FOUNDRY_ENDPOINT",
     "AI_FOUNDRY_PROJECT_ID": "$AI_FOUNDRY_PROJECT_ID",
     "AI_FOUNDRY_PROJECT_NAME": "$AI_FOUNDRY_PROJECT_NAME",
-    "RESOURCE_GROUP": "$RESOURCE_GROUP"
+    "RESOURCE_GROUP": "$RESOURCE_GROUP",
+    "AZURE_SUBSCRIPTION_ID": "$AZURE_SUBSCRIPTION_ID"
   }
 }
 EOF

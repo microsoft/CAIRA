@@ -31,7 +31,6 @@ terraform apply
 
 # Get outputs for function configuration
 AI_FOUNDRY_ENDPOINT=$(terraform output -raw ai_foundry_endpoint)
-AI_FOUNDRY_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
 FUNCTION_APP_NAME=$(terraform output -raw function_app_name)
 
 print_message "$GREEN" "Deployment complete!"
