@@ -20,9 +20,9 @@ def get_ml_client():
         credential = DefaultAzureCredential()
         ml_client = MLClient(
             credential=credential,
-            subscription_id=os.getenv("AI_SUBSCRIPTION_ID"),
-            resource_group_name=os.getenv("AI_RESOURCE_GROUP"),
-            workspace_name=os.getenv("AI_HUB_NAME")
+            subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
+            resource_group_name=os.getenv("RESOURCE_GROUP_NAME"),
+            workspace_name=os.getenv("AI_FOUNDRY_PROJECT_NAME")
         )
         return ml_client
     except Exception as e:
@@ -66,11 +66,12 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
     Expects JSON body with 'prompt' field.
 
     Required environment variables:
-    - AI_HUB_NAME: Your AI Foundry Hub name
-    - AI_RESOURCE_GROUP: Resource group containing the hub
-    - AI_SUBSCRIPTION_ID: Azure subscription ID
-    - MODEL_ENDPOINT_NAME: Deployed model endpoint name
-    - MODEL_DEPLOYMENT_NAME: Model deployment name
+    - AI_FOUNDRY_PROJECT_NAME: Your AI Foundry Project name
+    - AI_FOUNDRY_PROJECT_ID: AI Foundry Project resource ID
+    - RESOURCE_GROUP_NAME: Resource group containing the project
+    - AZURE_SUBSCRIPTION_ID: Azure subscription ID
+    - MODEL_ENDPOINT_NAME: Deployed model endpoint name (optional)
+    - MODEL_DEPLOYMENT_NAME: Model deployment name (optional)
     """
     logger.info('Processing AI chat request')
 
@@ -98,15 +99,36 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
         deployment_name = os.getenv("MODEL_DEPLOYMENT_NAME")
 
         if not endpoint_name:
-            logger.error("Model endpoint not configured")
-            return func.HttpResponse(
-                json.dumps({
-                    "error": "Model endpoint not configured. Please deploy a model to AI Foundry first.",
-                    "status": "error"
-                }),
-                mimetype="application/json",
-                status_code=500
-            )
+            # If no specific endpoint is configured, try to list available endpoints
+            logger.info(
+                "No specific model endpoint configured, checking available endpoints...")
+            try:
+                endpoints = list(ml_client.online_endpoints.list())
+                if endpoints:
+                    endpoint_name = endpoints[0].name
+                    logger.info(
+                        f"Using first available endpoint: {endpoint_name}")
+                else:
+                    return func.HttpResponse(
+                        json.dumps({
+                            "error": "No model endpoints found. Please deploy a model to AI Foundry first.",
+                            "hint": "Use Azure AI Studio to deploy a model from the model catalog.",
+                            "status": "error"
+                        }),
+                        mimetype="application/json",
+                        status_code=500
+                    )
+            except Exception as e:
+                logger.error(f"Could not list endpoints: {str(e)}")
+                return func.HttpResponse(
+                    json.dumps({
+                        "error": "Model endpoint not configured and could not auto-discover.",
+                        "details": str(e),
+                        "status": "error"
+                    }),
+                    mimetype="application/json",
+                    status_code=500
+                )
 
         logger.info(f"Connecting to AI Foundry endpoint: {endpoint_name}")
 
@@ -129,11 +151,11 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
 
             # Format request based on model type
             # Try to detect if it's an OpenAI-style model
-            if any(x in endpoint_name.lower() for x in ['gpt', 'openai', 'phi', 'llama']):
+            if any(x in endpoint_name.lower() for x in ['gpt', 'openai', 'phi', 'llama', 'mistral']):
                 # OpenAI-style format for chat models
                 data = {
                     "messages": [
-                        {"role": "system", "content": "You are a helpful AI assistant."},
+                        {"role": "system", "content": "You are a helpful AI assistant integrated with Azure Functions."},
                         {"role": "user", "content": prompt}
                     ],
                     "max_tokens": 800,
@@ -192,7 +214,7 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
                     "prompt": prompt,
                     "response": ai_response,
                     "endpoint": endpoint_name,
-                    "deployment": deployment_name,
+                    "deployment": deployment_name or "default",
                     "status": "success"
                 }, indent=2),
                 mimetype="application/json",
@@ -204,6 +226,7 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({
                     "error": f"Failed to call AI Foundry model: {str(e)}",
+                    "hint": "Ensure a model is deployed in your AI Foundry project",
                     "status": "error"
                 }),
                 mimetype="application/json",
@@ -235,43 +258,61 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
     }
 
     # Check AI Foundry configuration
-    if os.getenv("AI_HUB_NAME"):
-        health_status["configuration"]["ai_hub"] = os.getenv("AI_HUB_NAME")
-        health_status["configuration"]["ai_project"] = os.getenv(
-            "AI_PROJECT_NAME")
+    project_name = os.getenv("AI_FOUNDRY_PROJECT_NAME")
+    if project_name:
+        health_status["configuration"]["ai_foundry_project"] = project_name
+        health_status["configuration"]["ai_foundry_id"] = os.getenv(
+            "AI_FOUNDRY_PROJECT_ID", "not set")
         health_status["configuration"]["resource_group"] = os.getenv(
-            "AI_RESOURCE_GROUP")
+            "RESOURCE_GROUP_NAME")
+        health_status["configuration"]["subscription"] = os.getenv(
+            "AZURE_SUBSCRIPTION_ID")
 
         # Check if model endpoint is configured
-        if os.getenv("MODEL_ENDPOINT_NAME"):
-            health_status["configuration"]["model_endpoint"] = os.getenv(
-                "MODEL_ENDPOINT_NAME")
+        endpoint_name = os.getenv("MODEL_ENDPOINT_NAME")
+        if endpoint_name:
+            health_status["configuration"]["model_endpoint"] = endpoint_name
             health_status["configuration"]["model_deployment"] = os.getenv(
                 "MODEL_DEPLOYMENT_NAME", "not specified")
-
-            # Try to verify AI Foundry connectivity
-            try:
-                ml_client = get_ml_client()
-                workspace = ml_client.workspaces.get(
-                    name=os.getenv("AI_HUB_NAME"))
-                health_status["ai_foundry"]["connected"] = True
-                health_status["ai_foundry"]["workspace_status"] = workspace.provisioning_state
-
-                # Try to get endpoint status
-                try:
-                    endpoint = ml_client.online_endpoints.get(
-                        name=os.getenv("MODEL_ENDPOINT_NAME"))
-                    health_status["ai_foundry"]["endpoint_status"] = endpoint.provisioning_state
-                except:
-                    health_status["ai_foundry"]["endpoint_status"] = "not found"
-
-            except Exception as e:
-                health_status["ai_foundry"]["connected"] = False
-                health_status["ai_foundry"]["error"] = str(e)[:200]
         else:
-            health_status["configuration"]["model_endpoint"] = "not configured"
+            health_status["configuration"]["model_endpoint"] = "auto-discover"
+
+        # Try to verify AI Foundry connectivity
+        try:
+            ml_client = get_ml_client()
+            workspace = ml_client.workspaces.get(name=project_name)
+            health_status["ai_foundry"]["connected"] = True
+            health_status["ai_foundry"]["project_status"] = workspace.provisioning_state
+
+            # Try to count available endpoints
+            try:
+                endpoints = list(ml_client.online_endpoints.list())
+                health_status["ai_foundry"]["available_endpoints"] = len(
+                    endpoints)
+                if endpoints and endpoint_name:
+                    # Try to get specific endpoint status
+                    try:
+                        endpoint = ml_client.online_endpoints.get(
+                            name=endpoint_name)
+                        health_status["ai_foundry"]["endpoint_status"] = endpoint.provisioning_state
+                    except:
+                        health_status["ai_foundry"]["endpoint_status"] = "not found"
+            except Exception as e:
+                health_status["ai_foundry"]["endpoints_error"] = str(e)[:100]
+
+        except Exception as e:
+            health_status["ai_foundry"]["connected"] = False
+            health_status["ai_foundry"]["error"] = str(e)[:200]
     else:
         health_status["configuration"]["ai_foundry"] = "not configured"
+        health_status["status"] = "partially configured"
+
+    # Check authentication method
+    try:
+        credential = DefaultAzureCredential()
+        health_status["authentication"] = "DefaultAzureCredential available"
+    except:
+        health_status["authentication"] = "DefaultAzureCredential not available"
 
     return func.HttpResponse(
         json.dumps(health_status, indent=2),
@@ -283,7 +324,7 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="list-models", auth_level=func.AuthLevel.ANONYMOUS)
 def list_deployed_models(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Lists all deployed model endpoints in the AI Foundry workspace.
+    Lists all deployed model endpoints in the AI Foundry project.
     Useful for discovering available models and their endpoints.
     """
     logger.info('Listing deployed models')
@@ -313,8 +354,8 @@ def list_deployed_models(req: func.HttpRequest) -> func.HttpResponse:
                     endpoint_info["deployments"].append({
                         "name": deployment.name,
                         "model": str(deployment.model) if deployment.model else "N/A",
-                        "instance_type": deployment.instance_type,
-                        "instance_count": deployment.instance_count
+                        "instance_type": deployment.instance_type if hasattr(deployment, 'instance_type') else "serverless",
+                        "instance_count": deployment.instance_count if hasattr(deployment, 'instance_count') else "N/A"
                     })
             except Exception as e:
                 logger.warning(
@@ -325,9 +366,10 @@ def list_deployed_models(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({
                 "endpoints": models_info,
-                "workspace": os.getenv("AI_HUB_NAME"),
+                "project": os.getenv("AI_FOUNDRY_PROJECT_NAME"),
                 "count": len(models_info),
-                "status": "success"
+                "status": "success",
+                "hint": "Use MODEL_ENDPOINT_NAME environment variable to specify a default endpoint"
             }, indent=2),
             mimetype="application/json",
             status_code=200
@@ -336,7 +378,10 @@ def list_deployed_models(req: func.HttpRequest) -> func.HttpResponse:
     except Exception as e:
         logger.error(f"Error listing models: {str(e)}")
         return func.HttpResponse(
-            json.dumps({"error": f"Failed to list models: {str(e)}"}),
+            json.dumps({
+                "error": f"Failed to list models: {str(e)}",
+                "hint": "Ensure you have deployed models in your AI Foundry project via Azure AI Studio"
+            }),
             mimetype="application/json",
             status_code=500
         )
