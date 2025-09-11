@@ -19,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PR_URL: ${{ github.event.pull_request_target.html_url || github.event.pull_request.html_url }}
-  PR_NUMBER: ${{ github.event.pull_request_target.number || github.event.pull_request.number }}
+  PR_URL: ${{ github.event.pull_request.html_url }}
+  PR_NUMBER: ${{ github.event.pull_request.number }}
 
 jobs:
   check_pr:

@@ -1,0 +1,42 @@
+---
+name: Sync GitHub Issues to Azure DevOps Work Items
+
+permissions:
+  issues: write
+  contents: read
+  id-token: write # Required for OIDC
+
+on:
+  issues:
+    types: [opened, labeled, reopened]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Login to Azure using OIDC"
+        uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+        with:
+          client-id: ${{ vars.PERSISTENT_SUB_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.PERSISTENT_SUB_AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.PERSISTENT_SUB_AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: "Get Azure DevOps access token"
+        id: get-ado-token
+        run: |
+          # Get access token for Azure DevOps using the logged-in service principal
+          token="$(az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv)"
+          echo "::add-mask::$token"
+          echo "ADO_TOKEN=$token" >> "$GITHUB_ENV"
+
+      - uses: MicrosoftEdge/action-issue-to-workitem@67b5ea438e4e45df824e94670af7db99bad80b4c
+        env:
+          ado_token: "${{ env.ADO_TOKEN }}"
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          ado_organization: "${{ vars.AZDO_ORGANIZATION }}"
+          ado_project: "${{ vars.AZDO_PROJECT }}"
+          ado_work_item_type: "Task"
+          ado_area_path: "${{ vars.AZDO_AREA_PATH }}"
+          ado_dont_check_if_exist: false
