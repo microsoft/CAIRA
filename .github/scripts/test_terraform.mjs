@@ -23,11 +23,13 @@ async function handlePullRequest({ context, github }) {
     issue_number: pr.number
   });
 
-  return comments.data.find(comment => {
+  const comment = comments.data.find(comment => {
     const hasApprovalMarker = comment.body.includes(`APPROVAL_MARKER:${pr.head.sha}`);
     const isMaintainer = checkIsMaintainer(comment);
     return hasApprovalMarker && isMaintainer;
   });
+
+  return comment != null;
 }
 
 async function handleIssueComment({ context, github }) {
@@ -99,6 +101,8 @@ async function handleIssueComment({ context, github }) {
       `<!-- APPROVAL_MARKER:${pr.data.head.sha} -->`
     ].join('\n')
   });
+
+  return true;
 }
 
 export default async function checkForkAndApproval({ context, github, core }) {
