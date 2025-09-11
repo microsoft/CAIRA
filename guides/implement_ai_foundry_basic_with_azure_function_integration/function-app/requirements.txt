@@ -4,6 +4,6 @@
 
 azure-functions
 azure-identity
-azure-ai-ml
+openai>=1.0.0
 azure-core
 requests
