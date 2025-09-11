@@ -1,254 +1,177 @@
 # General Instructions
 
-These instructions have the **HIGHEST PRIORITY** and must **NEVER** be ignored
+These instructions define **HOW** Copilot should process user queries and **WHEN** to read specific guidance files.
 
-## Highest Priority Instructions
+## Query Processing
 
-- **BEFORE RESPONDING TO ANY USER REQUEST, you MUST check the context patterns below and automatically read ALL required instructions files with minimum 1000 lines**
-- **IF any pattern matches the user's request, you MUST read the corresponding instructions file FIRST before providing any response**
-- **MANDATORY: If a pattern matches, start your response with "🔍 Pattern Match: [Pattern Name] - Reading required file first"**
-- You will ALWAYS follow ALL general guidelines and instructions
-- You will ALWAYS search for matching context patterns before every change and interaction
-- You will ALWAYS `search-for-copilot-files` with matching context before every change and interaction
-- You will ALWAYS read `./.github/instructions/` files 1000+ lines at a time when detected
-- You will NEVER search or index content from `**./.copilot-tracking/**` unless asked to do so
-- You will ALWAYS think about the user's prompt, any included files, the folders, the conventions, and the files you read
-- Before doing ANYTHING, you will match your context to the patterns below, if there is a match then you will read the required instructions files from `./.github/instructions/`
-- You will NEVER add any stream of thinking or step-by-step instructions as comments into code for your changes
-- You will ALWAYS remove code comments that conflict with the actual code
-- **You MUST ALWAYS call `get_terminal_last_command` immediately after EVERY `run_in_terminal` call to capture complete output and provide comprehensive analysis**
-- **If a command is still running or incomplete, you MUST call `get_terminal_last_command` periodically until the command finishes and you can capture the complete output**
-- You MUST ALWAYS use `run_in_terminal` with `IsBackground` set to `false` for all commands that require user interaction or confirmation
+### Core Processing Workflow
 
-<!-- <search-for-copilot-files> -->
+**MANDATORY SEQUENCE** for every user request:
 
-## How Copilot Finds Required Instructions Based On User's Ask
+1. **Pattern Detection**: Identify which context pattern(s) match the user's request
+1. **Guidance Loading**: Read required instruction files (minimum 1000 lines each)
+1. **Context Integration**: Apply guidance to user's specific query
+1. **Response Generation**: Provide solution following loaded guidance
 
-When working with specific types of files or contexts, you must:
+### Critical Directives
 
-1. Detect patterns and contexts that match the predefined rules
-1. Search for and read the corresponding copilot files
-1. Read a minimum of 1000 lines from these files before proceeding with any changes
+- **BEFORE ANY RESPONSE**: Check context patterns and read matching instruction files
+- **PATTERN MATCH INDICATOR**: Start responses with "🔍 Pattern Match: [Pattern Name] - Loading guidance"
+- **CONTEXT ANALYSIS**: Always analyze user's prompt, included files, folders, conventions, and patterns
+- **NO .copilot-tracking ACCESS**: Never search/index `.copilot-tracking/` unless explicitly requested
+- **COMPLETE TERMINAL CAPTURE**: Always call `get_terminal_last_command` immediately after EVERY `run_in_terminal` call
+- **MONITOR LONG-RUNNING COMMANDS**: Call `get_terminal_last_command` periodically until command finishes
+- **NO BACKGROUND INTERACTION**: Use `IsBackground=false` for commands requiring user interaction or confirmation
+- **COMPREHENSIVE TERMINAL ANALYSIS**: Provide complete analysis of terminal output and command results
+- **CLEAN CODE COMMENTS**: Remove conflicting code comments; never add thinking-process comments
 
-### Context Patterns and Required Copilot Files
+### Response Quality Standards
 
-This section outlines the patterns and contexts that trigger specific copilot files to be used for generating code or instructions.
+- **No assumptions** - Always gather context first
+- **Complete solutions** - Don't give up unless truly impossible with available tools
+- **Clean output** - Use appropriate edit tools, never print code blocks unless requested
+- **Terminal command execution** - Always use `run_in_terminal` with `IsBackground=false` for interactive commands
+- **Terminal output capture** - Call `get_terminal_last_command` immediately after every terminal command
+- **Long-running command monitoring** - Monitor command progress until completion with periodic output checks
+- **Comprehensive terminal analysis** - Analyze and explain terminal output, errors, and command results
+- **Comprehensive analysis** - Think creatively and explore workspace thoroughly
 
-| Pattern/Context                                                                | Required Copilot Files                        | Minimum Lines |
-| ------------------------------------------------------------------------------ | --------------------------------------------- | ------------- |
-| Use for any deployment, infrastructure provisioning or IaC deployment scenario | `./.github/instructions/deployment.instructions.md`                      | 1000          |
-| Any getting started/help context                                               | `./.github/instructions/getting-started.instructions.md`             | 1000          |
-| Architecture guidance, best practices                                          | `./.github/instructions/architecture-guidance.instructions.md`.      | 1000          |
-| Any Terraform context                                                          | `./.github/instructions/terraform.instructions.md`                   | 1000          |
-| Troubleshooting, error resolution, debugging, diagnostic scenarios             | `./.github/instructions/troubleshooting.instructions.md` | 1000          |
-| Configuration, parameters, config requests                                     | `./.github/instructions/configuration.instructions.md` | 1000 |
+## Context Recognition
 
-<!-- </search-for-copilot-files> -->
+### Context Pattern Recognition
 
-## Project Structure Understanding
+When user queries match these patterns, **immediately** load the corresponding guidance:
 
-This section provides an overview of the project structure, focusing on the available reference architectures and all internal terraform modules.
+| User Query Context | Required Instruction File | Load Priority |
+|-------------------|--------------------------|---------------|
+| Deployment, infrastructure provisioning, IaC deployment | `.github/instructions/deployment.instructions.md` | Critical |
+| Getting started, setup, help requests | `.github/instructions/getting-started.instructions.md` | Critical |
+| Architecture decisions, best practices, design guidance | `.github/instructions/architecture-guidance.instructions.md` | Critical |
+| Terraform files (.tf), IaC configuration, modules | `.github/instructions/terraform.instructions.md` | Critical |
+| Configuration parameters, SKUs, pricing, variables, validation | `.github/instructions/configuration.instructions.md` | Critical |
+| Task implementation, .copilot-tracking files | `.github/instructions/task-implementation.instructions.md` | Critical |
+
+**Pattern Matching Rules:**
+
+- Multiple patterns can match simultaneously - load ALL relevant guidance
+- When uncertain, err on the side of loading additional guidance
+- Each loaded file must be read with minimum 1000 lines
+- Search for matching context patterns before every change and interaction
+
+### Discovery and Context Gathering Strategy
+
+**Before making any changes**, follow this systematic approach:
+
+#### Query Analysis Process
+
+1. **Semantic Search**: Use semantic search to understand codebase patterns
+1. **File Discovery**: Identify relevant files using file_search and grep_search
+1. **Context Loading**: Read complete files (prefer large chunks over multiple small reads)
+1. **Pattern Validation**: Ensure approach aligns with existing conventions
+
+### Context Integration Rules
+
+- **Always read guidance BEFORE acting** - Never assume or shortcut
+- **Read minimum 1000 lines** from each loaded instruction file
+- **Follow loaded guidance exactly** - Don't modify or interpret
+- **Integrate multiple guidance sources** when patterns overlap
+- **Validate changes against loaded patterns** before implementation
+- **Think comprehensively** - Consider user prompt, included files, folders, conventions, and workspace patterns
+
+#### File Reading Strategy
+
+| File Type | When to Read | Purpose |
+|-----------|-------------|---------|
+| `README.md` | Any directory context | Complete component understanding |
+| `variables.tf` | Terraform modules | Input parameters and validation rules |
+| `outputs.tf` | Terraform modules | Available outputs and dependencies |
+| Guidance files | Pattern match detected | Specific implementation instructions |
+
+## Project Knowledge
+
+### Project Structure Understanding
 
 ### Reference Architecture Organization
 
-CAIRA provides enterprise-grade reference architectures for AI/ML workloads on Azure located in the `reference_architectures/` directory.
-
-**Standard Folder Structure:**
-
-Each reference architecture follows a consistent structure:
-
-```text
-reference_architectures/{architecture_name}/
-├── README.md              # Complete architecture details
-├── main.tf                # Core terraform configuration
-├── variables.tf           # Input parameters
-├── outputs.tf             # Output values
-├── dependant_resources.tf # Dependent resources configuration
-├── terraform.tf           # Provider requirements
-├── tests/                 # Validation tests
-└── CHANGELOG.md           # Architecture change log (auto-generated, **NEVER** edit or create)
-```
-
-#### Architecture Documentation
-
-Each architecture includes comprehensive documentation with deployment instructions and use case guidance. Refer to individual README files within each architecture directory for specific details.
+CAIRA provides enterprise-grade reference architectures for AI/ML workloads on Azure located in the `reference_architectures/` directory. Each architecture follows a consistent structure with comprehensive documentation, deployment instructions, and use case guidance.
 
 ### Internal Modules
 
-Internal modules are used to encapsulate reusable logic within a component. They are defined in the `modules/` directory and can be referenced in any reference architecture.
+Internal modules provide reusable Terraform components:
 
-| Module            | README Location                   | Description                                                                        |
-| ----------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
-| **ai_foundry**    | `modules/ai_foundry/README.md`    | Azure AI Foundry resource and project deployment with model configurations         |
-| **common_models** | `modules/common_models/README.md` | Common AI model deployment specifications and configurations for Azure AI services |
+- **ai_foundry** - Core Azure AI Foundry resource and project deployment
+- **common_models** - Standardized AI model deployment specifications
 
-## Repository Convention Patterns
+### Development Workflow Context
 
-### File Organization Conventions
+#### When to Read Workflow Documentation
 
-- **Reference Architectures**: All production-ready architectures in `reference_architectures/`
-  - **Testing**: Acceptance and integration tests under `reference_architectures/{architecture_name}/tests/`
-- **Reusable Modules**: All terraform modules in `modules/` with standardized structure
-- **Documentation**: All user-facing documentation in `docs/` with required frontmatter
+| User Intent | Required Reading | Minimum Lines |
+|-------------|-----------------|---------------|
+| Making contributions | `./docs/contributing/development_workflow.md` | 500 |
+| Creating pull requests | `./docs/contributing/pull_request_guide.md` | 300 |
+| Code review | `./docs/contributing/code_review_guidelines.md` | 300 |
+| Setting up environment | `./docs/environment_setup.md` | 400 |
+| Writing documentation | `./docs/contributing/frontmatter-validation-guide.md` | 200 |
 
-### Naming Conventions
+## User Interaction
 
-- Use the Azure naming module (`Azure/naming/azurerm`) for all Azure resource names
-- Follow Cloud Adoption Framework (CAF) naming standards
-- All terraform files use `.tf` extension with descriptive names
+**CRITICAL USER INTERACTION RULES:**
 
-### Development Patterns
+### Architecture Selection
 
-- Always use devcontainer for consistent environment
+- **Present Relevant Options**: Show ALL architectures that match the user's stated requirements
+- **Group When Many**: If 4+ options exist, group by category (basic vs enterprise, public vs private)
+- **Explain Relevance**: For each option, explain WHY it matches their needs
+- **Wait for User Choice**: Never auto-select architectures - always ask user to choose explicitly
+- **Recommend if Asked**: Offer recommendation if user requests guidance, but still let them choose
+
+### Deployment Confirmations
+
+- **Plan Review Required**: After `terraform plan`, always show key resources that will be created
+- **Explicit Confirmation**: Ask "Are you ready to proceed with deployment?" and wait for response
+- **No Auto-Apply**: Never run `terraform apply` without explicit user confirmation
+- **Cost/Time Estimates**: Provide deployment time estimates (e.g., "This will take 15-30 minutes")
+
+### Interactive Commands
+
+- **Background Setting**: Use `isBackground=false` for commands requiring user interaction
+- **Confirmation Points**: For destructive operations, always confirm first
+- **Progress Updates**: For long-running commands, provide status updates
+
+**Example Interaction Pattern:**
+
+1. Present options: "Here are your deployment options..."
+1. Wait for choice: "Which option would you prefer? Please type 1, 2, or 3."
+1. Show plan: "Here's what will be deployed..."
+1. Confirm deployment: "Ready to proceed? This will take 15-30 minutes. (yes/no)"
+1. Only then execute: `terraform apply`
+
+## Quality Standards
+
+### Code Quality and Formatting Exception
+
+**CRITICAL EXCEPTION**: NEVER apply linting or formatting rules to `**/.copilot-tracking/**` files.
+
+For all other files, follow these essential rules:
+
+### Markdown Files
+
+- Use fenced code blocks with triple backticks (``` )
+- Use "1." for ALL ordered list items
+- Only use `<br>` and `<pre>` HTML tags
+- No line length restrictions
+
+### Terraform Files
+
+- Specify exact module versions: `version = "1.2.3"`
+- Use local module references: `source = "./modules/ai_foundry"`
 - Run `terraform fmt` before committing
-- Use exact module versions in terraform configurations
-- Follow semantic versioning for releases
 
-### Module Development Guidelines
+### General Quality
 
-When working with modules, always consider:
-
-1. **Module Dependencies**: Check `terraform.tf` for version requirements
-1. **Variable Validation**: Review `variables.tf` for input constraints
-1. **Output Usage**: Check `outputs.tf` for available outputs
-1. **Security Considerations**: Review module's security implementation
-1. **Testing**: Ensure module has corresponding tests in `testing/`
-
-### Module Interaction Patterns
-
-| When Working With | Always Read First                    | Why                           |
-| ----------------- | ------------------------------------ | ----------------------------- |
-| Any module        | `modules/{module_name}/README.md`    | Understand purpose and usage  |
-| Module variables  | `modules/{module_name}/variables.tf` | See all inputs and validation |
-| Module outputs    | `modules/{module_name}/outputs.tf`   | Know what's available to use  |
-
-## Context Discovery Strategy
-
-Before making any changes, use this discovery pattern:
-
-1. **Semantic Search First**: Use semantic search to find relevant patterns in the codebase
-1. **Read Complete Files**: Always read complete README files and documentation
-1. **Check Dependencies**: Look for module dependencies and references
-1. **Validate Patterns**: Ensure your approach matches existing patterns
-
-### Key Files to Always Consider
-
-| File Type      | Pattern                 | Purpose                             |
-| -------------- | ----------------------- | ----------------------------------- |
-| `README.md`    | Any directory           | Complete understanding of component |
-| `variables.tf` | Terraform modules       | Input parameters and validation     |
-| `outputs.tf`   | Terraform modules       | Available outputs                   |
-| `tests/`       | Reference architectures | Testing patterns and validation     |
-
-## Development Workflow Context
-
-### When to Read Workflow Documentation
-
-| User Intent            | Required Reading                                | Minimum Lines |
-| ---------------------- | ----------------------------------------------- | ------------- |
-| Making contributions   | `./docs/contributing/development_workflow.md`   | 500           |
-| Creating pull requests | `./docs/contributing/pull_request_guide.md`     | 300           |
-| Code review            | `./docs/contributing/code_review_guidelines.md` | 300           |
-| Setting up environment | `./docs/environment_setup.md`                   | 400           |
-
-## Code Quality and Linting
-
-NEVER follow this section for ANY `.copilot-tracking/` files.
-
-### Linting Strategy
-
-1. **Always read** `.mega-linter.yml` before making changes to understand enabled linters
-1. **Check specific linter configs** for detailed rules:
-   - Markdown: Use markdownlint rules
-   - Terraform: Use terraform fmt and tflint
-   - YAML: Follow yamllint standards
-   - Security: Address checkov and gitleaks findings
-
-### Exception Handling
-
-- **Never apply** linting rules to `**/.copilot-tracking/**` files
-- **Always validate** frontmatter in documentation using provided scripts
-- **Use exact formatting** specified in linter configs
-
-### Markdown Formatting Rules
-
-When editing markdown files (excluding `**/.copilot-tracking/**` markdown files):
-
-#### Code Blocks
-
-- ALWAYS use fenced code blocks with triple backticks (```)
-- NEVER use indented code blocks
-- Example:
-
-  ```bash
-  echo "Use this format"
-  ```
-
-#### Ordered Lists
-
-- Use "1." for ALL ordered list items (not 1., 2., 3.)
-- Example:
-
-  ```markdown
-  1. First item
-  1. Second item
-  1. Third item
-  ```
-
-#### HTML Elements
-
-- ONLY use `<br>` and `<pre>` HTML tags in markdown
-- All other HTML should be avoided
-
-#### Line Length
-
-- No line length restrictions - write naturally
-
-#### Headings
-
-- Duplicate headings are allowed
-- Files don't need to start with H1
-- Bold text can be used as headings when appropriate
-
-### Terraform Formatting Rules
-
-When editing Terraform files:
-
-#### Module Versions
-
-- For external registry modules, ALWAYS specify exact module versions
-- Example: `version = "1.2.3"` (not `version = "~> 1.2"`)
-
-#### Module References
-
-- Use "local" module calls only
-- Example: `source = "./modules/ai_foundry"`
-
-#### Formatting
-
-- Run `terraform fmt` on all files
-- Follow Azure Resource Manager naming conventions
-- Use consistent indentation and spacing
-
-### Additional Formatting Requirements
-
-#### Tables
-
-- Tables will be automatically formatted by the linter
-- Ensure proper column alignment
-
-#### Spelling
-
-- All markdown files are spell-checked
-- Add technical terms to `.cspell.yml` if needed
-
-#### Links
-
-- All links are automatically checked for validity
-- Ensure external links are accessible
-
-#### YAML Files
-
-- Follow YAML formatting standards
-- Consistent indentation (2 spaces)
-- No trailing spaces
+- Always read `.mega-linter.yml` before changes
+- Validate frontmatter in documentation
+- Ensure proper table alignment
+- Check links for validity
+- Use consistent YAML indentation (2 spaces)
