@@ -2,7 +2,7 @@
 ---
 name: Labeler
 on:
-  pull_request_target:
+  pull_request:
 
 permissions:
   contents: read
@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Run Labeler
+        if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         uses: actions/labeler@634933edcd8ababfe52f92936142cc22ac488b1b # v6.0.1
         with:
           sync-labels: true
