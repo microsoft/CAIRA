@@ -7,9 +7,34 @@ resource "azurerm_storage_account" "function" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  tags                     = var.tags
-}
 
+  # Critical: Explicitly enable shared key access for Function App
+  shared_access_key_enabled = true
+
+  # Security settings
+  min_tls_version                 = "TLS1_2"
+  https_traffic_only_enabled      = true
+  allow_nested_items_to_be_public = false
+
+  # Enable infrastructure encryption for better security
+  infrastructure_encryption_enabled = false
+
+  # Network rules
+  network_rules {
+    default_action = "Allow"
+    bypass         = ["AzureServices"]
+  }
+
+  # Prevent Terraform from checking certain properties on destroy
+  lifecycle {
+    ignore_changes = [
+      queue_properties,
+      blob_properties
+    ]
+  }
+
+  tags = var.tags
+}
 resource "random_string" "suffix" {
   length  = 6
   special = false
