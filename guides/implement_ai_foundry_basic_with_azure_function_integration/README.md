@@ -1,5 +1,7 @@
 # AI Foundry Basic with Azure Function Integration - Implementation Guide
 
+> **Educational Guide**: This implementation guide is designed for learning and experimentation. Some security features (like function authentication) are simplified for educational clarity. Production deployments should follow Azure security best practices.
+
 ## Overview
 
 This guide extends the CAIRA `foundry_basic` reference architecture with Azure Functions to enable serverless compute capabilities integrated with Azure AI Foundry. The solution leverages the existing foundry_basic pattern and adds Azure Functions for serverless AI integration using Azure OpenAI services.
@@ -30,8 +32,7 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 │   └── terraform.tfvars.example     # Example configuration
 ├── scripts/                         # Automation scripts
 │   ├── deploy.sh                    # Single deployment script
-│   ├── configure-local-settings.sh  # Updated for AI Foundry
-│   └── init-backend.sh              # Initialize Terraform backend
+│   └── configure-local-settings.sh  # Updated for AI Foundry
 └── README.md                        # This guide
 ```
 
@@ -193,13 +194,13 @@ The `--build remote` flag ensures dependencies are built in Azure's environment,
 Before using the chat endpoint, you must deploy at least one model:
 
 1. Go to [Azure AI Studio](https://ai.azure.com)
-2. Select your project (e.g., "ai-functions")
-3. Navigate to "Deployments" → "Deploy model"
-4. Deploy a model such as:
+1. Select your project (e.g., "ai-functions")
+1. Navigate to "Deployments" → "Deploy model"
+1. Deploy a model such as:
    - GPT-3.5-turbo
    - GPT-4
    - GPT-4-turbo
-5. Note the deployment name
+1. Note the deployment name
 
 Set the deployment as default (optional):
 
@@ -373,7 +374,7 @@ func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
 
 **Symptom**:
 
-```
+```plaintext
 "AuthorizationFailed: The client '...' does not have authorization to perform action"
 ```
 
@@ -409,8 +410,8 @@ az functionapp restart --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROU
 **Solution**: Deploy models in Azure AI Studio:
 
 1. Go to [Azure AI Studio](https://ai.azure.com)
-2. Select your project
-3. Deploy a model (GPT-3.5-turbo or GPT-4)
+1. Select your project
+1. Deploy a model (GPT-3.5-turbo or GPT-4)
 
 #### 5. Function Deployment Fails
 
@@ -568,7 +569,7 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 1. "How do I get the managed identity principal ID for my Function App?"
    - Copilot will guide you to use Azure CLI or Terraform outputs
 
-2. "Generate Terraform code for Cognitive Services with OpenAI deployments"
+1. "Generate Terraform code for Cognitive Services with OpenAI deployments"
    - Creates the necessary infrastructure for AI services
 
 ### Function Development
@@ -576,7 +577,7 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 1. "Create a Python Azure Function that calls Azure OpenAI using managed identity authentication"
    - Ensures proper use of DefaultAzureCredential with OpenAI SDK
 
-2. "Add comprehensive error handling for Azure OpenAI API calls with exponential backoff"
+1. "Add comprehensive error handling for Azure OpenAI API calls with exponential backoff"
    - Implements production-ready resilience for rate limits
 
 ### Deployment & Configuration
@@ -584,7 +585,7 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 1. "Generate Azure CLI commands to assign Cognitive Services roles to Function App managed identity"
    - Creates the necessary RBAC assignments
 
-2. "Create a script to deploy function code with func azure functionapp publish and remote build"
+1. "Create a script to deploy function code with func azure functionapp publish and remote build"
    - Automates the deployment with proper Python dependency handling
 
 ### Testing & Debugging
@@ -592,7 +593,7 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 1. "Generate curl commands to test Azure Function endpoints with function key authentication"
    - Creates test scenarios for all endpoints
 
-2. "Write KQL queries for Application Insights to monitor OpenAI API usage and errors"
+1. "Write KQL queries for Application Insights to monitor OpenAI API usage and errors"
    - Sets up proper monitoring and diagnostics
 
 ### Troubleshooting
@@ -600,7 +601,7 @@ For step-by-step guidance, use these Copilot prompts at each stage:
 1. "How to fix 'AuthorizationFailed' errors when Function App calls Cognitive Services?"
    - Guides through RBAC role assignments
 
-2. "Debug why deployed functions return 404 in Azure but work locally"
+1. "Debug why deployed functions return 404 in Azure but work locally"
    - Helps verify deployment and configuration
 
 ## Support and Resources

@@ -1,0 +1,125 @@
+# Azure AI Foundry with Function Integration - Terraform Variables Example
+# Copy this file to terraform.tfvars and update with your values
+
+# ============================================================================
+# REQUIRED VARIABLES
+# ============================================================================
+
+# Azure region for all resources
+# Ensure the region supports both Azure AI services and Function Apps
+# Recommended: swedencentral, eastus2, westeurope
+location = "swedencentral"
+
+# Base name for the AI project (3-15 characters, lowercase, no special chars)
+# This will be used as a prefix for multiple resources
+project_name = "ai-functions"
+
+# Display name for the AI Foundry project (human-readable)
+project_display_name = "AI Functions Integration"
+
+# Description of the AI Foundry project
+project_description = "Educational project demonstrating Azure Functions with AI Foundry integration for serverless AI capabilities"
+
+# ============================================================================
+# FUNCTION APP CONFIGURATION
+# ============================================================================
+
+# Function App SKU/pricing tier
+# Options:
+#   - "Y1" = Consumption plan (pay-per-use, cold starts)
+#   - "B1" = Basic tier (~$55/month, no cold starts, better for demos)
+#   - "B2" = Basic tier with more resources
+#   - "S1" = Standard tier for production
+function_app_sku = "B1"
+
+# Python version for Function App
+# Options: "3.9", "3.10", "3.11"
+python_version = "3.11"
+
+# ============================================================================
+# OPTIONAL VARIABLES
+# ============================================================================
+
+# Enable Application Insights for monitoring (recommended)
+enable_monitoring = true
+
+# Log Analytics workspace retention in days
+log_retention_days = 30
+
+# Storage account tier for Function App
+# Options: "Standard", "Premium"
+storage_account_tier = "Standard"
+
+# Storage account replication type
+# Options: "LRS" (locally redundant), "GRS" (geo-redundant), "ZRS" (zone-redundant)
+storage_replication_type = "LRS"
+
+# ============================================================================
+# RESOURCE TAGS
+# ============================================================================
+
+# Tags to apply to all resources (customize as needed)
+tags = {
+  Environment = "dev"
+  Project     = "AI-Functions-Tutorial"
+  Purpose     = "Educational"
+  Owner       = "your-email@example.com"
+  CostCenter  = "Learning"
+  Terraform   = "true"
+  Repository  = "CAIRA"
+}
+
+# ============================================================================
+# ADVANCED CONFIGURATION (Optional - Uncomment to use)
+# ============================================================================
+
+# Custom resource group name (if not set, will be auto-generated)
+# resource_group_name = "rg-ai-functions-custom"
+
+# Virtual network integration (for production scenarios)
+# vnet_integration = {
+#   enabled     = false
+#   subnet_name = ""
+#   vnet_name   = ""
+# }
+
+# Private endpoints configuration
+# enable_private_endpoints = false
+
+# Custom domain for Function App
+# custom_domain = ""
+
+# IP restrictions for Function App
+# allowed_ip_ranges = ["0.0.0.0/0"]  # Allow all IPs (educational default)
+
+# ============================================================================
+# AI MODEL CONFIGURATION (Optional - Set after deployment)
+# ============================================================================
+
+# Default OpenAI model deployment name (set after deploying models in AI Studio)
+# This will be used as the default model for the chat endpoint
+# model_deployment_name = "gpt-4"
+
+# Model configuration
+# model_config = {
+#   temperature = 0.7
+#   max_tokens  = 800
+#   top_p       = 0.95
+# }
+
+# ============================================================================
+# NOTES FOR USERS
+# ============================================================================
+
+# After applying Terraform:
+# 1. Deploy AI models via Azure AI Studio (https://ai.azure.com)
+# 2. Configure Function App managed identity permissions (see README)
+# 3. Deploy function code using: func azure functionapp publish <app-name> --python --build remote
+# 4. Test endpoints using the URLs from Terraform outputs
+
+# For production use:
+# - Change function_app_sku to "S1" or higher
+# - Enable private endpoints
+# - Configure IP restrictions
+# - Use func.AuthLevel.FUNCTION instead of ANONYMOUS in function code
+# - Implement proper key manage

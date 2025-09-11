@@ -115,7 +115,7 @@ def HttpExample(req: func.HttpRequest) -> func.HttpResponse:
         )
 
 
-@app.route(route="chat", auth_level=func.AuthLevel.FUNCTION)
+@app.route(route="chat", auth_level=func.AuthLevel.ANONYMOUS)
 def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
     """
     AI chat endpoint that integrates with Azure OpenAI.
