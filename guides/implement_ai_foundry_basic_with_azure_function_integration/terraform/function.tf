@@ -40,19 +40,19 @@ resource "azurerm_linux_function_app" "main" {
   }
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"       = "python"
-    "FUNCTIONS_EXTENSION_VERSION"    = "~4"
-    "APPINSIGHTS_INSTRUMENTATIONKEY" = module.foundry_basic.application_insights_instrumentation_key
-    "AI_FOUNDRY_ENDPOINT"            = module.foundry_basic.ai_foundry_endpoint
-    "AI_FOUNDRY_PROJECT_ID"          = module.foundry_basic.ai_foundry_project_id
-    "AI_FOUNDRY_PROJECT_NAME"        = module.foundry_basic.ai_foundry_project_name
+    "FUNCTIONS_WORKER_RUNTIME"    = "python"
+    "FUNCTIONS_EXTENSION_VERSION" = "~4"
+    "AI_FOUNDRY_PROJECT_ID"       = module.foundry_basic.ai_foundry_project_id
+    "AI_FOUNDRY_PROJECT_NAME"     = module.foundry_basic.ai_foundry_project_name
+    "AI_FOUNDRY_NAME"             = module.foundry_basic.ai_foundry_name
+    "RESOURCE_GROUP_NAME"         = local.resource_group_name
+    "AZURE_SUBSCRIPTION_ID"       = data.azurerm_client_config.current.subscription_id
   }
 
   site_config {
-    python_version = "3.11"
-
-    application_insights_connection_string = module.foundry_basic.application_insights_connection_string
-    application_insights_key               = module.foundry_basic.application_insights_instrumentation_key
+    application_stack {
+      python_version = "3.11"
+    }
 
     cors {
       allowed_origins = ["https://portal.azure.com"]
@@ -61,6 +61,9 @@ resource "azurerm_linux_function_app" "main" {
 
   tags = var.tags
 }
+
+# Get current subscription for configuration
+data "azurerm_client_config" "current" {}
 
 # Role Assignment for Function App to access AI Foundry
 resource "azurerm_role_assignment" "function_ai_foundry_contributor" {
