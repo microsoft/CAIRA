@@ -17,6 +17,5 @@ module "foundry_basic" {
 # Local values for resource naming
 locals {
   resource_group_name = module.foundry_basic.resource_group_name
-  resource_group_id   = module.foundry_basic.resource_group_id
   base_name           = "func-${var.project_name}"
 }

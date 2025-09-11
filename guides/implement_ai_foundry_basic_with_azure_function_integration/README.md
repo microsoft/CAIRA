@@ -397,7 +397,7 @@ az functionapp restart --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROU
 
 **Symptom**:
 
-```
+```plaintext
 "ResourceNotFound: The Resource 'Microsoft.MachineLearningServices/workspaces/...' was not found"
 ```
 
