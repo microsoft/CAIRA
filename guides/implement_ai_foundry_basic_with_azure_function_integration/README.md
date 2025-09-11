@@ -23,24 +23,12 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 │   ├── deploy-ai-model.sh           # Deploy model to AI Foundry
 │   └── init-backend.sh              # Initialize Terraform backend
 ├── terraform/                       # Infrastructure as Code
-│   ├── ai_hub/                      # AI Hub infrastructure
-│   │   ├── backend.tf               # Backend configuration
-│   │   ├── locals.tf                # Local variables
-│   │   ├── main.tf                  # Main resources
-│   │   ├── outputs.tf               # Output values
-│   │   ├── providers.tf             # Provider configuration
-│   │   ├── terraform.tfvars.example # Example variables file
-│   │   ├── variables.tf             # Variable definitions
-│   │   └── versions.tf              # Version constraints
-│   └── azure_function/              # Function App infrastructure
-│       ├── backend.tf               # Backend configuration
-│       ├── locals.tf                # Local variables
-│       ├── main.tf                  # Main resources
-│       ├── outputs.tf               # Output values
-│       ├── providers.tf             # Provider configuration
-│       ├── terraform.tfvars.example # Example variables file
-│       ├── variables.tf             # Variable definitions
-│       └── versions.tf              # Version constraints
+│   ├── function.tf                  # Function resources
+│   ├── main.tf                      # Main resources
+│   ├── outputs.tf                   # Output values
+│   ├── providers.tf                 # Provider configuration
+│   ├── terraform.tfvars.example     # Example variables file
+│   ├── variables.tf                 # Variable definitions
 └── README.md                        # This guide
 ```
 
@@ -50,8 +38,7 @@ All code and configuration files referenced in this guide are located in the sam
 
 ### Terraform Files
 
-- **terraform/ai_hub/**: Complete Terraform module for AI Foundry Hub deployment
-- **terraform/azure_function/**: Complete Terraform module for Function App deployment
+- **terraform**: Complete Terraform module for Function App deployment
 
 ### Scripts
 
@@ -204,7 +191,7 @@ Create terraform.tfvars files for both AI Hub and Function App:
 
 ```bash
 # From the guide root directory
-cd terraform/ai_hub
+cd terraform
 cat > terraform.tfvars <<EOF
 resource_group_name = "rg-ai-foundry-demo"
 location            = "westus2"  # Or your preferred region with ML quota
@@ -219,52 +206,21 @@ The Function App configuration is auto-generated from AI Hub outputs using the p
 
 ## Deployment Steps
 
-### Step 1: Initialize Terraform Backend
-
-Set up the Terraform backend for state management:
-
-```bash
-cd scripts
-./init-backend.sh
-```
-
-This creates:
-
-- Resource group for Terraform state
-- Storage account for state files
-- Container for state blobs
-
-### Step 2: Deploy AI Hub Infrastructure
-
-Deploy the AI Foundry Hub and associated resources:
-
-```bash
-cd ../terraform/ai_hub
-terraform init
-terraform validate
-terraform plan
-terraform apply
-```
-
-This deploys:
-
-- AI Hub (Machine Learning Workspace)
-- AI Project
-- Key Vault
-- Application Insights
-- Storage Account
-
-### Step 3: Deploy Azure Function Infrastructure
+### Step 1: Deploy Azure Function Infrastructure
 
 Deploy the Function App and supporting resources:
 
 ```bash
-# Generate Function App configuration from AI Hub outputs
-cd ../..
-scripts/create-function-tfvars.sh
+# From the guide root directory
+cd terraform
+
+# Ensure you are logged into the correct azure subscription
+az login
+
+# Make subscription ID available to terraform providers as environment variable
+export ARM_SUBSCIRPTION_ID=$(az show --query id -o tsv)
 
 # Deploy Function App
-cd terraform/azure_function
 terraform init
 terraform validate
 terraform plan
@@ -278,41 +234,16 @@ This deploys:
 - Storage Account for Function App
 - Role assignments for AI Hub access
 
-### Step 4: Deploy Model to AI Foundry
-
-Deploy a model to your AI Foundry workspace:
-
-```bash
-cd scripts
-./deploy-ai-model.sh
-```
-
-This script will:
-
-- Check available compute quota
-- Deploy a model endpoint (managed or serverless)
-- Configure the endpoint for access
-
-**Manual Model Deployment via Azure AI Studio:**
-
-1. Navigate to [Azure AI Studio](https://ai.azure.com)
-1. Select your workspace: `hub-aifoundry-dev-<suffix>`
-1. Go to "Models" → "Model catalog"
-1. Select a model (e.g., GPT-4, Phi-3, Llama)
-1. Click "Deploy" → Choose deployment type
-1. Configure and deploy
-
-### Step 5: Configure and Deploy Function Code
+### Step 2: Configure and Deploy Function Code
 
 Configure and deploy the function app code:
 
 ```bash
-# Configure local settings with AI Foundry endpoints
-cd scripts
-./configure-local-settings.sh
+# From the guide root directory
+scripts/configure-local-settings.sh
 
 # Deploy function code
-cd ../function-app
+cd function-app
 FUNCTION_APP_NAME=$(cd ../terraform/azure_function && terraform output -raw function_app_name)
 func azure functionapp publish $FUNCTION_APP_NAME --python
 ```
