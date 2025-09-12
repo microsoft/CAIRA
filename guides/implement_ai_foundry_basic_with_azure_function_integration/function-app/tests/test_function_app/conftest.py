@@ -4,18 +4,13 @@ import os
 import sys
 import json
 import pytest
+from pathlib import Path
 from unittest.mock import Mock, patch
 import azure.functions as func
 
-# Add function-app directory to path
-current_dir = os.path.dirname(os.path.abspath(__file__))
-function_app_dir = os.path.join(current_dir, '..', '..', 'function-app')
-function_app_path = os.path.abspath(function_app_dir)
+# Add function-app directory to path (2 levels up)
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-if function_app_path not in sys.path:
-    sys.path.insert(0, function_app_path)
-
-# Now import the function_app module
 import function_app  # noqa: E402
 
 
