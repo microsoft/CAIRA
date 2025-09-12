@@ -1,7 +1,3 @@
-"""
-Unit tests for Azure Function App
-"""
-
 import os
 import json
 import sys
