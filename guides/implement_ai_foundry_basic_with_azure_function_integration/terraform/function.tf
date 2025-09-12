@@ -67,7 +67,7 @@ resource "azurerm_linux_function_app" "main" {
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"    = "python"
     "FUNCTIONS_EXTENSION_VERSION" = "~4"
-    "AI_FOUNDRY_ENDPOINT"         = module.foundry_basic.ai_foundry_endpoint
+    "AI_FOUNDRY_ENDPOINT"         = "https://${module.foundry_basic.ai_foundry_name}.cognitiveservices.azure.com/"
     "AI_FOUNDRY_PROJECT_ID"       = module.foundry_basic.ai_foundry_project_id
     "AI_FOUNDRY_PROJECT_NAME"     = module.foundry_basic.ai_foundry_project_name
     "AI_FOUNDRY_NAME"             = module.foundry_basic.ai_foundry_name # Optional, for reference
