@@ -24,14 +24,23 @@ guides/implement_ai_foundry_basic_with_azure_function_integration/
 │   ├── function_app.py              # Main function implementation (uses OpenAI SDK)
 │   ├── host.json                    # Function app global configuration
 │   ├── local.settings.json          # Local development settings
-│   └── requirements.txt             # Python dependencies
+│   ├── requirements.txt             # Python dependencies
+│   ├── requirements.test.txt        # Python test dependencies (pytest, mock, etc.)
+│   └── tests/                       # Python test directory
+│       ├── pytest.ini               # Pytest configuration (test discovery, markers)
+│       └── test_function_app/       # Python function app test sub-directory
+│           ├── test_function_app.py # Unit tests for function endpoints
+│           └── conftest.py          # Pytest fixtures and test configuration
 ├── terraform/                       # Simplified Infrastructure as Code
 │   ├── main.tf                      # Calls foundry_basic + adds function
 │   ├── variables.tf                 # Input variables
 │   ├── outputs.tf                   # Combined outputs
 │   ├── providers.tf                 # Provider configuration
 │   ├── function.tf                  # Azure Function resources
-│   └── terraform.tfvars.example     # Example configuration
+│   ├── terraform.tfvars.example     # Example configuration
+│   └── tests/                       # Terraform tests directory
+│       ├── acceptance.tftest.hcl    # Plan-only tests (validate config without creating resources)
+│       └── integration.tftest.hcl   # Apply tests (create and verify actual resources)
 ├── scripts/                         # Automation scripts
 │   ├── deploy.sh                    # Single deployment script
 │   └── configure-local-settings.sh  # Updated for AI Foundry
@@ -486,6 +495,42 @@ az role assignment list --assignee $PRINCIPAL_ID --output table
 # Check deployed functions
 az functionapp function list --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --output table
 ```
+
+## Testing
+
+### Python Tests
+
+```bash
+# Run all tests
+cd function-app
+pytest
+
+# Run with coverage
+pytest --cov=function_app
+
+# Run specific test
+pytest tests/test_function_app/test_function_app.py::test_health
+```
+
+### Terraform Tests
+
+```bash
+# Run all tests
+cd terraform
+terraform init
+terraform test
+
+# Run acceptance tests only (no resources created)
+terraform test -filter=tests/acceptance.tftest.hcl
+
+# Run integration tests only (creates real resources)
+terraform test -filter=tests/integration.tftest.hcl
+```
+
+### Prerequisites
+
+- Python tests: `pip install -r requirements.test.txt`
+- Terraform tests: `export ARM_SUBSCRIPTION_ID=<your-subscription-id>`
 
 ## Monitoring
 
