@@ -8,6 +8,8 @@ This guide extends the CAIRA `foundry_basic` reference architecture with Azure F
 
 ## Architecture Components
 
+![Architecture Diagram](./images/architecture.mermaid.png)
+
 - **Azure AI Foundry**: Cognitive Services account for AI capabilities (via foundry_basic module)
 - **Azure AI Project**: Organized workspace for AI workloads (via foundry_basic module)
 - **Azure Function App**: Serverless compute with system-assigned managed identity
