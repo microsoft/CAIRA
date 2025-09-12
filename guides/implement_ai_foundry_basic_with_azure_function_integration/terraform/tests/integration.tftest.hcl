@@ -125,8 +125,6 @@ run "testint_function_app_configuration" {
     error_message = "Function App should have Python runtime configured"
   }
 
-  # Removed FUNCTIONS_EXTENSION_VERSION check as Azure manages this internally
-
   assert {
     condition     = azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_ENDPOINT"] != null && can(regex("^https://.*\\.cognitiveservices\\.azure\\.com/$", azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_ENDPOINT"]))
     error_message = "Function App should have valid AI Foundry endpoint configured"
