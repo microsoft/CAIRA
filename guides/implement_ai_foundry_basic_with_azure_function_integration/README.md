@@ -234,16 +234,21 @@ The `--build remote` flag ensures dependencies are built in Azure's environment,
 
 Before using the chat endpoint, you must deploy at least one model:
 
-1. Go to [Azure AI Studio](https://ai.azure.com)
+1. Go to [Azure AI Foundry](https://ai.azure.com)
 1. Select your project (e.g., "ai-functions")
-1. Navigate to "Deployments" → "Deploy model"
+
+    - If you end up in the Management Center, click "Go to project"
+
+1. Under "My assets" in the left-hand bar, select "Models + endpoints"
 1. Deploy a model such as:
+
    - GPT-3.5-turbo
    - GPT-4
    - GPT-4-turbo
+
 1. Note the deployment name
 
-Set the deployment as default (optional):
+Set the deployment as default:
 
 ```bash
 az functionapp config appsettings set \
@@ -255,6 +260,9 @@ az functionapp config appsettings set \
 ### Step 6: Verify Deployment
 
 ```bash
+# Return to terraform directory
+cd ../terraform
+
 # Test health endpoint
 curl $(terraform output -raw function_app_url)/api/health | jq .
 
@@ -325,19 +333,10 @@ curl "$FUNCTION_URL/api/health" | jq .
 curl "$FUNCTION_URL/api/list-models" | jq .
 ```
 
-### Test Chat Endpoint (Requires Function Key)
+### Test Chat Endpoint
 
 ```bash
-# Get the function key
-FUNCTION_KEY=$(az functionapp function keys list \
-  --name $FUNCTION_APP_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --function-name chat \
-  --query "default" -o tsv)
-
-# Test chat
 curl -X POST "$FUNCTION_URL/api/chat" \
-  -H "x-functions-key: $FUNCTION_KEY" \
   -H "Content-Type: application/json" \
   -d '{"prompt": "What is Azure Functions?"}' | jq .
 ```
