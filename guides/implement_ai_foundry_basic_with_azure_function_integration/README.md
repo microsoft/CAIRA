@@ -123,7 +123,7 @@ az login
 az account set --subscription <your-subscription-id>
 
 # Make subscription ID available to terraform providers as environment variable
-export ARM_SUBSCIRPTION_ID=$(az show --query id -o tsv)
+export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 ```
 
 ### 3. Configure Variables
