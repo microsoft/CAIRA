@@ -40,9 +40,9 @@ When a user asks for “security review”, “hardening”, “risks”, “sec
    - Network posture (private endpoints planned? Hub/spoke? Firewall / WAF?)
    - Compliance drivers (ISO, SOC-2, HIPAA, GDPR, FedRAMP, internal)
    - AI usage pattern (inference only / fine-tuning / RAG / agent orchestration)
-   - Secrets & key management approach (Key Vault? Managed HSM? BYOK?)
+   - Secrets & key management approach (Key Vault? Managed HSM?)
    - Observability strategy (Log Analytics, Defender for Cloud, Sentinel?)
-   - Change management / policy enforcement (OPA, Azure Policy, Conftest?)
+   - Change management / policy enforcement (OPA, Azure Policy, Config test?)
 
 1. Conduct Internal Baseline (DO NOT OUTPUT):
 
@@ -52,7 +52,7 @@ When a user asks for “security review”, “hardening”, “risks”, “sec
 1. Produce User-Facing Assessment (ONLY gaps, prioritized):
 
    - High-Risk (blocking / exposure / privilege escalation)
-   - Medium-Risk (misconfigurable / weak default / incomplete control)
+   - Medium-Risk (mis-configurable / weak default / incomplete control)
    - Low-Risk (hygiene / optimization)
    - Map each to suggested mitigation and effort (Quick / Planned)
 
@@ -219,12 +219,12 @@ properties = {
 
 | Layer | Tooling Recommendation | Purpose |
 |-------|------------------------|---------|
-| IaC Static | tfsec / Checkov / TFLint | Misconfig & policy drift detection |
+| IaC Static | tfsec / Checkov / TFLint | Mis-config & policy drift detection |
 | Secrets | Gitleaks / Trufflehog | Secret exposure scanning |
 | Dependencies | Dependency Review / Renovate / Dependabot | Supply chain hygiene |
 | Container / Images | Trivy | Vulnerability scanning |
 | Runtime Policy | Azure Policy / Defender for Cloud | Governance & enforcement |
-| Admission / OPA | Conftest + Rego | Pre-merge & pipeline policy gates |
+| Admission / OPA | Config test | Pre-merge & pipeline policy gates |
 | CodeQL | GitHub CodeQL | Code-level security analysis |
 | Monitoring | Log Analytics / Sentinel / Defender | Threat detection & telemetry |
 
