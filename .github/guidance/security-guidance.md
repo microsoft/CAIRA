@@ -44,12 +44,12 @@ When a user asks for “security review”, “hardening”, “risks”, “sec
    - Observability strategy (Log Analytics, Defender for Cloud, Sentinel?)
    - Change management / policy enforcement (OPA, Azure Policy, Conftest?)
 
-2. Conduct Internal Baseline (DO NOT OUTPUT):
+1. Conduct Internal Baseline (DO NOT OUTPUT):
 
    - Infer existing safeguards from repository modules (e.g., current identity type, network defaults, encryption blocks, role assignments, workflow scanners)
    - Record gaps only for novel output
 
-3. Produce User-Facing Assessment (ONLY gaps, prioritized):
+1. Produce User-Facing Assessment (ONLY gaps, prioritized):
 
    - High-Risk (blocking / exposure / privilege escalation)
    - Medium-Risk (misconfigurable / weak default / incomplete control)
@@ -61,10 +61,10 @@ When a user asks for “security review”, “hardening”, “risks”, “sec
 If the user references “agents”, “prompt”, “RAG”, “vector store”, or “model governance”:
 
 1. Evaluate ingestion channel trust boundaries (data poisoning risk)
-2. Identify prompt injection vectors (tool invocation, system prompt blending)
-3. Assess data exfiltration controls (output filtering, redaction, content moderation)
-4. Review capability host connections (are secrets/keys exposed in plan/state?)
-5. Recommend isolation (separate identity & network context per agent capability)
+1. Identify prompt injection vectors (tool invocation, system prompt blending)
+1. Assess data exfiltration controls (output filtering, redaction, content moderation)
+1. Review capability host connections (are secrets/keys exposed in plan/state?)
+1. Recommend isolation (separate identity & network context per agent capability)
 
 ### Guidelines
 
@@ -85,15 +85,15 @@ If the user references “agents”, “prompt”, “RAG”, “vector store”
 Copilot must bucket findings into these labeled groups:
 
 1. Identity & Access Control
-2. Network Segmentation & Exposure
-3. Data Protection & Encryption
-4. Secrets & Key Management
-5. AI / Model & Agent Safety (prompt injection, data leakage, misuse, poisoning)
-6. Supply Chain & Dependency Hygiene
-7. Infrastructure & Configuration Hardening
-8. Observability, Monitoring & Detection
-9. Governance, Compliance & Policy Enforcement
-10. Incident Response & Resilience
+1. Network Segmentation & Exposure
+1. Data Protection & Encryption
+1. Secrets & Key Management
+1. AI / Model & Agent Safety (prompt injection, data leakage, misuse, poisoning)
+1. Supply Chain & Dependency Hygiene
+1. Infrastructure & Configuration Hardening
+1. Observability, Monitoring & Detection
+1. Governance, Compliance & Policy Enforcement
+1. Incident Response & Resilience
 
 #### Output Boundaries
 
