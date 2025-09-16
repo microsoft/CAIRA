@@ -26,5 +26,5 @@ module "application_insights" {
     "ampls" = {
       resource_id = var.monitor_private_link_scope_resource_id
     }
-  } : null
+  } : {}
 }
