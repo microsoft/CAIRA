@@ -162,12 +162,12 @@ This configuration is designed to use existing Azure resources for agent capabil
    Example configuration (configured via `terraform.tfvars` or variables):
 
 ```hcl
-agents_subnet_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/agents-subnet"
-foundry_subnet_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/foundry-subnet"
+agents_subnet_id                           = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/agents-subnet"
+foundry_subnet_id                          = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/network-rg/providers/Microsoft.Network/virtualNetworks/main-vnet/subnets/foundry-subnet"
 existing_capability_host_resource_group_id = "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/existing-services-rg"
-existing_cosmosdb_account_name = "my-cosmos-account"
-existing_storage_account_name = "mystorageaccount"
-existing_search_service_name = "my-search-service"
+existing_cosmosdb_account_name             = "my-cosmos-account"
+existing_storage_account_name              = "mystorageaccount"
+existing_search_service_name               = "my-search-service"
 ```
 
 **Role assignments**: The AI Foundry Project uses a managed identity. The module includes role assignment wiring for the existing host connections; verify and adjust as needed in `modules/ai_foundry/agent_capability_host_connections.role_assignments.tf`. The output `ai_foundry_project_identity_principal_id` is provided for audits or custom RBAC.
