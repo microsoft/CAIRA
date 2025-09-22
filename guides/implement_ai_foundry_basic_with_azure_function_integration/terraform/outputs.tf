@@ -1,59 +1,67 @@
-# outputs.tf - This extends the foundry_basic reference architecture with Azure Functions for serverless AI integration
+############################################################
+# Outputs for Azure Functions AI Integration Layer
+############################################################
 
-# AI Foundry outputs (from foundry_basic module)
-output "ai_foundry_id" {
-  description = "The resource ID of the AI Foundry account"
-  value       = module.foundry_basic.ai_foundry_id
+# Function App Outputs
+output "function_app_id" {
+  description = "The resource ID of the Function App"
+  value       = azurerm_linux_function_app.this.id
 }
 
-output "ai_foundry_name" {
-  description = "The name of the AI Foundry account"
-  value       = module.foundry_basic.ai_foundry_name
-}
-
-output "ai_foundry_endpoint" {
-  description = "The endpoint of the AI Foundry account"
-  value       = "https://${module.foundry_basic.ai_foundry_name}.cognitiveservices.azure.com/"
-}
-
-output "ai_foundry_project_id" {
-  description = "The resource ID of the AI Foundry Project"
-  value       = module.foundry_basic.ai_foundry_project_id
-}
-
-output "ai_foundry_project_name" {
-  description = "The name of the AI Foundry Project"
-  value       = module.foundry_basic.ai_foundry_project_name
-}
-
-output "resource_group_name" {
-  description = "The name of the resource group"
-  value       = module.foundry_basic.resource_group_name
-}
-
-# Function App outputs
 output "function_app_name" {
   description = "The name of the Function App"
-  value       = azurerm_linux_function_app.main.name
+  value       = azurerm_linux_function_app.this.name
+}
+
+output "function_app_default_hostname" {
+  description = "The default hostname of the Function App"
+  value       = azurerm_linux_function_app.this.default_hostname
 }
 
 output "function_app_url" {
   description = "The URL of the Function App"
-  value       = "https://${azurerm_linux_function_app.main.default_hostname}"
+  value       = "https://${azurerm_linux_function_app.this.default_hostname}"
 }
 
 output "function_app_identity_principal_id" {
-  description = "The principal ID of the Function App managed identity"
-  value       = azurerm_linux_function_app.main.identity[0].principal_id
+  description = "The principal ID of the Function App's system-assigned managed identity"
+  value       = azurerm_linux_function_app.this.identity[0].principal_id
 }
 
-# Monitoring outputs
-output "application_insights_id" {
-  description = "The resource ID of Application Insights"
-  value       = module.foundry_basic.application_insights_id
+output "function_app_identity_tenant_id" {
+  description = "The tenant ID of the Function App's system-assigned managed identity"
+  value       = azurerm_linux_function_app.this.identity[0].tenant_id
 }
 
-output "log_analytics_workspace_id" {
-  description = "The resource ID of Log Analytics workspace"
-  value       = module.foundry_basic.log_analytics_workspace_id
+# Storage Account Outputs
+output "storage_account_id" {
+  description = "The resource ID of the storage account used by the Function App"
+  value       = azurerm_storage_account.function.id
+}
+
+output "storage_account_name" {
+  description = "The name of the storage account used by the Function App"
+  value       = azurerm_storage_account.function.name
+}
+
+# Service Plan Outputs
+output "service_plan_id" {
+  description = "The resource ID of the App Service Plan"
+  value       = azurerm_service_plan.function.id
+}
+
+output "service_plan_name" {
+  description = "The name of the App Service Plan"
+  value       = azurerm_service_plan.function.name
+}
+
+# Connection Information
+output "function_app_outbound_ip_addresses" {
+  description = "The outbound IP addresses of the Function App"
+  value       = split(",", azurerm_linux_function_app.this.outbound_ip_addresses)
+}
+
+output "function_app_possible_outbound_ip_addresses" {
+  description = "The possible outbound IP addresses of the Function App"
+  value       = split(",", azurerm_linux_function_app.this.possible_outbound_ip_addresses)
 }

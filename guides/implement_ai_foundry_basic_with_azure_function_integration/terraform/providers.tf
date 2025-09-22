@@ -1,4 +1,6 @@
-# providers.tf - This extends the foundry_basic reference architecture with Azure Functions for serverless AI integration
+############################################################
+# Provider Configuration for Azure Functions Layer
+############################################################
 
 terraform {
   required_version = ">= 1.13, < 2.0"
@@ -12,17 +14,10 @@ terraform {
       source  = "Azure/azapi"
       version = "~> 2.6"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
-    }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
-    }
   }
 }
 
+# Configure the Azure Provider
 provider "azurerm" {
   features {
     resource_group {

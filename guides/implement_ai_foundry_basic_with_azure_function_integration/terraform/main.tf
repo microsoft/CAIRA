@@ -1,21 +1,47 @@
-# main.tf - # This extends the foundry_basic reference architecture with Azure Functions for serverless AI integration
+############################################################
+# Azure Functions Integration Layer for AI Foundry
+#
+# This Terraform configuration deploys Azure Functions that
+# integrate with an existing AI Foundry deployment.
+#
+# Prerequisites: foundry_basic must be deployed first
+############################################################
 
-# Call the foundry_basic reference architecture
-module "foundry_basic" {
-  source = "../../../reference_architectures/foundry_basic"
-
-  location                   = var.location
-  resource_group_resource_id = var.resource_group_resource_id
-  project_name               = var.project_name
-  project_display_name       = var.project_display_name
-  project_description        = var.project_description
-  sku                        = var.sku
-  enable_telemetry           = var.enable_telemetry
-  tags                       = var.tags
+# Data source to reference the existing resource group
+data "azurerm_resource_group" "this" {
+  name = var.foundry_resource_group_name
 }
 
-# Local values for resource naming
+# Data source to reference the existing AI Foundry account
+data "azurerm_cognitive_account" "ai_foundry" {
+  name                = var.foundry_ai_foundry_name
+  resource_group_name = var.foundry_resource_group_name
+}
+
+# Data source to reference the existing Application Insights
+data "azurerm_application_insights" "this" {
+  name                = var.foundry_application_insights_name
+  resource_group_name = var.foundry_resource_group_name
+}
+
+# Azure naming convention helper for function-specific resources
+module "naming" {
+  source        = "Azure/naming/azurerm"
+  version       = "0.4.2"
+  suffix        = [local.base_name]
+  unique-length = 5
+}
+
+# Local values for resource naming and configuration
 locals {
-  resource_group_name = module.foundry_basic.resource_group_name
   base_name           = "func-${var.project_name}"
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = data.azurerm_resource_group.this.location
+
+  # Function app configuration
+  function_app_name = module.naming.function_app.name_unique
+
+  # AI Foundry connection details
+  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
+  ai_foundry_key      = data.azurerm_cognitive_account.ai_foundry.primary_access_key
 }

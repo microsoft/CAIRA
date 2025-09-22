@@ -1,121 +1,137 @@
-# function.tf - Azure Function App Resources, adds serverless compute to AI Foundry
+############################################################
+# Azure Functions Resources
+############################################################
 
-# Random suffix for unique naming
-resource "random_string" "suffix" {
-  length  = 6
-  special = false
-  upper   = false
-}
+# Storage Account for Function App
+resource "azurerm_storage_account" "function" {
+  name                     = replace(module.naming.storage_account.name_unique, "-", "")
+  resource_group_name      = local.resource_group_name
+  location                 = local.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_version          = "TLS1_2"
 
-# Create storage account using Azure CLI to bypass policy restrictions
-resource "null_resource" "create_storage_account" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      az storage account create \
-        --name st${replace(local.base_name, "-", "")}${random_string.suffix.result} \
-        --resource-group ${local.resource_group_name} \
-        --location ${var.location} \
-        --sku Standard_LRS \
-        --kind StorageV2 \
-        --min-tls-version TLS1_2 \
-        --allow-shared-key-access true \
-        --allow-blob-public-access false \
-        --output none
-    EOT
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
   }
 
-  # Ensure this runs after the resource group is created
-  depends_on = [module.foundry_basic]
-
-  # Trigger recreation if the storage account name changes
-  triggers = {
-    storage_account_name = "st${replace(local.base_name, "-", "")}${random_string.suffix.result}"
-  }
+  tags = var.tags
 }
 
-# Data source to reference the storage account created by CLI
-data "azurerm_storage_account" "function" {
-  name                = "st${replace(local.base_name, "-", "")}${random_string.suffix.result}"
-  resource_group_name = local.resource_group_name
-
-  depends_on = [null_resource.create_storage_account]
-}
-
-# App Service Plan
+# App Service Plan for Function App
 resource "azurerm_service_plan" "function" {
-  name                = "asp-${local.base_name}"
+  name                = module.naming.app_service_plan.name_unique
   resource_group_name = local.resource_group_name
-  location            = var.location
+  location            = local.location
   os_type             = "Linux"
-  sku_name            = var.function_app_sku
-  tags                = var.tags
+  sku_name            = var.function_sku_size
+
+  tags = var.tags
 }
 
-# Function App
-resource "azurerm_linux_function_app" "main" {
-  name                       = "func-${local.base_name}-${random_string.suffix.result}"
-  resource_group_name        = local.resource_group_name
-  location                   = var.location
-  service_plan_id            = azurerm_service_plan.function.id
-  storage_account_name       = data.azurerm_storage_account.function.name
-  storage_account_access_key = data.azurerm_storage_account.function.primary_access_key
+# Linux Function App with Python runtime
+resource "azurerm_linux_function_app" "this" {
+  name                = local.function_app_name
+  resource_group_name = local.resource_group_name
+  location            = local.location
+  service_plan_id     = azurerm_service_plan.function.id
 
-  identity {
-    type = "SystemAssigned"
-  }
-
-  app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"    = "python"
-    "FUNCTIONS_EXTENSION_VERSION" = "~4"
-    "AI_FOUNDRY_ENDPOINT"         = "https://${module.foundry_basic.ai_foundry_name}.cognitiveservices.azure.com/"
-    "AI_FOUNDRY_PROJECT_ID"       = module.foundry_basic.ai_foundry_project_id
-    "AI_FOUNDRY_PROJECT_NAME"     = module.foundry_basic.ai_foundry_project_name
-    "AI_FOUNDRY_NAME"             = module.foundry_basic.ai_foundry_name # Optional, for reference
-    "RESOURCE_GROUP"              = local.resource_group_name
-    "AZURE_SUBSCRIPTION_ID"       = data.azurerm_client_config.current.subscription_id
-  }
+  storage_account_name       = azurerm_storage_account.function.name
+  storage_account_access_key = azurerm_storage_account.function.primary_access_key
 
   site_config {
+    always_on                              = var.function_tier != "Dynamic"
+    application_insights_connection_string = data.azurerm_application_insights.this.connection_string
+    application_insights_key               = data.azurerm_application_insights.this.instrumentation_key
+
     application_stack {
-      python_version = "3.11"
+      python_version = var.python_version
     }
 
     cors {
       allowed_origins = ["https://portal.azure.com"]
     }
+
+    # Enhanced security settings
+    ftps_state             = "Disabled"
+    http2_enabled          = true
+    minimum_tls_version    = "1.2"
+    use_32_bit_worker      = false
+    vnet_route_all_enabled = var.enable_vnet_integration
+    websockets_enabled     = false
+  }
+
+  app_settings = {
+    # Function runtime settings
+    "FUNCTIONS_WORKER_RUNTIME"       = "python"
+    "FUNCTIONS_EXTENSION_VERSION"    = "~4"
+    "WEBSITE_RUN_FROM_PACKAGE"       = "1"
+    "WEBSITE_MOUNT_ENABLED"          = "1"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+
+    # Python specific settings
+    "PYTHON_ENABLE_WORKER_EXTENSIONS"    = "1"
+    "PYTHON_ISOLATE_WORKER_DEPENDENCIES" = "1"
+
+    # AI Foundry connection settings
+    "AZURE_AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint
+    "AZURE_AI_FOUNDRY_KEY"          = local.ai_foundry_key
+    "AZURE_AI_FOUNDRY_PROJECT_NAME" = var.foundry_ai_foundry_project_name
+
+    # Monitoring
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string
+    "APPINSIGHTS_INSTRUMENTATIONKEY"        = data.azurerm_application_insights.this.instrumentation_key
+
+    # Performance settings
+    "WEBSITE_ENABLE_SYNC_UPDATE_SITE" = "true"
+    "WEBSITE_USE_PLACEHOLDER"         = var.function_tier == "Dynamic" ? "0" : "1"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings["WEBSITE_RUN_FROM_PACKAGE"],
+    ]
   }
 
   tags = var.tags
-
-  depends_on = [null_resource.create_storage_account]
 }
 
-# Get current subscription for configuration
-data "azurerm_client_config" "current" {}
-
-# Role Assignment for Function App to access AI Foundry
+# Role Assignment: Function App -> AI Foundry Contributor
 resource "azurerm_role_assignment" "function_ai_foundry_contributor" {
-  scope                = module.foundry_basic.ai_foundry_id
-  role_definition_name = "Cognitive Services User"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-}
-
-resource "azurerm_role_assignment" "function_ai_project_contributor" {
-  scope                = module.foundry_basic.ai_foundry_project_id
-  role_definition_name = "Contributor"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-}
-
-# Additional role for OpenAI access
-resource "azurerm_role_assignment" "function_ai_openai_user" {
-  scope                = module.foundry_basic.ai_foundry_id
-  role_definition_name = "Cognitive Services OpenAI User"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-}
-
-# For listing deployments
-resource "azurerm_role_assignment" "function_ai_contributor" {
-  scope                = module.foundry_basic.ai_foundry_id
+  scope                = var.foundry_ai_foundry_id
   role_definition_name = "Cognitive Services Contributor"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+  principal_id         = azurerm_linux_function_app.this.identity[0].principal_id
+}
+
+# Role Assignment: Function App -> AI Foundry User
+resource "azurerm_role_assignment" "function_ai_foundry_user" {
+  scope                = var.foundry_ai_foundry_id
+  role_definition_name = "Cognitive Services User"
+  principal_id         = azurerm_linux_function_app.this.identity[0].principal_id
+}
+
+# Diagnostic Settings for Function App
+resource "azurerm_monitor_diagnostic_setting" "function" {
+  name                       = "${local.function_app_name}-diagnostics"
+  target_resource_id         = azurerm_linux_function_app.this.id
+  log_analytics_workspace_id = var.foundry_log_analytics_workspace_id
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+
+  # Function App Logs
+  enabled_log {
+    category = "FunctionAppLogs"
+  }
+
+  lifecycle {
+    ignore_changes = [enabled_metric, enabled_log, log_analytics_destination_type]
+  }
 }
