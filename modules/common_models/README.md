@@ -54,23 +54,23 @@ model_deployments = [
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-| Name      | Version        |
-|-----------|----------------|
+| Name | Version |
+|------|---------|
 | terraform | >= 1.13, < 2.0 |
 
 ## Outputs
 
-| Name                       | Description                   |
-|----------------------------|-------------------------------|
-| gpt\_4\_1                  | GPT-4.1 model                 |
-| gpt\_4\_1\_mini            | GPT-4.1-mini model            |
-| gpt\_4\_1\_nano            | GPT-4.1-nano model            |
-| gpt\_4o                    | GPT-4o model                  |
-| gpt\_4o\_audio\_preview    | GPT-4o audio preview model    |
-| gpt\_4o\_mini              | GPT-4o-mini model             |
+| Name | Description |
+|------|-------------|
+| gpt\_4\_1 | GPT-4.1 model |
+| gpt\_4\_1\_mini | GPT-4.1-mini model |
+| gpt\_4\_1\_nano | GPT-4.1-nano model |
+| gpt\_4o | GPT-4o model |
+| gpt\_4o\_audio\_preview | GPT-4o audio preview model |
+| gpt\_4o\_mini | GPT-4o-mini model |
 | gpt\_4o\_realtime\_preview | GPT-4o realtime preview model |
-| gpt\_4o\_transcribe        | GPT-4o transcribe model       |
-| o4\_mini                   | O4-mini model                 |
-| text\_embedding\_3\_large  | Text embedding 3 large model  |
-| text\_embedding\_3\_small  | Text embedding 3 small model  |
+| gpt\_4o\_transcribe | GPT-4o transcribe model |
+| o4\_mini | O4-mini model |
+| text\_embedding\_3\_large | Text embedding 3 large model |
+| text\_embedding\_3\_small | Text embedding 3 small model |
 <!-- END_TF_DOCS -->
