@@ -226,6 +226,7 @@ For issues and questions:
 
 | Name                                          | Description                                                                  |
 |-----------------------------------------------|------------------------------------------------------------------------------|
+| ai\_foundry\_endpoint                         | The endpoint URL of the AI Foundry account.                                  |
 | ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
 | ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
 | ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
