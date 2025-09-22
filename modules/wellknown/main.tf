@@ -132,13 +132,8 @@ resource "azapi_resource" "search" {
       partitionCount      = 1
       hostingMode         = "default"
       semanticSearch      = "disabled"
-      disableLocalAuth    = false
+      disableLocalAuth    = true
       publicNetworkAccess = "Disabled"
-      authOptions = {
-        aadOrApiKey = {
-          aadAuthFailureMode = "http401WithBearerChallenge"
-        }
-      }
     }
   }
 }

@@ -75,8 +75,9 @@ Note: This architecture requires existing Cosmos DB, Storage, and AI Search reso
      - **Azure AI Account Owner**: Needed to create a cognitive services account and project
      - **Owner or Role Based Access Administrator**: Needed to assign RBAC to the existing resources (Cosmos DB, Azure AI Search, Storage)
      - **Azure AI User**: Needed to create and edit agents
+     - **Cognitive Services OpenAI Contributor**: Needed to write OpenAI responses API
 
-1. **Register resource providers** (at minimum):
+2. **Register resource providers** (at minimum):
 
     ```shell
     az provider register --namespace 'Microsoft.App'
@@ -87,11 +88,11 @@ Note: This architecture requires existing Cosmos DB, Storage, and AI Search reso
     az provider register --namespace 'Microsoft.Network'
     ```
 
-1. Sufficient quota for all resources in your target Azure region
+3. Sufficient quota for all resources in your target Azure region
 
-1. Azure CLI installed and configured on your local workstation or deployment pipeline server
+4. Azure CLI installed and configured on your local workstation or deployment pipeline server
 
-1. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
+5. Terraform CLI version v1.13 or later on your local workstation or deployment pipeline server. This template requires the usage of both the AzureRm and AzApi Terraform providers.
 
 ### Standard Deploy
 
