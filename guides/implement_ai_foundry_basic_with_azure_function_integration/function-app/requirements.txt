@@ -4,6 +4,7 @@
 
 azure-functions
 azure-identity
-openai>=1.0.0
+azure-ai-ml>=1.15.0
+azure-ai-inference==1.0.0b4  # Beta version - stable not available yet
 azure-core
 requests

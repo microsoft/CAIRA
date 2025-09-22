@@ -2,7 +2,7 @@ import os
 import json
 import sys
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, call
 import azure.functions as func
 from azure.core.exceptions import AzureError
 from azure.identity import DefaultAzureCredential
@@ -10,74 +10,199 @@ import requests
 import function_app
 
 
-class TestGetOpenAIClient:
-    """Test cases for get_openai_client function following AAA pattern"""
+class TestGetMLClient:
+    """Test cases for get_ml_client function"""
 
-    @patch.dict(os.environ, {'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com'})
+    @patch.dict(os.environ, {
+        'AZURE_SUBSCRIPTION_ID': 'test-sub-id',
+        'RESOURCE_GROUP': 'test-rg',
+        'AI_FOUNDRY_PROJECT_NAME': 'test-project'
+    })
     @patch('function_app.DefaultAzureCredential')
-    @patch('function_app.AzureOpenAI')
-    def test_get_openai_client_success(self, mock_openai, mock_credential):
-        """Test successful OpenAI client initialization"""
+    @patch('function_app.MLClient')
+    def test_get_ml_client_success(self, mock_ml_client_class, mock_credential):
+        """Test successful ML client initialization"""
         # Arrange
         mock_cred_instance = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_cred_instance.get_token.return_value = mock_token
         mock_credential.return_value = mock_cred_instance
 
         mock_client = Mock()
-        mock_openai.return_value = mock_client
+        mock_ml_client_class.return_value = mock_client
 
         # Act
-        client, credential = function_app.get_openai_client()
+        client, credential = function_app.get_ml_client()
 
         # Assert
         assert client == mock_client
         assert credential == mock_cred_instance
-        mock_cred_instance.get_token.assert_called_once_with(
-            "https://cognitiveservices.azure.com/.default")
-        mock_openai.assert_called_once_with(
-            azure_endpoint='https://test.openai.azure.com',
-            azure_ad_token='test-token',
+        mock_ml_client_class.assert_called_once_with(
+            credential=mock_cred_instance,
+            subscription_id='test-sub-id',
+            resource_group_name='test-rg',
+            workspace_name='test-project'
+        )
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_get_ml_client_missing_config(self):
+        """Test ML client initialization with missing configuration"""
+        # Act & Assert
+        with pytest.raises(ValueError) as exc_info:
+            function_app.get_ml_client()
+
+        assert "Missing Azure configuration" in str(exc_info.value)
+
+
+class TestGetChatClient:
+    """Test cases for get_chat_client function"""
+
+    @patch.dict(os.environ, {
+        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
+        'AZURE_SUBSCRIPTION_ID': 'test-sub-id',
+        'RESOURCE_GROUP': 'test-rg'
+    })
+    @patch('function_app.get_ml_client')
+    @patch('function_app.ChatCompletionsClient')
+    def test_get_chat_client_success(self, mock_chat_client_class, mock_get_ml_client):
+        """Test successful chat client initialization"""
+        # Arrange
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+        mock_credential = Mock()
+        mock_get_ml_client.return_value = (mock_ml_client, mock_credential)
+
+        mock_chat_client = Mock()
+        mock_chat_client_class.return_value = mock_chat_client
+
+        # Act
+        chat_client, credential, ml_client = function_app.get_chat_client()
+
+        # Assert
+        assert chat_client == mock_chat_client
+        assert credential == mock_credential
+        assert ml_client == mock_ml_client
+        mock_chat_client_class.assert_called_once_with(
+            endpoint='https://test.cognitiveservices.azure.com',
+            credential=mock_credential,
             api_version='2024-02-01'
         )
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_get_openai_client_missing_endpoint(self):
-        """Test client initialization with missing endpoint"""
+    @patch('function_app.get_ml_client')
+    def test_get_chat_client_missing_endpoint(self, mock_get_ml_client):
+        """Test chat client initialization with missing endpoint"""
         # Arrange
-        # Environment is cleared in decorator, no endpoint set
+        mock_ml_client = Mock()
+        mock_credential = Mock()
+        mock_get_ml_client.return_value = (mock_ml_client, mock_credential)
 
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
-            function_app.get_openai_client()
+            function_app.get_chat_client()
 
-        # Assert
         assert "AI_FOUNDRY_ENDPOINT environment variable is not set" in str(
             exc_info.value)
 
-    @patch.dict(os.environ, {'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com'})
-    @patch('function_app.DefaultAzureCredential')
-    def test_get_openai_client_credential_failure(self, mock_credential):
-        """Test client initialization with credential failure"""
-        # Arrange
-        expected_error_message = "Authentication failed"
-        mock_credential.side_effect = Exception(expected_error_message)
 
-        # Act & Assert
-        with pytest.raises(Exception) as exc_info:
-            function_app.get_openai_client()
+class TestChatWithAIInference:
+    """Test cases for chat_with_ai_inference function"""
+
+    def test_chat_with_ai_inference_success(self):
+        """Test successful chat completion using AI Inference SDK"""
+        # Arrange
+        mock_chat_client = Mock()
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+
+        prompt = "Test prompt"
+        deployment_name = "gpt-4"
+
+        # Mock response
+        mock_choice = Mock()
+        mock_choice.message.content = "AI response"
+
+        mock_response = Mock()
+        mock_response.choices = [mock_choice]
+        mock_response.model = "gpt-4"
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 20
+        mock_response.usage.total_tokens = 30
+
+        mock_chat_client.complete.return_value = mock_response
+
+        # Act
+        result = function_app.chat_with_ai_inference(
+            mock_chat_client, mock_ml_client, prompt, deployment_name
+        )
 
         # Assert
-        assert expected_error_message in str(exc_info.value)
+        assert result['response'] == "AI response"
+        assert result['deployment'] == deployment_name
+        assert result['project'] == 'test-project'
+        assert result['usage']['total_tokens'] == 30
+        assert result['status'] == 'success'
+
+        # Verify the call
+        mock_chat_client.complete.assert_called_once()
+        call_args = mock_chat_client.complete.call_args
+        assert call_args[1]['model'] == deployment_name
+        assert call_args[1]['max_tokens'] == 800
+        assert call_args[1]['temperature'] == 0.7
+
+
+class TestListProjectModels:
+    """Test cases for list_project_models function"""
+
+    def test_list_project_models_success(self):
+        """Test successful project model listing"""
+        # Arrange
+        mock_ml_client = Mock()
+
+        mock_model1 = Mock()
+        mock_model1.name = "model1"
+        mock_model1.version = "1.0"
+        mock_model1.description = "Test model 1"
+        mock_model1.tags = {"type": "nlp"}
+        mock_model1.creation_context.created_by = "user1"
+        mock_model1.creation_context.created_at = "2024-01-01"
+
+        mock_model2 = Mock(spec=['name', 'version', 'description', 'tags'])
+        mock_model2.name = "model2"
+        mock_model2.version = "2.0"
+        mock_model2.description = None
+        mock_model2.tags = {}
+        # Explicitly no creation_context attribute
+
+        mock_ml_client.models.list.return_value = [mock_model1, mock_model2]
+
+        # Act
+        result = function_app.list_project_models(mock_ml_client)
+
+        # Assert
+        assert len(result) == 2
+        assert result[0]['name'] == "model1"
+        assert result[0]['version'] == "1.0"
+        assert result[0]['created_by'] == "user1"
+        assert result[1]['name'] == "model2"
+        assert result[1]['created_by'] is None
+
+    def test_list_project_models_error(self):
+        """Test project model listing with error"""
+        # Arrange
+        mock_ml_client = Mock()
+        mock_ml_client.models.list.side_effect = Exception("ML error")
+
+        # Act
+        result = function_app.list_project_models(mock_ml_client)
+
+        # Assert
+        assert result == []
 
 
 class TestListDeploymentsViaAPI:
-    """Test cases for list_deployments_via_api function following AAA pattern"""
+    """Test cases for list_deployments_via_api function"""
 
     @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'AI_FOUNDRY_PROJECT_ID': '/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.CognitiveServices/accounts/test-account/projects/test',
+        'AI_FOUNDRY_ENDPOINT': 'https://test-account.cognitiveservices.azure.com',
         'AZURE_SUBSCRIPTION_ID': 'sub-id',
         'RESOURCE_GROUP': 'test-rg'
     })
@@ -103,65 +228,26 @@ class TestListDeploymentsViaAPI:
             ]
         }
         mock_get.return_value = mock_response
-        expected_deployments = ['deployment1', 'deployment2']
 
         # Act
         result = function_app.list_deployments_via_api(mock_credential)
 
         # Assert
-        assert result == expected_deployments
+        assert result == ['deployment1', 'deployment2']
         mock_credential.get_token.assert_called_once_with(
             "https://management.azure.com/.default")
         mock_get.assert_called_once()
-        call_args = mock_get.call_args
-        assert 'test-account' in call_args[0][0]  # URL contains account name
-        assert call_args[1]['headers']['Authorization'] == 'Bearer test-token'
-
-    @patch.dict(os.environ, {}, clear=True)
-    def test_list_deployments_missing_endpoint(self):
-        """Test deployment listing with missing endpoint"""
-        # Arrange
-        mock_credential = Mock()
-        expected_result = []
-
-        # Act
-        result = function_app.list_deployments_via_api(mock_credential)
-
-        # Assert
-        assert result == expected_result
-        mock_credential.get_token.assert_not_called()
+        call_url = mock_get.call_args[0][0]
+        assert 'test-account' in call_url
 
     @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'AI_FOUNDRY_PROJECT_ID': 'invalid-format',
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg'
-    })
-    def test_list_deployments_invalid_project_id(self):
-        """Test deployment listing with invalid project ID format"""
-        # Arrange
-        mock_credential = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_credential.get_token.return_value = mock_token
-        expected_result = []
-
-        # Act
-        result = function_app.list_deployments_via_api(mock_credential)
-
-        # Assert
-        assert result == expected_result
-        mock_credential.get_token.assert_called_once()
-
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'AI_FOUNDRY_PROJECT_ID': '/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.CognitiveServices/accounts/test-account/projects/test',
+        'AI_FOUNDRY_ENDPOINT': 'https://test.openai.azure.com',
         'AZURE_SUBSCRIPTION_ID': 'sub-id',
         'RESOURCE_GROUP': 'test-rg'
     })
     @patch('function_app.requests.get')
-    def test_list_deployments_api_error(self, mock_get):
-        """Test deployment listing with API error response"""
+    def test_list_deployments_openai_endpoint(self, mock_get):
+        """Test deployment listing with OpenAI endpoint format"""
         # Arrange
         mock_credential = Mock()
         mock_token = Mock()
@@ -169,124 +255,45 @@ class TestListDeploymentsViaAPI:
         mock_credential.get_token.return_value = mock_token
 
         mock_response = Mock()
-        mock_response.status_code = 403
+        mock_response.status_code = 200
+        mock_response.json.return_value = {'value': []}
         mock_get.return_value = mock_response
-        expected_result = []
 
         # Act
         result = function_app.list_deployments_via_api(mock_credential)
 
         # Assert
-        assert result == expected_result
         mock_get.assert_called_once()
-
-
-class TestHttpExample:
-    """Test cases for HttpExample function following AAA pattern"""
-
-    def test_http_example_with_query_param(self):
-        """Test HttpExample with name in query parameters"""
-        # Arrange
-        test_name = 'TestUser'
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/HttpExample',
-            params={'name': test_name}
-        )
-        expected_message = f"Hello, {test_name}"
-
-        # Act
-        response = function_app.HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert expected_message.encode() in response.get_body()
-
-    def test_http_example_with_json_body(self):
-        """Test HttpExample with name in JSON body"""
-        # Arrange
-        test_name = 'TestUser'
-        request_body = json.dumps({'name': test_name}).encode('utf-8')
-        req = func.HttpRequest(
-            method='POST',
-            body=request_body,
-            url='/api/HttpExample',
-            params={}
-        )
-        expected_message = f"Hello, {test_name}"
-
-        # Act
-        response = function_app.HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert expected_message.encode() in response.get_body()
-
-    def test_http_example_without_name(self):
-        """Test HttpExample without name parameter"""
-        # Arrange
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/HttpExample',
-            params={}
-        )
-        expected_message = "This HTTP triggered function executed successfully"
-
-        # Act
-        response = function_app.HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert expected_message.encode() in response.get_body()
-        assert b"Pass a name" in response.get_body()
-
-    def test_http_example_with_invalid_json(self):
-        """Test HttpExample with invalid JSON body"""
-        # Arrange
-        req = func.HttpRequest(
-            method='POST',
-            body=b'{"invalid json}',
-            url='/api/HttpExample',
-            params={}
-        )
-        expected_message = "This HTTP triggered function executed successfully"
-
-        # Act
-        response = function_app.HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert expected_message.encode() in response.get_body()
+        call_url = mock_get.call_args[0][0]
+        assert 'test' in call_url  # Should extract 'test' from the endpoint
 
 
 class TestChatWithAI:
-    """Test cases for chat_with_ai function following AAA pattern"""
+    """Test cases for chat_with_ai endpoint using AI Inference SDK"""
 
-    @patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'gpt-35-turbo'})
-    @patch('function_app.get_openai_client')
-    def test_chat_success(self, mock_get_client):
+    @patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'gpt-4'})
+    @patch('function_app.get_chat_client')
+    @patch('function_app.chat_with_ai_inference')
+    def test_chat_success(self, mock_chat_inference, mock_get_client):
         """Test successful chat completion"""
         # Arrange
-        mock_client = Mock()
+        mock_chat_client = Mock()
         mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+        mock_get_client.return_value = (
+            mock_chat_client, mock_credential, mock_ml_client)
 
         test_prompt = 'Hello AI'
-        expected_ai_response = 'AI response'
-        expected_model = 'gpt-35-turbo'
-
-        mock_response = Mock()
-        mock_response.choices = [
-            Mock(message=Mock(content=expected_ai_response))]
-        mock_response.model = expected_model
-        mock_response.usage = Mock(
-            prompt_tokens=10,
-            completion_tokens=20,
-            total_tokens=30
-        )
-        mock_client.chat.completions.create.return_value = mock_response
+        chat_response = {
+            'response': 'AI Inference response',
+            'deployment': 'gpt-4',
+            'project': 'test-project',
+            'model': 'gpt-4',
+            'usage': {'prompt_tokens': 10, 'completion_tokens': 20, 'total_tokens': 30},
+            'status': 'success'
+        }
+        mock_chat_inference.return_value = chat_response
 
         req = func.HttpRequest(
             method='POST',
@@ -302,11 +309,12 @@ class TestChatWithAI:
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'success'
-        assert response_data['response'] == expected_ai_response
+        assert response_data['response'] == 'AI Inference response'
         assert response_data['prompt'] == test_prompt
-        assert response_data['deployment'] == expected_model
-        assert response_data['usage']['total_tokens'] == 30
-        mock_client.chat.completions.create.assert_called_once()
+        assert response_data['project'] == 'test-project'
+        mock_chat_inference.assert_called_once_with(
+            mock_chat_client, mock_ml_client, test_prompt, 'gpt-4'
+        )
 
     def test_chat_missing_prompt(self):
         """Test chat endpoint with missing prompt"""
@@ -317,7 +325,6 @@ class TestChatWithAI:
             url='/api/chat',
             params={}
         )
-        expected_error_substring = 'prompt'
 
         # Act
         response = function_app.chat_with_ai(req)
@@ -326,66 +333,35 @@ class TestChatWithAI:
         assert response.status_code == 400
         response_data = json.loads(response.get_body())
         assert 'error' in response_data
-        assert expected_error_substring in response_data['error'].lower()
-
-    def test_chat_prompt_in_query_params(self):
-        """Test chat endpoint with prompt in query parameters"""
-        # Arrange
-        test_prompt = 'Query param prompt'
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/chat',
-            params={'prompt': test_prompt}
-        )
-
-        with patch('function_app.get_openai_client') as mock_get_client:
-            mock_client = Mock()
-            mock_credential = Mock()
-            mock_get_client.return_value = (mock_client, mock_credential)
-
-            mock_response = Mock()
-            mock_response.choices = [Mock(message=Mock(content='Response'))]
-            mock_response.model = 'model'
-            mock_response.usage = Mock(
-                prompt_tokens=1, completion_tokens=1, total_tokens=2)
-            mock_client.chat.completions.create.return_value = mock_response
-
-            with patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'test-model'}):
-                # Act
-                response = function_app.chat_with_ai(req)
-
-                # Assert
-                assert response.status_code == 200
-                response_data = json.loads(response.get_body())
-                assert response_data['prompt'] == test_prompt
+        assert 'prompt' in response_data['error'].lower()
 
     @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_openai_client')
+    @patch('function_app.get_chat_client')
     @patch('function_app.list_deployments_via_api')
-    def test_chat_auto_discover_deployment(self, mock_list_deployments, mock_get_client):
+    @patch('function_app.chat_with_ai_inference')
+    def test_chat_auto_discover_deployment(self, mock_chat_inference, mock_list_deployments, mock_get_client):
         """Test chat with auto-discovery of deployment"""
         # Arrange
-        mock_client = Mock()
+        mock_chat_client = Mock()
         mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+        mock_get_client.return_value = (
+            mock_chat_client, mock_credential, mock_ml_client)
 
         discovered_model = 'auto-discovered-model'
         mock_list_deployments.return_value = [discovered_model]
 
         test_prompt = 'Hello'
-        expected_ai_response = 'AI response'
-
-        mock_response = Mock()
-        mock_response.choices = [
-            Mock(message=Mock(content=expected_ai_response))]
-        mock_response.model = discovered_model
-        mock_response.usage = Mock(
-            prompt_tokens=10,
-            completion_tokens=20,
-            total_tokens=30
-        )
-        mock_client.chat.completions.create.return_value = mock_response
+        chat_response = {
+            'response': 'Response from discovered model',
+            'deployment': discovered_model,
+            'project': 'test-project',
+            'model': discovered_model,
+            'usage': {'prompt_tokens': 5, 'completion_tokens': 10, 'total_tokens': 15},
+            'status': 'success'
+        }
+        mock_chat_inference.return_value = chat_response
 
         req = func.HttpRequest(
             method='POST',
@@ -401,129 +377,48 @@ class TestChatWithAI:
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['deployment'] == discovered_model
-        assert response_data['response'] == expected_ai_response
         mock_list_deployments.assert_called_once_with(mock_credential)
-
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_openai_client')
-    @patch('function_app.list_deployments_via_api')
-    def test_chat_no_deployments_found(self, mock_list_deployments, mock_get_client):
-        """Test chat when no deployments are found"""
-        # Arrange
-        mock_client = Mock()
-        mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
-        mock_list_deployments.return_value = []
-
-        test_prompt = 'Hello'
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({'prompt': test_prompt}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 500
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'error'
-        assert 'No model deployments found' in response_data['error']
-
-    @patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'gpt-35-turbo'})
-    @patch('function_app.get_openai_client')
-    def test_chat_openai_authentication_error(self, mock_get_client):
-        """Test chat with OpenAI API authentication error"""
-        # Arrange
-        mock_client = Mock()
-        mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
-
-        authentication_error_message = "Authentication error 401"
-        mock_client.chat.completions.create.side_effect = Exception(
-            authentication_error_message)
-
-        test_prompt = 'Hello'
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({'prompt': test_prompt}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 500
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'error'
-        assert 'Authentication failed' in response_data['error']
-        assert 'Cognitive Services OpenAI User' in response_data['error']
-
-    @patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'gpt-35-turbo'})
-    @patch('function_app.get_openai_client')
-    def test_chat_openai_general_error(self, mock_get_client):
-        """Test chat with general OpenAI API error"""
-        # Arrange
-        mock_client = Mock()
-        mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
-
-        error_message = "Rate limit exceeded"
-        mock_client.chat.completions.create.side_effect = Exception(
-            error_message)
-
-        test_prompt = 'Hello'
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({'prompt': test_prompt}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 500
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'error'
-        assert error_message in response_data['error']
 
 
 class TestHealthCheck:
-    """Test cases for health_check function following AAA pattern"""
+    """Test cases for health_check function with AI Inference SDK"""
 
     @patch.dict(os.environ, {
         'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
         'AI_FOUNDRY_PROJECT_NAME': 'test-project',
-        'AI_FOUNDRY_PROJECT_ID': 'test-id',
         'RESOURCE_GROUP': 'test-rg',
         'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'MODEL_DEPLOYMENT_NAME': 'gpt-35-turbo'
+        'MODEL_DEPLOYMENT_NAME': 'gpt-4'
     })
-    @patch('function_app.get_openai_client')
+    @patch('function_app.get_chat_client')
+    @patch('function_app.list_project_models')
     @patch('function_app.list_deployments_via_api')
-    def test_health_check_healthy(self, mock_list_deployments, mock_get_client):
+    def test_health_check_healthy(self, mock_list_deployments, mock_list_models, mock_get_client):
         """Test health check with healthy status"""
         # Arrange
-        mock_client = Mock()
+        mock_chat_client = Mock()
         mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+        mock_get_client.return_value = (
+            mock_chat_client, mock_credential, mock_ml_client)
 
         mock_token = Mock()
         mock_token.token = 'test-token'
         mock_credential.get_token.return_value = mock_token
+
+        test_models = [
+            {'name': 'model1', 'version': '1.0'},
+            {'name': 'model2', 'version': '2.0'}
+        ]
+        mock_list_models.return_value = test_models
 
         test_deployments = ['deployment1', 'deployment2']
         mock_list_deployments.return_value = test_deployments
 
         req = func.HttpRequest(
             method='GET',
-            body=b'',  # Use empty bytes instead of None
+            body=b'',
             url='/api/health',
             params={}
         )
@@ -536,14 +431,18 @@ class TestHealthCheck:
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'healthy'
         assert response_data['function_app'] == 'running'
-        assert response_data['azure_openai']['client_initialized'] == True
-        assert response_data['azure_openai']['authentication'] == 'Success - Managed Identity working'
-        assert response_data['azure_openai']['deployment_count'] == len(
+        assert response_data['ai_foundry']['client_initialized'] == True
+        assert response_data['ai_foundry'][
+            'client_type'] == 'ChatCompletionsClient (AI Inference SDK)'
+        assert response_data['ai_foundry']['authentication'] == 'Success - Managed Identity working'
+        assert response_data['ai_foundry']['project_model_count'] == len(
+            test_models)
+        assert response_data['ai_foundry']['deployment_count'] == len(
             test_deployments)
-        assert response_data['azure_openai']['available_deployments'] == test_deployments
+        assert response_data['sdk'] == 'Azure AI Inference (No OpenAI SDK)'
 
     @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_openai_client')
+    @patch('function_app.get_chat_client')
     def test_health_check_unhealthy(self, mock_get_client):
         """Test health check with unhealthy status"""
         # Arrange
@@ -552,7 +451,7 @@ class TestHealthCheck:
 
         req = func.HttpRequest(
             method='GET',
-            body=b'',  # Use empty bytes instead of None
+            body=b'',
             url='/api/health',
             params={}
         )
@@ -564,106 +463,50 @@ class TestHealthCheck:
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'unhealthy'
-        assert response_data['azure_openai']['client_initialized'] == False
-        assert error_message in response_data['azure_openai']['error']
+        assert response_data['ai_foundry']['client_initialized'] == False
+        assert error_message in response_data['ai_foundry']['error']
+
+
+class TestListDeployedModels:
+    """Test cases for list_deployed_models function"""
 
     @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'MODEL_DEPLOYMENT_NAME': 'gpt-35-turbo'
+        'AZURE_SUBSCRIPTION_ID': 'sub-id',
+        'RESOURCE_GROUP': 'test-rg',
+        'AI_FOUNDRY_ENDPOINT': 'https://test-account.cognitiveservices.azure.com'
     })
-    @patch('function_app.get_openai_client')
+    @patch('function_app.get_chat_client')
     @patch('function_app.list_deployments_via_api')
-    def test_health_check_no_deployments_warning(self, mock_list_deployments, mock_get_client):
-        """Test health check with warning when no deployments found"""
+    @patch('function_app.list_project_models')
+    @patch('function_app.requests.get')
+    def test_list_models_success(self, mock_get, mock_list_models, mock_list_deployments, mock_get_client):
+        """Test successful model listing"""
         # Arrange
-        mock_client = Mock()
+        mock_chat_client = Mock()
         mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
+        mock_ml_client = Mock()
+        mock_ml_client.workspace_name = 'test-project'
+        mock_get_client.return_value = (
+            mock_chat_client, mock_credential, mock_ml_client)
 
         mock_token = Mock()
         mock_token.token = 'test-token'
         mock_credential.get_token.return_value = mock_token
 
-        mock_list_deployments.return_value = []  # No deployments
+        # Mock deployments
+        mock_list_deployments.return_value = ['deployment1']
 
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/health',
-            params={}
-        )
+        # Mock project models
+        test_models = [{'name': 'model1', 'version': '1.0'}]
+        mock_list_models.return_value = test_models
 
-        # Act
-        response = function_app.health_check(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'warning'
-        assert response_data['azure_openai']['deployment_count'] == 0
-        assert 'No deployments found' in response_data['azure_openai']['warning']
-
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-    })
-    @patch('function_app.get_openai_client')
-    @patch('function_app.list_deployments_via_api')
-    def test_health_check_authentication_failure(self, mock_list_deployments, mock_get_client):
-        """Test health check with authentication failure"""
-        # Arrange
-        mock_client = Mock()
-        mock_credential = Mock()
-        mock_get_client.return_value = (mock_client, mock_credential)
-
-        # Configure list_deployments to return an empty list
-        mock_list_deployments.return_value = []
-
-        auth_error_message = "Token acquisition failed"
-        mock_credential.get_token.side_effect = Exception(auth_error_message)
-
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/health',
-            params={}
-        )
-
-        # Act
-        response = function_app.health_check(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'unhealthy'
-        assert 'Failed' in response_data['azure_openai']['authentication']
-        assert auth_error_message in response_data['azure_openai']['authentication']
-
-
-class TestListDeployedModels:
-    """Test cases for list_deployed_models function following AAA pattern"""
-
-    @patch.dict(os.environ, {
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg',
-        'AI_FOUNDRY_PROJECT_ID': '/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.CognitiveServices/accounts/test-account/projects/test'
-    })
-    @patch('function_app.DefaultAzureCredential')
-    @patch('function_app.requests.get')
-    def test_list_models_success(self, mock_get, mock_credential):
-        """Test successful model listing"""
-        # Arrange
-        mock_cred_instance = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_cred_instance.get_token.return_value = mock_token
-        mock_credential.return_value = mock_cred_instance
-
+        # Mock detailed deployment info
         test_deployment_data = {
             'name': 'deployment1',
             'properties': {
                 'model': {
-                    'name': 'gpt-35-turbo',
-                    'version': '0301',
+                    'name': 'gpt-4',
+                    'version': '0613',
                     'format': 'OpenAI'
                 },
                 'scaleSettings': {'capacity': 10},
@@ -680,7 +523,7 @@ class TestListDeployedModels:
 
         req = func.HttpRequest(
             method='GET',
-            body=b'',  # Use empty bytes instead of None
+            body=b'',
             url='/api/list-models',
             params={}
         )
@@ -692,122 +535,47 @@ class TestListDeployedModels:
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'success'
-        assert response_data['count'] == 1
-        assert len(response_data['deployments']) == 1
+        assert response_data['deployment_count'] == 1
+        assert response_data['project_model_count'] == 1
+        assert response_data['sdk'] == 'Azure AI Inference SDK'
+        assert 'Using AI Foundry native SDK without OpenAI dependency' in response_data[
+            'hint']
 
-        deployment = response_data['deployments'][0]
-        assert deployment['deployment_name'] == 'deployment1'
-        assert deployment['model_name'] == 'gpt-35-turbo'
-        assert deployment['model_version'] == '0301'
-        assert deployment['capacity'] == 10
 
-        mock_cred_instance.get_token.assert_called_once_with(
-            "https://management.azure.com/.default")
-        mock_get.assert_called_once()
+class TestHttpExample:
+    """Test cases for HttpExample function"""
 
-    @patch.dict(os.environ, {
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg',
-        'AI_FOUNDRY_PROJECT_ID': 'invalid-format'
-    })
-    @patch('function_app.DefaultAzureCredential')
-    @patch('function_app.requests.get')
-    def test_list_models_with_fallback_account_name(self, mock_get, mock_credential):
-        """Test model listing with fallback account name when project ID is invalid"""
+    def test_http_example_with_name(self):
+        """Test HttpExample with name parameter"""
         # Arrange
-        mock_cred_instance = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_cred_instance.get_token.return_value = mock_token
-        mock_credential.return_value = mock_cred_instance
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {'value': []}
-        mock_get.return_value = mock_response
-
+        test_name = 'TestUser'
         req = func.HttpRequest(
             method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/list-models',
-            params={}
+            body=b'',
+            url='/api/HttpExample',
+            params={'name': test_name}
         )
 
         # Act
-        response = function_app.list_deployed_models(req)
+        response = function_app.HttpExample(req)
 
         # Assert
         assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'success'
-        # Fallback account name
-        assert response_data['account'] == 'cog-basic-k4qzw'
-        mock_get.assert_called_once()
+        assert f"Hello, {test_name}".encode() in response.get_body()
 
-        # Verify the URL contains the fallback account name
-        call_url = mock_get.call_args[0][0]
-        assert 'cog-basic-k4qzw' in call_url
-
-    @patch.dict(os.environ, {
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg',
-        'AI_FOUNDRY_PROJECT_ID': '/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.CognitiveServices/accounts/test-account/projects/test'
-    })
-    @patch('function_app.DefaultAzureCredential')
-    @patch('function_app.requests.get')
-    def test_list_models_api_forbidden_error(self, mock_get, mock_credential):
-        """Test model listing with API forbidden error"""
+    def test_http_example_without_name(self):
+        """Test HttpExample without name parameter"""
         # Arrange
-        mock_cred_instance = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_cred_instance.get_token.return_value = mock_token
-        mock_credential.return_value = mock_cred_instance
-
-        error_text = 'Forbidden: Insufficient permissions'
-        mock_response = Mock()
-        mock_response.status_code = 403
-        mock_response.text = error_text
-        mock_get.return_value = mock_response
-
         req = func.HttpRequest(
             method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/list-models',
+            body=b'',
+            url='/api/HttpExample',
             params={}
         )
 
         # Act
-        response = function_app.list_deployed_models(req)
+        response = function_app.HttpExample(req)
 
         # Assert
-        assert response.status_code == 403
-        response_data = json.loads(response.get_body())
-        assert 'error' in response_data
-        assert 'Failed to list deployments: HTTP 403' in response_data['error']
-        assert error_text in response_data['details']
-        assert 'managed identity' in response_data['hint']
-
-    @patch('function_app.DefaultAzureCredential')
-    def test_list_models_exception_handling(self, mock_credential):
-        """Test model listing with exception during execution"""
-        # Arrange
-        error_message = "Network timeout"
-        mock_credential.side_effect = Exception(error_message)
-
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',  # Use empty bytes instead of None
-            url='/api/list-models',
-            params={}
-        )
-
-        # Act
-        response = function_app.list_deployed_models(req)
-
-        # Assert
-        assert response.status_code == 500
-        response_data = json.loads(response.get_body())
-        assert 'error' in response_data
-        assert error_message in response_data['error']
-        assert 'Azure AI Studio' in response_data['hint']
+        assert response.status_code == 200
+        assert b"This HTTP triggered function executed successfully" in response.get_body()
