@@ -34,7 +34,7 @@ async function handlePullRequest({ context, github }) {
 
 async function handleIssueComment({ context, github }) {
   if (!context.payload.issue.pull_request) return false;
-  if (!context.payload.comment.body.includes('/allow')) return false;
+  if (context.payload.comment.body.trim().toLowerCase() !== '/allow') return false;
 
   // Introduce a randomized delay to help avoid race conditions or API rate limit issues
   // when multiple jobs are triggered simultaneously in CI. The sleep duration is based on
@@ -83,6 +83,8 @@ async function handleIssueComment({ context, github }) {
 
   const isFork = pr.data.head.repo.full_name !== pr.data.base.repo.full_name;
 
+  const date = new Date().toISOString();
+
   console.log(`PR #${pr.data.number}: ${pr.data.head.repo.full_name} -> ${pr.data.base.repo.full_name} <---> Is fork: ${isFork}, SHA: ${pr.data.head.sha}`);
 
   await github.rest.issues.createComment({
@@ -97,13 +99,15 @@ async function handleIssueComment({ context, github }) {
       '**Approval Details:**',
       `- Commit SHA: \`${pr.data.head.sha}\``,
       `- Approved by: @${commenter}`,
-      `- Approved at: ${new Date().toISOString()}`,
+      `- Approved at: ${date}`,
       '',
       '**Important:** If new commits are pushed, tests will need to be re-approved.',
       '',
       `<!-- APPROVAL_MARKER:${pr.data.head.sha} -->`
     ].join('\n')
   });
+
+  console.log(`[fork-guard] APPROVAL_GRANTED sha=${pr.data.head.sha} by=${commenter} pr=${pr.data.number} at=${date}`);
 
   return true;
 }
