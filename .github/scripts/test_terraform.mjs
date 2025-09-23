@@ -61,10 +61,9 @@ async function handleIssueComment({ context, github }) {
       issue_number: context.payload.issue.number
     });
 
-    const rejectionMessage = `@${commenter} - Sorry, only maintainers can approve tests on fork PRs. Required: MEMBER or OWNER. Current: ${authorAssociation}`;
-
-    const existingRejection = comments.data.find(comment => comment.body.includes(rejectionMessage));
-
+    const rejectionMarker = '<!-- REJECTION_MARKER -->';
+    const rejectionMessage = `@${commenter} - Sorry, only maintainers can approve tests on fork PRs. Required: MEMBER or OWNER. Current: ${authorAssociation}\n\n${rejectionMarker}`;
+    const existingRejection = comments.data.find(comment => comment.body.includes(rejectionMarker));
     if (!existingRejection) {
       await github.rest.issues.createComment({
         owner: context.repo.owner,
