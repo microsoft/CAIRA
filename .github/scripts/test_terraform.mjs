@@ -36,6 +36,9 @@ async function handleIssueComment({ context, github }) {
   if (!context.payload.issue.pull_request) return false;
   if (!context.payload.comment.body.includes('/allow')) return false;
 
+  // Introduce a randomized delay to help avoid race conditions or API rate limit issues
+  // when multiple jobs are triggered simultaneously in CI. The sleep duration is based on
+  // the last two digits of GITHUB_RUN_ID to stagger concurrent runs.
   const sleepDuration = (parseInt(process.env.GITHUB_RUN_ID.slice(-2)) % 10) * 1000;
   await new Promise(resolve => setTimeout(resolve, sleepDuration));
 
