@@ -1,0 +1,38 @@
+---
+name: Allow Workflow Run
+on:
+  workflow_call:
+    outputs:
+      should_run:
+        description: "Whether the workflow should run"
+        value: ${{ jobs.check-should-run.outputs.should_run }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-should-run:
+    name: Check Should Run
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: ⤵️ Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          repository: microsoft/CAIRA
+          ref: main
+          fetch-depth: 0
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: true
+
+      - name: 🔍 Check if the workflows are allowed to run
+        id: check
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { default: script } = await import(`${process.env.GITHUB_WORKSPACE}/.github/scripts/test_terraform.mjs`)
+            await script({context, github, core})

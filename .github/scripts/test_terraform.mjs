@@ -34,7 +34,10 @@ async function handlePullRequest({ context, github }) {
 
 async function handleIssueComment({ context, github }) {
   if (!context.payload.issue.pull_request) return false;
-  if (!context.payload.comment.body.includes('/run_tests')) return false;
+  if (!context.payload.comment.body.includes('/allow')) return false;
+
+  const sleepDuration = (parseInt(process.env.GITHUB_RUN_ID.slice(-2)) % 10) * 1000;
+  await new Promise(resolve => setTimeout(resolve, sleepDuration));
 
   /*
   Possible `author_association` values;
@@ -95,8 +98,6 @@ async function handleIssueComment({ context, github }) {
       `- Approved at: ${new Date().toISOString()}`,
       '',
       '**Important:** If new commits are pushed, tests will need to be re-approved.',
-      '',
-      '🚀 Tests will run on the next PR update or when manually triggered.',
       '',
       `<!-- APPROVAL_MARKER:${pr.data.head.sha} -->`
     ].join('\n')
