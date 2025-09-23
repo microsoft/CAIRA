@@ -2,12 +2,24 @@
 ---
 name: Terraform Test
 
+# IMPORTANT: This workflow triggers on multiple event types with different contexts:
+#
+# 1. pull_request: Standard PR workflow - github.event.pull_request.* fields are available
+# 2. issue_comment: Fork PR approval workflow - github.event.pull_request.* fields are NOT available!
+#    - Only github.event.issue.* and github.event.comment.* are available
+#    - Used for /allow command to approve tests on fork PRs
+#    - Contributors: Be careful when adding new steps that assume PR context exists
+# 3. merge_group: Queue merging - github.event.merge_group.* fields are available
+# 4. schedule: Nightly runs - minimal context available
+# 5. workflow_dispatch: Manual runs - github.event.inputs.* available
+#
+# When adding new functionality, always check context.eventName and handle each trigger type appropriately!
 on:
   pull_request:
     branches:
       - main
   issue_comment:
-    types: [created]
+    types: [created] # Enables /allow command for fork PR approvals - see handleIssueComment() in test_terraform.mjs
   merge_group:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day

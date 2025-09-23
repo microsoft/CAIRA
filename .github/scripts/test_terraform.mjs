@@ -1,3 +1,13 @@
+// This script handles fork PR approval logic for the Terraform Test workflow
+//
+// IMPORTANT: This script runs under different GitHub event contexts:
+// 1. pull_request: context.payload.pull_request is available
+// 2. issue_comment: context.payload.pull_request is NOT available (only context.payload.issue and context.payload.comment are available)
+// 3. merge_group: context.payload.merge_group is available
+// 4. schedule/workflow_dispatch: minimal context
+//
+// When modifying this script, always check context.eventName and handle missing fields appropriately!
+
 function checkIsMaintainer(comment) {
   const isMaintainer = ['MEMBER', 'OWNER'].includes(comment.author_association);
 
@@ -33,6 +43,11 @@ async function handlePullRequest({ context, github }) {
 }
 
 async function handleIssueComment({ context, github }) {
+  // IMPORTANT: When triggered by issue_comment, we only have:
+  // - context.payload.issue (not context.payload.pull_request!)
+  // - context.payload.comment
+  // We must fetch PR data separately using the GitHub API
+
   if (!context.payload.issue.pull_request) return false;
   if (context.payload.comment.body.trim().toLowerCase() !== '/allow') return false;
 
@@ -78,7 +93,7 @@ async function handleIssueComment({ context, github }) {
   const pr = await github.rest.pulls.get({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    pull_number: context.payload.issue.number
+    pull_number: context.payload.issue.number  // Note: using issue.number, not pull_request.number!
   });
 
   const isFork = pr.data.head.repo.full_name !== pr.data.base.repo.full_name;
