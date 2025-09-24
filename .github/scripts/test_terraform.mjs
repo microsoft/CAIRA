@@ -9,37 +9,41 @@
 // When modifying this script, always check context.eventName and handle missing fields appropriately!
 
 function checkIsMaintainer(comment) {
-  const isMaintainer = ['MEMBER', 'OWNER'].includes(comment.author_association);
+  const isMaintainer = ['MEMBER', 'OWNER'].includes(comment.author_association)
 
-  console.log(`Slash command from: ${comment.user.login} (${comment.author_association}) : ${isMaintainer ? '✅ Maintainer' : '❌ Not Maintainer'}`);
+  console.log(
+    `Slash command from: ${comment.user.login} (${comment.author_association}) : ${isMaintainer ? '✅ Maintainer' : '❌ Not Maintainer'}`
+  )
 
-  return isMaintainer;
+  return isMaintainer
 }
 
 async function handlePullRequest({ context, github }) {
-  const pr = context.payload.pull_request;
-  const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+  const pr = context.payload.pull_request
+  const isFork = pr.head.repo.full_name !== pr.base.repo.full_name
 
-  console.log(`PR #${pr.number}: ${pr.head.repo.full_name} -> ${pr.base.repo.full_name} <---> Is fork: ${isFork}, SHA: ${pr.head.sha}`);
+  console.log(
+    `PR #${pr.number}: ${pr.head.repo.full_name} -> ${pr.base.repo.full_name} <---> Is fork: ${isFork}, SHA: ${pr.head.sha}`
+  )
 
   if (!isFork) {
-    console.log('Internal PR - running tests automatically');
-    return true;
+    console.log('Internal PR - running tests automatically')
+    return true
   }
 
   const comments = await github.rest.issues.listComments({
     owner: context.repo.owner,
     repo: context.repo.repo,
     issue_number: pr.number
-  });
+  })
 
-  const comment = comments.data.find(comment => {
-    const hasApprovalMarker = comment.body.includes(`APPROVAL_MARKER:${pr.head.sha}`);
-    const isMaintainer = checkIsMaintainer(comment);
-    return hasApprovalMarker && isMaintainer;
-  });
+  const comment = comments.data.find((comment) => {
+    const hasApprovalMarker = comment.body.includes(`APPROVAL_MARKER:${pr.head.sha}`)
+    const isMaintainer = checkIsMaintainer(comment)
+    return hasApprovalMarker && isMaintainer
+  })
 
-  return comment != null;
+  return comment != null
 }
 
 async function handleIssueComment({ context, github }) {
@@ -48,14 +52,14 @@ async function handleIssueComment({ context, github }) {
   // - context.payload.comment
   // We must fetch PR data separately using the GitHub API
 
-  if (!context.payload.issue.pull_request) return false;
-  if (context.payload.comment.body.trim().toLowerCase() !== '/allow') return false;
+  if (!context.payload.issue.pull_request) return false
+  if (context.payload.comment.body.trim().toLowerCase() !== '/allow') return false
 
   // Introduce a randomized delay to help avoid race conditions or API rate limit issues
   // when multiple jobs are triggered simultaneously in CI. The sleep duration is based on
   // the last two digits of GITHUB_RUN_ID to stagger concurrent runs.
-  const sleepDuration = (parseInt(process.env.GITHUB_RUN_ID.slice(-2)) % 10) * 1000;
-  await new Promise(resolve => setTimeout(resolve, sleepDuration));
+  const sleepDuration = (parseInt(process.env.GITHUB_RUN_ID.slice(-2)) % 10) * 1000
+  await new Promise((resolve) => setTimeout(resolve, sleepDuration))
 
   /*
   Possible `author_association` values;
@@ -65,42 +69,44 @@ async function handleIssueComment({ context, github }) {
     "CONTRIBUTOR" – user who has contributed in the past
     "NONE" – random user, no relationship
   */
-  const authorAssociation = context.payload.comment.author_association;
-  const commenter = context.payload.comment.user.login;
-  const isMaintainer = checkIsMaintainer(context.payload.comment);
+  const authorAssociation = context.payload.comment.author_association
+  const commenter = context.payload.comment.user.login
+  const isMaintainer = checkIsMaintainer(context.payload.comment)
 
   if (!isMaintainer) {
     const comments = await github.rest.issues.listComments({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.payload.issue.number
-    });
+    })
 
-    const rejectionMarker = '<!-- REJECTION_MARKER -->';
-    const rejectionMessage = `@${commenter} - Sorry, only maintainers can approve tests on fork PRs. Required: MEMBER or OWNER. Current: ${authorAssociation}\n\n${rejectionMarker}`;
-    const existingRejection = comments.data.find(comment => comment.body.includes(rejectionMarker));
+    const rejectionMarker = '<!-- REJECTION_MARKER -->'
+    const rejectionMessage = `@${commenter} - Sorry, only maintainers can approve tests on fork PRs. Required: MEMBER or OWNER. Current: ${authorAssociation}\n\n${rejectionMarker}`
+    const existingRejection = comments.data.find((comment) => comment.body.includes(rejectionMarker))
     if (!existingRejection) {
       await github.rest.issues.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: context.payload.issue.number,
         body: rejectionMessage
-      });
+      })
     }
-    return false;
+    return false
   }
 
   const pr = await github.rest.pulls.get({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    pull_number: context.payload.issue.number  // Note: using issue.number, not pull_request.number!
-  });
+    pull_number: context.payload.issue.number // Note: using issue.number, not pull_request.number!
+  })
 
-  const isFork = pr.data.head.repo.full_name !== pr.data.base.repo.full_name;
+  const isFork = pr.data.head.repo.full_name !== pr.data.base.repo.full_name
 
-  const date = new Date().toISOString();
+  const date = new Date().toISOString()
 
-  console.log(`PR #${pr.data.number}: ${pr.data.head.repo.full_name} -> ${pr.data.base.repo.full_name} <---> Is fork: ${isFork}, SHA: ${pr.data.head.sha}`);
+  console.log(
+    `PR #${pr.data.number}: ${pr.data.head.repo.full_name} -> ${pr.data.base.repo.full_name} <---> Is fork: ${isFork}, SHA: ${pr.data.head.sha}`
+  )
 
   await github.rest.issues.createComment({
     owner: context.repo.owner,
@@ -120,27 +126,27 @@ async function handleIssueComment({ context, github }) {
       '',
       `<!-- APPROVAL_MARKER:${pr.data.head.sha} -->`
     ].join('\n')
-  });
+  })
 
-  console.log(`[fork-guard] APPROVAL_GRANTED sha=${pr.data.head.sha} by=${commenter} pr=${pr.data.number} at=${date}`);
+  console.log(`[fork-guard] APPROVAL_GRANTED sha=${pr.data.head.sha} by=${commenter} pr=${pr.data.number} at=${date}`)
 
-  return true;
+  return true
 }
 
 export default async function checkForkAndApproval({ context, github, core }) {
-  let should_run = false;
+  let should_run = false
 
   if (context.eventName === 'schedule' || context.eventName === 'workflow_dispatch') {
-    should_run = true;
+    should_run = true
   }
 
   if (context.eventName === 'merge_group' || context.eventName === 'pull_request') {
-    should_run = await handlePullRequest({ context, github, core });
+    should_run = await handlePullRequest({ context, github, core })
   }
 
   if (context.eventName === 'issue_comment') {
-    should_run = await handleIssueComment({ context, github, core });
+    should_run = await handleIssueComment({ context, github, core })
   }
 
-  core.setOutput('should_run', should_run.toString());
+  core.setOutput('should_run', should_run.toString())
 }
