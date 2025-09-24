@@ -18,7 +18,7 @@ resource "azapi_resource" "ai_foundry" {
     }
 
     properties = {
-      # Support both Entra ID and API Key authentication for Cognitive Services account
+      # Only support Entra ID authentication for Cognitive Services account
       disableLocalAuth = true
 
       # Specifies that this is an AI Foundry resource
