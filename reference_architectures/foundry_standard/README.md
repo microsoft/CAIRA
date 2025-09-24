@@ -63,6 +63,7 @@ Note: The architecture diagram is similar in shape to the basic configuration wi
      - **Azure AI Account Owner**: Needed to create a cognitive services account and project
      - **Owner or Role Based Access Administrator**: Needed to assign RBAC to the required resources (Cosmos DB, Azure AI Search, Storage)
      - **Azure AI User**: Needed to create and edit agents
+     - **Cognitive Services OpenAI Contributor**: Needed to write OpenAI responses API
 
 1. **Register resource providers** (at minimum):
 

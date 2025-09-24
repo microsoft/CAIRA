@@ -81,3 +81,9 @@ variable "existing_search_service_name" {
   type        = string
   description = "Existing Azure AI Search service name to use as vector store."
 }
+
+variable "monitor_private_link_scope_resource_id" {
+  description = "The resource ID of the Monitor Private Link Scope to link Application Insights to."
+  type        = string
+  default     = null
+}
