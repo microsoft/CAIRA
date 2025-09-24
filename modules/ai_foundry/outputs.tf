@@ -8,6 +8,11 @@ output "ai_foundry_name" {
   value       = azapi_resource.ai_foundry.name
 }
 
+output "ai_foundry_endpoint" {
+  description = "The endpoint URL of the AI Foundry account."
+  value       = "https://${azapi_resource.ai_foundry.name}.cognitiveservices.azure.com/"
+}
+
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
   value       = azapi_resource.ai_foundry_project.id
