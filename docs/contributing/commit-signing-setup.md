@@ -102,18 +102,13 @@ On GitHub, open the commit in the web UI, you should see "_Verified_".
 
 If you see "_Unverified_" instead of "_Verified_":
 
-Make sure to use the same email as the GitHub account when generating the key.
+- Make sure to use the same email as your GitHub account when generating the key.
+- Confirm that the key was added to GitHub under SSH and GPG keys.
+- Ensure `git config user.email` matches your GitHub email.
+  To check your git config, run:
 
-The key was added to GitHub under SSH and GPG keys.
-
-Ensure `git config user.email` matches the GitHub email.
-
-Check the git config:
-
-```shell
-git config user.email
-```
-
+  ```shell
+  git config user.email
 ## References
 
 - [GitHub Docs: About commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
