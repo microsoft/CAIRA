@@ -109,6 +109,7 @@ If you see "_Unverified_" instead of "_Verified_":
 
   ```shell
   git config user.email
+
 ## References
 
 - [GitHub Docs: About commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification)
