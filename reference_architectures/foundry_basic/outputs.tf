@@ -8,6 +8,11 @@ output "ai_foundry_name" {
   value       = module.ai_foundry.ai_foundry_name
 }
 
+output "ai_foundry_endpoint" {
+  description = "The endpoint URL of the AI Foundry account."
+  value       = module.ai_foundry.ai_foundry_endpoint
+}
+
 output "ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project."
   value       = module.ai_foundry.ai_foundry_project_id

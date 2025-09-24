@@ -78,7 +78,8 @@ variable "application_insights" {
     name              = string
     connection_string = string
   })
-  nullable = false
+  nullable  = false
+  sensitive = true
 }
 
 variable "agent_capability_host_connections" {

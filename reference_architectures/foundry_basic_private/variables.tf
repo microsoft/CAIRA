@@ -56,3 +56,9 @@ variable "foundry_subnet_id" {
   description = "The subnet ID for the AI Foundry private endpoints."
   type        = string
 }
+
+variable "monitor_private_link_scope_resource_id" {
+  description = "The resource ID of the Monitor Private Link Scope to link Application Insights to."
+  type        = string
+  default     = null
+}
