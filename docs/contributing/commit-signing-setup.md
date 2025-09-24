@@ -90,7 +90,7 @@ Make a change and commit it:
 ```shell
 echo "Signed commit test" > test.txt
 git add test.txt
-git commit -S -m "Test signed commit"
+git commit -m "Test signed commit"
 git push
 ```
 
