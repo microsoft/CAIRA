@@ -1,7 +1,8 @@
+---
 project: foundry_basic
 kind: added
 body: Improved terraform acceptance and integration tests
 time: 2025-09-19T19:23:21.394895592Z
 custom:
-    Author: BSamodien
-    Issue: "89"
+  Author: BSamodien
+  Issue: "89"
