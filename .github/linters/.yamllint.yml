@@ -9,6 +9,7 @@ rules:
     level: warning
     ignore:
       - .cspell.yml
+      - .changes/unreleased/*
   line-length: disable
 
 ignore-from-file:
