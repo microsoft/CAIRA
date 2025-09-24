@@ -2,10 +2,24 @@
 ---
 name: Terraform Test
 
+# IMPORTANT: This workflow triggers on multiple event types with different contexts:
+#
+# 1. pull_request: Standard PR workflow - github.event.pull_request.* fields are available
+# 2. issue_comment: Fork PR approval workflow - github.event.pull_request.* fields are NOT available!
+#    - Only github.event.issue.* and github.event.comment.* are available
+#    - Used for /allow command to approve tests on fork PRs
+#    - Contributors: Be careful when adding new steps that assume PR context exists
+# 3. merge_group: Queue merging - github.event.merge_group.* fields are available
+# 4. schedule: Nightly runs - minimal context available
+# 5. workflow_dispatch: Manual runs - github.event.inputs.* available
+#
+# When adding new functionality, always check context.eventName and handle each trigger type appropriately!
 on:
   pull_request:
     branches:
       - main
+  issue_comment:
+    types: [created] # Enables /allow command for fork PR approvals - see handleIssueComment() in test_terraform.mjs
   merge_group:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC every day
@@ -44,8 +58,13 @@ env:
   TF_VAR_subnet_destroy_time_sleep: ${{ vars.TF_VAR_SUBNET_DESTROY_TIME_SLEEP }}
 
 jobs:
+  check-should-run:
+    uses: ./.github/workflows/_allow_workflow_run.yml
+
   changes:
     name: Changes
+    needs: check-should-run
+    if: needs.check-should-run.outputs.should_run == 'true'
     runs-on: ubuntu-24.04
     outputs:
       src: ${{ steps.dirs.outputs.changes }}
@@ -96,8 +115,8 @@ jobs:
           INPUT_SRC_CORE: reference_architectures
 
   test:
-    if: ${{ needs.changes.outputs.src != '[]' && needs.changes.outputs.src != '' }}
-    needs: changes
+    if: needs.check-should-run.outputs.should_run == 'true' && needs.changes.outputs.src != '[]' && needs.changes.outputs.src != ''
+    needs: [check-should-run, changes]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:
@@ -333,7 +352,7 @@ jobs:
   check_test:
     if: always()
     name: Check Tests
-    needs: [changes, test]
+    needs: [check-should-run, changes, test]
     runs-on: ubuntu-24.04
     steps:
       - name: 🛑 Failure

@@ -51,6 +51,7 @@ Entra
 envprovider
 evhn
 evhub
+exfiltration
 frontmatter
 Frontmatter
 genai
@@ -65,8 +66,8 @@ MADR
 marocchino
 MCSB
 MDFC
-miniscruff
 mgmt
+miniscruff
 modtm
 MSRC
 mtain
@@ -92,6 +93,7 @@ Swetha
 TFFMT
 TFINIT
 tflint
+tfsec
 TFVALIDATE
 tfvars
 TFVERSION

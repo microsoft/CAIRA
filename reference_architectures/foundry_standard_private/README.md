@@ -75,6 +75,7 @@ Note: This architecture requires existing Cosmos DB, Storage, and AI Search reso
      - **Azure AI Account Owner**: Needed to create a cognitive services account and project
      - **Owner or Role Based Access Administrator**: Needed to assign RBAC to the existing resources (Cosmos DB, Azure AI Search, Storage)
      - **Azure AI User**: Needed to create and edit agents
+     - **Cognitive Services OpenAI Contributor**: Needed to write OpenAI responses API
 
 1. **Register resource providers** (at minimum):
 
@@ -241,6 +242,7 @@ existing_search_service_name               = "my-search-service"
 | foundry\_subnet\_id                             | The subnet ID for the AI Foundry private endpoints.                                                                                                                                                         | `string`      | n/a                             |   yes    |
 | enable\_telemetry                               | This variable controls whether or not telemetry is enabled for the module.<br/>For more information see <https://aka.ms/avm/telemetryinfo>.<br/>If it is set to false, then no telemetry will be collected. | `bool`        | `true`                          |    no    |
 | location                                        | Azure region where the resource should be deployed.                                                                                                                                                         | `string`      | `"swedencentral"`               |    no    |
+| monitor\_private\_link\_scope\_resource\_id     | The resource ID of the Monitor Private Link Scope to link Application Insights to.                                                                                                                          | `string`      | `null`                          |    no    |
 | project\_description                            | The description of the AI Foundry project                                                                                                                                                                   | `string`      | `"Default Project description"` |    no    |
 | project\_display\_name                          | The display name of the AI Foundry project                                                                                                                                                                  | `string`      | `"Default Project"`             |    no    |
 | project\_name                                   | The name of the AI Foundry project                                                                                                                                                                          | `string`      | `"default-project"`             |    no    |
