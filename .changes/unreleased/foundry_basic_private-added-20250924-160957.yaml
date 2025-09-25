@@ -1,0 +1,8 @@
+---
+project: foundry_basic_private
+kind: added
+body: Improved test for foundry basic private configuration
+time: 2025-09-24T16:09:57.235275286-07:00
+custom:
+  Author: BSamodien
+  Issue: "99"
