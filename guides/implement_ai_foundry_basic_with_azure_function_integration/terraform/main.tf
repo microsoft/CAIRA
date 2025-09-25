@@ -7,7 +7,7 @@
 # Prerequisites: foundry_basic must be deployed first
 ############################################################
 
-# Data source to reference the existing resource group
+# Data sources for existing foundry_basic resources
 data "azurerm_resource_group" "this" {
   name = var.foundry_resource_group_name
 }
@@ -24,7 +24,7 @@ data "azurerm_application_insights" "this" {
   resource_group_name = var.foundry_resource_group_name
 }
 
-# Azure naming convention helper for function-specific resources
+# Naming module
 module "naming" {
   source        = "Azure/naming/azurerm"
   version       = "0.4.2"
@@ -32,16 +32,30 @@ module "naming" {
   unique-length = 5
 }
 
-# Local values for resource naming and configuration
+# Create separate resource group for functions
+resource "azurerm_resource_group" "function" {
+  name     = "${module.naming.resource_group.name_unique}-func"
+  location = data.azurerm_resource_group.this.location
+
+  tags = merge(
+    var.tags,
+    {
+      Purpose = "Function App Resources"
+      Parent  = data.azurerm_resource_group.this.name
+    }
+  )
+}
+
+# Local values
 locals {
-  base_name           = "func-${var.project_name}"
-  resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  base_name = var.project_name
 
-  # Function app configuration
-  function_app_name = module.naming.function_app.name_unique
+  # Use the separate resource group
+  resource_group_name = azurerm_resource_group.function.name
+  location            = azurerm_resource_group.function.location
 
-  # AI Foundry connection details
-  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
-  ai_foundry_key      = data.azurerm_cognitive_account.ai_foundry.primary_access_key
+  function_app_name    = module.naming.function_app.name_unique
+  storage_account_name = replace(module.naming.storage_account.name_unique, "-", "")
+  ai_foundry_endpoint  = data.azurerm_cognitive_account.ai_foundry.endpoint
+  ai_foundry_key       = data.azurerm_cognitive_account.ai_foundry.primary_access_key
 }

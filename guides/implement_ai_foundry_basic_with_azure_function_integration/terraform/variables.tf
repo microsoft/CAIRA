@@ -56,7 +56,7 @@ variable "project_name" {
 variable "function_tier" {
   type        = string
   description = "The SKU tier for the Function App (Dynamic, ElasticPremium, or Dedicated)"
-  default     = "Dynamic"
+  default     = "Dedicated"
   validation {
     condition     = contains(["Dynamic", "ElasticPremium", "Dedicated"], var.function_tier)
     error_message = "The function_tier must be 'Dynamic', 'ElasticPremium', or 'Dedicated'."
@@ -66,7 +66,7 @@ variable "function_tier" {
 variable "function_sku_size" {
   type        = string
   description = "The SKU size for the Function App"
-  default     = "Y1"
+  default     = "B1"
 }
 
 variable "python_version" {
