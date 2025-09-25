@@ -15,6 +15,8 @@ keywords:
 
 # Enabling Commit Signing on GitHub
 
+If you're using GitHub CodeSpaces or GitHub.dev, you don't need to set up commit signing as it's pre-configured. However, if working in a local development environment, follow the steps below to enable commit signing for the Git commits.
+
 By default, Git commits are _not_ signed. This means anyone could push commits that look like they came from somebody else. Enabling commit signing ensures the commits are marked as `Verified` on GitHub, proving they came from the actual author.
 
 GitHub supports two methods for signing commits: SSH keys and GPG keys. This document covers both options to choose the method that works best for your development environment.
@@ -69,6 +71,8 @@ or follow the steps to use an existing one.
 <summary>Use an existing SSH key</summary>
 
 If you already have an SSH key, you can skip the generation step. Just ensure you know the location of the private and public key files (commonly `~/.ssh/id_ed25519` and `~/.ssh/id_ed25519.pub`).
+
+> You may need to copy the existing key files from your host machine to the development environment.
 
 Run the following command to add an existing SSH private key to the SSH agent:
 
@@ -181,7 +185,7 @@ Run the following commands to enable commit signing globally:
 ```shell
 git config --global gpg.format openpgp
 
-git config --global user.signingkey <email@example.com>
+git config --global user.signingkey <your_email@example.com>
 
 git config --global commit.gpgsign true
 ```
