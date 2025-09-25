@@ -26,7 +26,7 @@ MD029:
 # MD033/no-inline-html - Inline HTML
 MD033:
   # Allowed elements
-  allowed_elements: ["br", "pre"]
+  allowed_elements: ["br", "pre", "details", "summary"]
 
 # MD036/no-emphasis-as-heading - Emphasis used instead of a heading
 MD036: false
