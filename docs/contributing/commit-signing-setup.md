@@ -13,20 +13,39 @@ keywords:
     - github
 -->
 
-# Enabling Commit Signing on GitHub with SSH Keys
+# Enabling Commit Signing on GitHub
 
 By default, Git commits are _not_ signed. This means anyone could push commits that look like they came from somebody else. Enabling commit signing ensures the commits are marked as `Verified` on GitHub, proving they came from the actual author.
 
-This guide walks you through enabling commit signing using SSH keys. SSH signing is a modern and simpler alternative to GPG signing, and it works seamlessly with GitHub.
+GitHub supports two methods for signing commits: SSH keys and GPG keys. This document covers both options to choose the method that works best for your development environment.
+
+## Signing Methods
+
+### SSH Keys (Recommended)
+
+- Simpler setup process
+- Uses the same keys for authentication and signing
+- Ideal for most developers
+
+### GPG Keys
+
+- Traditional method for commit signing
+- More complex setup but offers additional features
+- Supports key expiration and revocation
 
 ## Prerequisites
 
 - A GitHub account
 - Git installed and configured with a GitHub username and email
 
-## Generate an SSH Key for Signing
+## Configure SSH Key
 
-Run the following command in the terminal:
+Either follow the steps to generate a new SSH key
+
+<details>
+<summary>Generate a new SSH key</summary>
+
+Run the following command in the terminal to generate a new SSH key (replace `<your_email@example.com>` with your actual email):
 
 ```shell
 ssh-keygen -t ed25519 -C "<your_email@example.com>"
@@ -42,8 +61,24 @@ This creates two files:
 - `~/.ssh/id_ed25519.pub` : Public key (you’ll add this to GitHub)
 
 ![Screenshot of terminal showing ssh-keygen command and output](https://github.com/user-attachments/assets/1b5fc6ab-5436-4c23-a025-be4a30c8a360)
+</details>
 
-## Add the SSH Public Key to GitHub
+or follow the steps to use an existing one.
+
+<details>
+<summary>Use an existing SSH key</summary>
+
+If you already have an SSH key, you can skip the generation step. Just ensure you know the location of the private and public key files (commonly `~/.ssh/id_ed25519` and `~/.ssh/id_ed25519.pub`).
+
+Run the following command to add an existing SSH private key to the SSH agent:
+
+```shell
+ssh-add ~/.ssh/id_ed25519
+```
+
+</details>
+
+### Add the SSH Public Key to GitHub
 
 Copy the contents of the _public key_ file:
 
@@ -61,19 +96,99 @@ Click `Configure SSO` and authorize the key for the CAIRA organization.
 
 ![Authorize SSH Key](https://github.com/user-attachments/assets/19158da7-83df-43ca-b232-4c199fb681c7)
 
-## Configure Git to Use SSH Signing
+### Configure Git to Use SSH Signing
 
 Run the following commands to enable commit signing globally:
 
 ```shell
 git config --global gpg.format ssh
+
 git config --global user.signingkey ~/.ssh/id_ed25519.pub
+
 git config --global commit.gpgsign true
 ```
 
 This tells Git to:
 
 - Use SSH instead of GPG for signing
+- Sign commits by default
+
+## Configure GPG Key
+
+Either follow the steps to generate a new GPG key
+
+<details>
+<summary>Generate a new GPG key</summary>
+
+```shell
+gpg --full-generate-key
+```
+
+When prompted,
+
+- Select the `ECC (sign and encrypt) *default*` option
+- Select the `Curve 25519 *default*` option
+- Select how long the key should be valid
+- Your real name
+- Your email address (must match the GitHub email)
+- Passphrase (highly recommended for security)
+
+to configure the key.
+
+</details>
+
+or follow the steps to use an existing one.
+
+<details>
+<summary>Use an existing GPG key</summary>
+
+List existing GPG keys:
+
+```shell
+gpg --list-secret-keys --keyid-format LONG
+```
+
+Identify the key ID of the key you want to use (the part after `sec rsa4096/`).
+
+Run the following command to export the public key (replace `<KEY_ID>` with your actual key ID):
+
+```shell
+gpg --armor --export <KEY_ID>
+```
+
+</details>
+
+### Add the GPG Public Key to GitHub
+
+Copy the contents of the _public key_ file:
+
+```shell
+gpg --list-secret-keys --keyid-format LONG
+
+gpg --armor --export <KEY_ID>
+```
+
+In GitHub, go to [Settings](https://github.com/settings/profile) / [SSH and GPG keys](https://github.com/settings/keys) / [New GPG key](https://github.com/settings/gpg/new).
+
+Give it a name (for example: `My Laptop`) and paste the key.
+
+Click `Add GPG key`.
+
+### Configure Git to Use GPG Signing
+
+Run the following commands to enable commit signing globally:
+
+```shell
+git config --global gpg.format openpgp
+
+git config --global user.signingkey <email@example.com>
+
+git config --global commit.gpgsign true
+```
+
+This tells Git to:
+
+- Use GPG for signing
 - Sign commits by default
 
 ## Make a Signed Commit
