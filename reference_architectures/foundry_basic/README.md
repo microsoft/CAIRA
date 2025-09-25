@@ -64,6 +64,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
      - **Azure AI Account Owner**: Needed to create a cognitive services account and project
      - **Owner or Role Based Access Administrator**: Needed to assign RBAC to the required resources (Cosmos DB, Azure AI Search, Storage)
      - **Azure AI User**: Needed to create and edit agents
+     - **Cognitive Services OpenAI Contributor**: Needed to write OpenAI responses API
 
 1. **Register Resource Providers**
 
@@ -226,6 +227,7 @@ For issues and questions:
 
 | Name                                          | Description                                                                  |
 |-----------------------------------------------|------------------------------------------------------------------------------|
+| ai\_foundry\_endpoint                         | The endpoint URL of the AI Foundry account.                                  |
 | ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
 | ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
 | ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
