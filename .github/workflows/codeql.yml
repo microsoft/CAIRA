@@ -12,7 +12,7 @@
 # supported CodeQL languages.
 #
 
-name: CodeQL Advanced
+name: CodeQL
 
 on:
   pull_request:
