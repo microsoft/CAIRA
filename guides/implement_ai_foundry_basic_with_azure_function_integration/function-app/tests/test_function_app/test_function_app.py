@@ -1,581 +1,576 @@
-import os
+# Unit tests for Azure Functions with AI Foundry integration using Azure AI Projects SDK
+
 import json
-import sys
 import pytest
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import Mock, patch, MagicMock
 import azure.functions as func
-from azure.core.exceptions import AzureError
-from azure.identity import DefaultAzureCredential
-import requests
-import function_app
-
-
-class TestGetMLClient:
-    """Test cases for get_ml_client function"""
-
-    @patch.dict(os.environ, {
-        'AZURE_SUBSCRIPTION_ID': 'test-sub-id',
-        'RESOURCE_GROUP': 'test-rg',
-        'AI_FOUNDRY_PROJECT_NAME': 'test-project'
-    })
-    @patch('function_app.DefaultAzureCredential')
-    @patch('function_app.MLClient')
-    def test_get_ml_client_success(self, mock_ml_client_class, mock_credential):
-        """Test successful ML client initialization"""
-        # Arrange
-        mock_cred_instance = Mock()
-        mock_credential.return_value = mock_cred_instance
-
-        mock_client = Mock()
-        mock_ml_client_class.return_value = mock_client
-
-        # Act
-        client, credential = function_app.get_ml_client()
-
-        # Assert
-        assert client == mock_client
-        assert credential == mock_cred_instance
-        mock_ml_client_class.assert_called_once_with(
-            credential=mock_cred_instance,
-            subscription_id='test-sub-id',
-            resource_group_name='test-rg',
-            workspace_name='test-project'
-        )
-
-    @patch.dict(os.environ, {}, clear=True)
-    def test_get_ml_client_missing_config(self):
-        """Test ML client initialization with missing configuration"""
-        # Act & Assert
-        with pytest.raises(ValueError) as exc_info:
-            function_app.get_ml_client()
-
-        assert "Missing Azure configuration" in str(exc_info.value)
-
-
-class TestGetChatClient:
-    """Test cases for get_chat_client function"""
-
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'AZURE_SUBSCRIPTION_ID': 'test-sub-id',
-        'RESOURCE_GROUP': 'test-rg'
-    })
-    @patch('function_app.get_ml_client')
-    @patch('function_app.ChatCompletionsClient')
-    def test_get_chat_client_success(self, mock_chat_client_class, mock_get_ml_client):
-        """Test successful chat client initialization"""
-        # Arrange
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-        mock_credential = Mock()
-        mock_get_ml_client.return_value = (mock_ml_client, mock_credential)
-
-        mock_chat_client = Mock()
-        mock_chat_client_class.return_value = mock_chat_client
-
-        # Act
-        chat_client, credential, ml_client = function_app.get_chat_client()
-
-        # Assert
-        assert chat_client == mock_chat_client
-        assert credential == mock_credential
-        assert ml_client == mock_ml_client
-        mock_chat_client_class.assert_called_once_with(
-            endpoint='https://test.cognitiveservices.azure.com',
-            credential=mock_credential,
-            api_version='2024-02-01'
-        )
-
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_ml_client')
-    def test_get_chat_client_missing_endpoint(self, mock_get_ml_client):
-        """Test chat client initialization with missing endpoint"""
-        # Arrange
-        mock_ml_client = Mock()
-        mock_credential = Mock()
-        mock_get_ml_client.return_value = (mock_ml_client, mock_credential)
-
-        # Act & Assert
-        with pytest.raises(ValueError) as exc_info:
-            function_app.get_chat_client()
-
-        assert "AI_FOUNDRY_ENDPOINT environment variable is not set" in str(
-            exc_info.value)
-
-
-class TestChatWithAIInference:
-    """Test cases for chat_with_ai_inference function"""
-
-    def test_chat_with_ai_inference_success(self):
-        """Test successful chat completion using AI Inference SDK"""
-        # Arrange
-        mock_chat_client = Mock()
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-
-        prompt = "Test prompt"
-        deployment_name = "gpt-4"
-
-        # Mock response
-        mock_choice = Mock()
-        mock_choice.message.content = "AI response"
-
-        mock_response = Mock()
-        mock_response.choices = [mock_choice]
-        mock_response.model = "gpt-4"
-        mock_response.usage.prompt_tokens = 10
-        mock_response.usage.completion_tokens = 20
-        mock_response.usage.total_tokens = 30
-
-        mock_chat_client.complete.return_value = mock_response
-
-        # Act
-        result = function_app.chat_with_ai_inference(
-            mock_chat_client, mock_ml_client, prompt, deployment_name
-        )
-
-        # Assert
-        assert result['response'] == "AI response"
-        assert result['deployment'] == deployment_name
-        assert result['project'] == 'test-project'
-        assert result['usage']['total_tokens'] == 30
-        assert result['status'] == 'success'
-
-        # Verify the call
-        mock_chat_client.complete.assert_called_once()
-        call_args = mock_chat_client.complete.call_args
-        assert call_args[1]['model'] == deployment_name
-        assert call_args[1]['max_tokens'] == 800
-        assert call_args[1]['temperature'] == 0.7
-
-
-class TestListProjectModels:
-    """Test cases for list_project_models function"""
-
-    def test_list_project_models_success(self):
-        """Test successful project model listing"""
-        # Arrange
-        mock_ml_client = Mock()
-
-        mock_model1 = Mock()
-        mock_model1.name = "model1"
-        mock_model1.version = "1.0"
-        mock_model1.description = "Test model 1"
-        mock_model1.tags = {"type": "nlp"}
-        mock_model1.creation_context.created_by = "user1"
-        mock_model1.creation_context.created_at = "2024-01-01"
-
-        mock_model2 = Mock(spec=['name', 'version', 'description', 'tags'])
-        mock_model2.name = "model2"
-        mock_model2.version = "2.0"
-        mock_model2.description = None
-        mock_model2.tags = {}
-        # Explicitly no creation_context attribute
-
-        mock_ml_client.models.list.return_value = [mock_model1, mock_model2]
-
-        # Act
-        result = function_app.list_project_models(mock_ml_client)
-
-        # Assert
-        assert len(result) == 2
-        assert result[0]['name'] == "model1"
-        assert result[0]['version'] == "1.0"
-        assert result[0]['created_by'] == "user1"
-        assert result[1]['name'] == "model2"
-        assert result[1]['created_by'] is None
-
-    def test_list_project_models_error(self):
-        """Test project model listing with error"""
-        # Arrange
-        mock_ml_client = Mock()
-        mock_ml_client.models.list.side_effect = Exception("ML error")
-
-        # Act
-        result = function_app.list_project_models(mock_ml_client)
-
-        # Assert
-        assert result == []
-
-
-class TestListDeploymentsViaAPI:
-    """Test cases for list_deployments_via_api function"""
-
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test-account.cognitiveservices.azure.com',
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg'
-    })
-    @patch('function_app.requests.get')
-    def test_list_deployments_success(self, mock_get):
-        """Test successful deployment listing"""
-        # Arrange
-        mock_credential = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_credential.get_token.return_value = mock_token
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            'value': [
-                {'name': 'deployment1', 'properties': {
-                    'provisioningState': 'Succeeded'}},
-                {'name': 'deployment2', 'properties': {
-                    'provisioningState': 'Succeeded'}},
-                {'name': 'deployment3', 'properties': {
-                    'provisioningState': 'Failed'}}
-            ]
-        }
-        mock_get.return_value = mock_response
-
-        # Act
-        result = function_app.list_deployments_via_api(mock_credential)
-
-        # Assert
-        assert result == ['deployment1', 'deployment2']
-        mock_credential.get_token.assert_called_once_with(
-            "https://management.azure.com/.default")
-        mock_get.assert_called_once()
-        call_url = mock_get.call_args[0][0]
-        assert 'test-account' in call_url
-
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.openai.azure.com',
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg'
-    })
-    @patch('function_app.requests.get')
-    def test_list_deployments_openai_endpoint(self, mock_get):
-        """Test deployment listing with OpenAI endpoint format"""
-        # Arrange
-        mock_credential = Mock()
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_credential.get_token.return_value = mock_token
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {'value': []}
-        mock_get.return_value = mock_response
-
-        # Act
-        result = function_app.list_deployments_via_api(mock_credential)
-
-        # Assert
-        mock_get.assert_called_once()
-        call_url = mock_get.call_args[0][0]
-        assert 'test' in call_url  # Should extract 'test' from the endpoint
-
-
-class TestChatWithAI:
-    """Test cases for chat_with_ai endpoint using AI Inference SDK"""
-
-    @patch.dict(os.environ, {'MODEL_DEPLOYMENT_NAME': 'gpt-4'})
-    @patch('function_app.get_chat_client')
-    @patch('function_app.chat_with_ai_inference')
-    def test_chat_success(self, mock_chat_inference, mock_get_client):
-        """Test successful chat completion"""
-        # Arrange
-        mock_chat_client = Mock()
-        mock_credential = Mock()
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-        mock_get_client.return_value = (
-            mock_chat_client, mock_credential, mock_ml_client)
-
-        test_prompt = 'Hello AI'
-        chat_response = {
-            'response': 'AI Inference response',
-            'deployment': 'gpt-4',
-            'project': 'test-project',
-            'model': 'gpt-4',
-            'usage': {'prompt_tokens': 10, 'completion_tokens': 20, 'total_tokens': 30},
-            'status': 'success'
-        }
-        mock_chat_inference.return_value = chat_response
-
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({'prompt': test_prompt}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'success'
-        assert response_data['response'] == 'AI Inference response'
-        assert response_data['prompt'] == test_prompt
-        assert response_data['project'] == 'test-project'
-        mock_chat_inference.assert_called_once_with(
-            mock_chat_client, mock_ml_client, test_prompt, 'gpt-4'
-        )
-
-    def test_chat_missing_prompt(self):
-        """Test chat endpoint with missing prompt"""
-        # Arrange
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 400
-        response_data = json.loads(response.get_body())
-        assert 'error' in response_data
-        assert 'prompt' in response_data['error'].lower()
-
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_chat_client')
-    @patch('function_app.list_deployments_via_api')
-    @patch('function_app.chat_with_ai_inference')
-    def test_chat_auto_discover_deployment(self, mock_chat_inference, mock_list_deployments, mock_get_client):
-        """Test chat with auto-discovery of deployment"""
-        # Arrange
-        mock_chat_client = Mock()
-        mock_credential = Mock()
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-        mock_get_client.return_value = (
-            mock_chat_client, mock_credential, mock_ml_client)
-
-        discovered_model = 'auto-discovered-model'
-        mock_list_deployments.return_value = [discovered_model]
-
-        test_prompt = 'Hello'
-        chat_response = {
-            'response': 'Response from discovered model',
-            'deployment': discovered_model,
-            'project': 'test-project',
-            'model': discovered_model,
-            'usage': {'prompt_tokens': 5, 'completion_tokens': 10, 'total_tokens': 15},
-            'status': 'success'
-        }
-        mock_chat_inference.return_value = chat_response
-
-        req = func.HttpRequest(
-            method='POST',
-            body=json.dumps({'prompt': test_prompt}).encode('utf-8'),
-            url='/api/chat',
-            params={}
-        )
-
-        # Act
-        response = function_app.chat_with_ai(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['deployment'] == discovered_model
-        mock_list_deployments.assert_called_once_with(mock_credential)
+from datetime import datetime
 
 
 class TestHealthCheck:
-    """Test cases for health_check function with AI Inference SDK"""
+    """Test suite for health check endpoint"""
 
-    @patch.dict(os.environ, {
-        'AI_FOUNDRY_ENDPOINT': 'https://test.cognitiveservices.azure.com',
-        'AI_FOUNDRY_PROJECT_NAME': 'test-project',
-        'RESOURCE_GROUP': 'test-rg',
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'MODEL_DEPLOYMENT_NAME': 'gpt-4'
-    })
-    @patch('function_app.get_chat_client')
-    @patch('function_app.list_project_models')
-    @patch('function_app.list_deployments_via_api')
-    def test_health_check_healthy(self, mock_list_deployments, mock_list_models, mock_get_client):
-        """Test health check with healthy status"""
+    def test_health_check_success(self, http_request_factory, azure_environment,
+                                  mock_ai_project_client_class, mock_list_agents,
+                                  mock_default_credential):
+        """Test successful health check"""
         # Arrange
-        mock_chat_client = Mock()
-        mock_credential = Mock()
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-        mock_get_client.return_value = (
-            mock_chat_client, mock_credential, mock_ml_client)
-
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_credential.get_token.return_value = mock_token
-
-        test_models = [
-            {'name': 'model1', 'version': '1.0'},
-            {'name': 'model2', 'version': '2.0'}
-        ]
-        mock_list_models.return_value = test_models
-
-        test_deployments = ['deployment1', 'deployment2']
-        mock_list_deployments.return_value = test_deployments
-
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',
-            url='/api/health',
-            params={}
-        )
+        from function_app import health_check
+        req = http_request_factory(method='GET', url='/api/health')
 
         # Act
-        response = function_app.health_check(req)
+        response = health_check(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'healthy'
         assert response_data['function_app'] == 'running'
+        assert 'configuration' in response_data
+        assert 'ai_foundry' in response_data
         assert response_data['ai_foundry']['client_initialized'] == True
-        assert response_data['ai_foundry'][
-            'client_type'] == 'ChatCompletionsClient (AI Inference SDK)'
-        assert response_data['ai_foundry']['authentication'] == 'Success - Managed Identity working'
-        assert response_data['ai_foundry']['project_model_count'] == len(
-            test_models)
-        assert response_data['ai_foundry']['deployment_count'] == len(
-            test_deployments)
-        assert response_data['sdk'] == 'Azure AI Inference (No OpenAI SDK)'
 
-    @patch.dict(os.environ, {}, clear=True)
-    @patch('function_app.get_chat_client')
-    def test_health_check_unhealthy(self, mock_get_client):
-        """Test health check with unhealthy status"""
+    def test_health_check_no_environment(self, http_request_factory):
+        """Test health check with missing environment variables"""
         # Arrange
-        error_message = "Connection failed"
-        mock_get_client.side_effect = Exception(error_message)
-
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',
-            url='/api/health',
-            params={}
-        )
+        from function_app import health_check
+        req = http_request_factory(method='GET', url='/api/health')
 
         # Act
-        response = function_app.health_check(req)
+        response = health_check(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'unhealthy'
         assert response_data['ai_foundry']['client_initialized'] == False
-        assert error_message in response_data['ai_foundry']['error']
 
 
-class TestListDeployedModels:
-    """Test cases for list_deployed_models function"""
+class TestHttpExample:
+    """Test suite for simple HTTP trigger"""
 
-    @patch.dict(os.environ, {
-        'AZURE_SUBSCRIPTION_ID': 'sub-id',
-        'RESOURCE_GROUP': 'test-rg',
-        'AI_FOUNDRY_ENDPOINT': 'https://test-account.cognitiveservices.azure.com'
-    })
-    @patch('function_app.get_chat_client')
-    @patch('function_app.list_deployments_via_api')
-    @patch('function_app.list_project_models')
-    @patch('function_app.requests.get')
-    def test_list_models_success(self, mock_get, mock_list_models, mock_list_deployments, mock_get_client):
-        """Test successful model listing"""
+    def test_http_example_with_name(self, http_request_factory):
+        """Test HTTP example with name parameter"""
         # Arrange
-        mock_chat_client = Mock()
-        mock_credential = Mock()
-        mock_ml_client = Mock()
-        mock_ml_client.workspace_name = 'test-project'
-        mock_get_client.return_value = (
-            mock_chat_client, mock_credential, mock_ml_client)
-
-        mock_token = Mock()
-        mock_token.token = 'test-token'
-        mock_credential.get_token.return_value = mock_token
-
-        # Mock deployments
-        mock_list_deployments.return_value = ['deployment1']
-
-        # Mock project models
-        test_models = [{'name': 'model1', 'version': '1.0'}]
-        mock_list_models.return_value = test_models
-
-        # Mock detailed deployment info
-        test_deployment_data = {
-            'name': 'deployment1',
-            'properties': {
-                'model': {
-                    'name': 'gpt-4',
-                    'version': '0613',
-                    'format': 'OpenAI'
-                },
-                'scaleSettings': {'capacity': 10},
-                'provisioningState': 'Succeeded',
-                'createdAt': '2024-01-01T00:00:00Z',
-                'updatedAt': '2024-01-02T00:00:00Z'
-            }
-        }
-
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {'value': [test_deployment_data]}
-        mock_get.return_value = mock_response
-
-        req = func.HttpRequest(
+        from function_app import HttpExample
+        req = http_request_factory(
             method='GET',
-            body=b'',
-            url='/api/list-models',
-            params={}
+            url='/api/HttpExample',
+            params={'name': 'TestUser'}
         )
 
         # Act
-        response = function_app.list_deployed_models(req)
+        response = HttpExample(req)
+
+        # Assert
+        assert response.status_code == 200
+        assert b'Hello, TestUser' in response.get_body()
+
+    def test_http_example_with_json_body(self, http_request_factory):
+        """Test HTTP example with JSON body"""
+        # Arrange
+        from function_app import HttpExample
+        req = http_request_factory(
+            method='POST',
+            url='/api/HttpExample',
+            body={'name': 'JsonUser'}
+        )
+
+        # Act
+        response = HttpExample(req)
+
+        # Assert
+        assert response.status_code == 200
+        assert b'Hello, JsonUser' in response.get_body()
+
+    def test_http_example_without_name(self, http_request_factory):
+        """Test HTTP example without name"""
+        # Arrange
+        from function_app import HttpExample
+        req = http_request_factory(method='GET', url='/api/HttpExample', body=b'')
+
+        # Act
+        response = HttpExample(req)
+
+        # Assert
+        assert response.status_code == 200
+        assert b'This HTTP triggered function executed successfully' in response.get_body()
+
+
+class TestAgentCreate:
+    """Test suite for agent creation endpoint"""
+
+    def test_create_agent_success(self, http_request_factory, azure_environment,
+                                  mock_ai_project_client_class, mock_datetime):
+        """Test successful agent creation"""
+        # Arrange
+        from function_app import create_custom_agent
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/create',
+            body={
+                'name': 'test-assistant',
+                'instructions': 'You are a test assistant',
+                'model': 'gpt-4',
+                'enable_code_interpreter': True,
+                'enable_file_search': False
+            }
+        )
+
+        # Act
+        response = create_custom_agent(req)
+
+        # Assert
+        assert response.status_code == 201
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'created'
+        assert response_data['name'] == 'test-assistant'
+        assert response_data['model'] == 'gpt-4'
+
+    def test_create_agent_no_body(self, http_request_factory, azure_environment,
+                                  mock_ai_project_client_class):
+        """Test agent creation with no request body"""
+        # Arrange
+        from function_app import create_custom_agent
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/create',
+            body=b''
+        )
+
+        # Act
+        response = create_custom_agent(req)
+
+        # Assert
+        assert response.status_code == 500
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'error'
+        assert 'Failed to create agent' in response_data['error']
+
+    def test_create_agent_with_defaults(self, http_request_factory, azure_environment,
+                                        mock_ai_project_client_class, mock_datetime):
+        """Test agent creation with default values"""
+        # Arrange
+        from function_app import create_custom_agent
+        mock_client = mock_ai_project_client_class.return_value
+
+        def create_agent_side_effect(*args, **kwargs):
+            mock_agent = Mock()
+            mock_agent.id = 'asst_test123'
+            mock_agent.name = kwargs.get('name', 'test-assistant')
+            mock_agent.model = kwargs.get('model', 'gpt-4')
+            mock_agent.instructions = kwargs.get('instructions', 'You are a helpful assistant.')
+            mock_agent.tools = kwargs.get('tools', [])
+            return mock_agent
+
+        mock_client.agents.create_agent.side_effect = create_agent_side_effect
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/create',
+            body={'enable_code_interpreter': True}
+        )
+
+        # Act
+        response = create_custom_agent(req)
+
+        # Assert
+        assert response.status_code == 201
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'created'
+        assert 'custom-agent-' in response_data['name']
+
+
+class TestAgentList:
+    """Test suite for listing agents"""
+
+    def test_list_agents_success(self, http_request_factory, azure_environment,
+                                 mock_list_agents):
+        """Test successful agent listing"""
+        # Arrange
+        from function_app import list_all_agents
+        req = http_request_factory(method='GET', url='/api/agent/list')
+
+        # Act
+        response = list_all_agents(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'success'
-        assert response_data['deployment_count'] == 1
-        assert response_data['project_model_count'] == 1
-        assert response_data['sdk'] == 'Azure AI Inference SDK'
-        assert 'Using AI Foundry native SDK without OpenAI dependency' in response_data[
-            'hint']
+        assert response_data['count'] == 1
+        assert len(response_data['agents']) == 1
 
-
-class TestHttpExample:
-    """Test cases for HttpExample function"""
-
-    def test_http_example_with_name(self):
-        """Test HttpExample with name parameter"""
+    def test_list_agents_empty(self, http_request_factory, azure_environment):
+        """Test listing agents when none exist"""
         # Arrange
-        test_name = 'TestUser'
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',
-            url='/api/HttpExample',
-            params={'name': test_name}
-        )
+        from function_app import list_all_agents
 
         # Act
-        response = function_app.HttpExample(req)
+        with patch('function_app.list_agents', return_value=[]):
+            req = http_request_factory(method='GET', url='/api/agent/list')
+            response = list_all_agents(req)
 
         # Assert
         assert response.status_code == 200
-        assert f"Hello, {test_name}".encode() in response.get_body()
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'success'
+        assert response_data['count'] == 0
 
-    def test_http_example_without_name(self):
-        """Test HttpExample without name parameter"""
+
+class TestAgentChat:
+    """Test suite for agent chat endpoint"""
+
+    def test_chat_success(self, http_request_factory, azure_environment,
+                          mock_get_or_create_agent, mock_run_agent_conversation,
+                          mock_datetime):
+        """Test successful chat interaction"""
         # Arrange
-        req = func.HttpRequest(
-            method='GET',
-            body=b'',
-            url='/api/HttpExample',
-            params={}
+        from function_app import agent_chat
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/chat',
+            body={'message': 'Hello, how are you?'}
         )
 
         # Act
-        response = function_app.HttpExample(req)
+        response = agent_chat(req)
 
         # Assert
         assert response.status_code == 200
-        assert b"This HTTP triggered function executed successfully" in response.get_body()
+        response_data = json.loads(response.get_body())
+        assert response_data['user_message'] == 'Hello, how are you?'
+        assert response_data['response'] == 'Test response from agent'
+        assert response_data['thread_id'] == 'thread_test123'
+
+    def test_chat_with_thread_id(self, http_request_factory, azure_environment,
+                                 mock_get_or_create_agent, mock_run_agent_conversation,
+                                 mock_datetime):
+        """Test chat with existing thread ID"""
+        # Arrange
+        from function_app import agent_chat
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/chat',
+            body={
+                'message': 'Continue our conversation',
+                'thread_id': 'thread_existing123'
+            }
+        )
+
+        # Act
+        response = agent_chat(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        mock_run_agent_conversation.assert_called_once()
+        call_args = mock_run_agent_conversation.call_args
+        assert call_args[0][1] == 'Continue our conversation'
+        assert call_args[0][2] == 'thread_existing123'
+
+    def test_chat_no_message(self, http_request_factory, azure_environment):
+        """Test chat without message"""
+        # Arrange
+        from function_app import agent_chat
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/chat',
+            body={}
+        )
+
+        # Act
+        response = agent_chat(req)
+
+        # Assert
+        assert response.status_code == 400
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'error'
+        assert 'Please provide a \'message\'' in response_data['error']
+
+    def test_chat_with_prompt_key(self, http_request_factory, azure_environment,
+                                  mock_get_or_create_agent, mock_run_agent_conversation,
+                                  mock_datetime):
+        """Test chat using 'prompt' key instead of 'message'"""
+        # Arrange
+        from function_app import agent_chat
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/chat',
+            body={'prompt': 'Test with prompt key'}
+        )
+
+        # Act
+        response = agent_chat(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        assert response_data['user_message'] == 'Test with prompt key'
+
+
+class TestAgentDelete:
+    """Test suite for agent deletion"""
+
+    def test_delete_agent_success(self, http_request_factory, azure_environment,
+                                  mock_ai_project_client_class, mock_datetime):
+        """Test successful agent deletion"""
+        # Arrange
+        from function_app import delete_agent
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/delete',
+            body={'agent_id': 'asst_test123'}
+        )
+
+        # Act
+        response = delete_agent(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'deleted'
+        assert response_data['agent_id'] == 'asst_test123'
+
+    def test_delete_agent_no_id(self, http_request_factory, azure_environment):
+        """Test agent deletion without ID"""
+        # Arrange
+        from function_app import delete_agent
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/delete',
+            body={}
+        )
+
+        # Act
+        response = delete_agent(req)
+
+        # Assert
+        assert response.status_code == 400
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'error'
+        assert 'Please provide \'agent_id\'' in response_data['error']
+
+
+class TestAgentCodeInterpreter:
+    """Test suite for code interpreter demo"""
+
+    def test_code_interpreter_success(self, http_request_factory, azure_environment,
+                                      mock_ai_project_client_class, mock_datetime):
+        """Test successful code interpreter execution"""
+        # Arrange
+        from function_app import agent_code_interpreter_demo
+        mock_client = mock_ai_project_client_class.return_value
+        mock_run = mock_client.agents.create_run.return_value
+        mock_run.status = 'completed'
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/code-interpreter',
+            body={'code_task': 'Calculate fibonacci sequence'}
+        )
+
+        # Act
+        response = agent_code_interpreter_demo(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'completed'
+        assert response_data['task'] == 'Calculate fibonacci sequence'
+
+    def test_code_interpreter_default_task(self, http_request_factory, azure_environment,
+                                           mock_ai_project_client_class, mock_datetime):
+        """Test code interpreter with default task"""
+        # Arrange
+        from function_app import agent_code_interpreter_demo
+        mock_client = mock_ai_project_client_class.return_value
+        mock_run = mock_client.agents.create_run.return_value
+        mock_run.status = 'completed'
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent/code-interpreter',
+            body={}
+        )
+
+        # Act
+        response = agent_code_interpreter_demo(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        assert response_data['task'] == 'Calculate the sum of squares from 1 to 10'
+
+
+class TestDemo:
+    """Test suite for demo endpoint"""
+
+    def test_demo_success(self, http_request_factory, azure_environment,
+                         mock_ai_project_client_class, mock_datetime):
+        """Test successful demo execution"""
+        # Arrange
+        from function_app import demo_agent_capabilities
+        mock_client = mock_ai_project_client_class.return_value
+        mock_run = mock_client.agents.create_run.return_value
+        mock_run.status = 'completed'
+        req = http_request_factory(method='GET', url='/api/demo')
+
+        # Act
+        response = demo_agent_capabilities(req)
+
+        # Assert
+        assert response.status_code == 200
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'success'
+        assert response_data['demo'] == 'Agent Capabilities Showcase'
+        assert len(response_data['steps']) > 0
+        assert 'agent_created' in response_data
+        assert 'thread_id' in response_data
+        assert 'conversation' in response_data
+
+    def test_demo_handles_error(self, http_request_factory, azure_environment,
+                                mock_ai_project_client_class):
+        """Test demo error handling"""
+        # Arrange
+        from function_app import demo_agent_capabilities
+        mock_ai_project_client_class.side_effect = Exception("API Error")
+        req = http_request_factory(method='GET', url='/api/demo')
+
+        # Act
+        response = demo_agent_capabilities(req)
+
+        # Assert
+        assert response.status_code == 500
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'error'
+        assert 'API Error' in response_data['error']
+
+
+class TestProjectClientInitialization:
+    """Test suite for AIProjectClient initialization"""
+
+    def test_get_project_client_success(self, azure_environment, mock_default_credential):
+        """Test successful project client initialization"""
+        # Arrange
+        from function_app import get_project_client
+        import function_app
+        function_app._project_client = None
+
+        # Act
+        with patch('function_app.AIProjectClient') as mock_client_class:
+            client = get_project_client()
+
+        # Assert
+        mock_client_class.assert_called_once()
+        call_args = mock_client_class.call_args
+        assert 'endpoint' in call_args[1]
+        assert 'credential' in call_args[1]
+        assert 'services.ai.azure.com' in call_args[1]['endpoint']
+
+    def test_get_project_client_cached(self, azure_environment):
+        """Test that project client is cached after first initialization"""
+        # Arrange
+        from function_app import get_project_client
+        import function_app
+        mock_client = Mock()
+        function_app._project_client = mock_client
+
+        # Act
+        client = get_project_client()
+
+        # Assert
+        assert client == mock_client
+
+    def test_get_project_client_no_endpoint(self):
+        """Test project client initialization without endpoint"""
+        # Arrange
+        from function_app import get_project_client
+        import function_app
+        function_app._project_client = None
+
+        # Act & Assert
+        with pytest.raises(ValueError) as exc_info:
+            get_project_client()
+        assert "AI_FOUNDRY_ENDPOINT environment variable is not set" in str(exc_info.value)
+
+
+class TestAgentOperations:
+    """Test suite for agent operation functions"""
+
+    def test_get_or_create_agent_existing(self, azure_environment, mock_project_client):
+        """Test getting existing agent"""
+        # Arrange
+        from function_app import get_or_create_agent
+        import function_app
+        function_app._agent_instance = None
+
+        mock_agent = Mock()
+        mock_agent.name = 'azure-function-assistant'
+        mock_agent.id = 'asst_existing'
+
+        agents_response = Mock()
+        agents_response.data = [mock_agent]
+        mock_project_client.agents.list_agents.return_value = agents_response
+
+        # Act
+        with patch('function_app.get_project_client', return_value=mock_project_client):
+            agent = get_or_create_agent()
+
+        # Assert
+        assert agent == mock_agent
+        mock_project_client.agents.create_agent.assert_not_called()
+
+    def test_get_or_create_agent_new(self, azure_environment, mock_project_client):
+        """Test creating new agent when none exists"""
+        # Arrange
+        from function_app import get_or_create_agent
+        import function_app
+        function_app._agent_instance = None
+
+        agents_response = Mock()
+        agents_response.data = []
+        mock_project_client.agents.list_agents.return_value = agents_response
+
+        mock_new_agent = Mock()
+        mock_new_agent.id = 'asst_new'
+        mock_new_agent.name = 'azure-function-assistant'
+        mock_project_client.agents.create_agent.side_effect = None
+        mock_project_client.agents.create_agent.return_value = mock_new_agent
+
+        # Act
+        with patch('function_app.get_project_client', return_value=mock_project_client):
+            agent = get_or_create_agent()
+
+        # Assert
+        assert agent == mock_new_agent
+        assert agent.id == 'asst_new'
+        mock_project_client.agents.create_agent.assert_called_once()
+
+    def test_run_agent_conversation_new_thread(self, azure_environment, mock_project_client,
+                                               mock_agent, mock_thread, mock_run, mock_message):
+        """Test running agent conversation with new thread"""
+        # Arrange
+        from function_app import run_agent_conversation
+
+        # Act
+        with patch('function_app.get_project_client', return_value=mock_project_client):
+            result = run_agent_conversation(mock_agent, "Test message")
+
+        # Assert
+        assert result['thread_id'] == 'thread_test123'
+        assert result['response'] == 'Test response from assistant'
+        assert result['status'] == 'completed'
+        mock_project_client.agents.create_thread.assert_called_once()
+
+    def test_run_agent_conversation_existing_thread(self, azure_environment, mock_project_client,
+                                                   mock_agent, mock_thread, mock_run, mock_message):
+        """Test running agent conversation with existing thread"""
+        # Arrange
+        from function_app import run_agent_conversation
+
+        # Act
+        with patch('function_app.get_project_client', return_value=mock_project_client):
+            result = run_agent_conversation(mock_agent, "Test message", "thread_existing")
+
+        # Assert
+        assert result['thread_id'] == 'thread_test123'
+        mock_project_client.agents.get_thread.assert_called_once_with('thread_existing')
+        mock_project_client.agents.create_thread.assert_not_called()

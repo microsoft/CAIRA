@@ -4,7 +4,7 @@
 
 azure-functions
 azure-identity
-azure-ai-ml>=1.15.0
-azure-ai-inference==1.0.0b4  # Beta version - stable not available yet
+azure-ai-projects>=1.0.0b11
+azure-ai-inference>=1.0.0b4
 azure-core
 requests

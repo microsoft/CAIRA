@@ -5,10 +5,10 @@ import azure.functions as func
 from azure.identity import DefaultAzureCredential
 from azure.core.exceptions import AzureError
 from azure.ai.inference import ChatCompletionsClient
-from azure.ai.inference.models import SystemMessage, UserMessage
-from azure.ai.ml import MLClient
-import requests
-from typing import List, Dict, Optional, Tuple
+from azure.ai.projects import AIProjectClient
+from typing import List, Dict, Optional, Tuple, Any
+import asyncio
+from datetime import datetime
 
 app = func.FunctionApp()
 
@@ -16,189 +16,220 @@ app = func.FunctionApp()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Global agent instance (created once and reused)
+_agent_instance = None
+_project_client = None
 
-def get_ml_client() -> Tuple[MLClient, DefaultAzureCredential]:
-    """Initialize Azure ML Client for AI Foundry project management"""
+
+def get_project_client() -> AIProjectClient:
+    """Initialize Azure AI Project Client"""
+    global _project_client
+
+    if _project_client:
+        return _project_client
+
     try:
         credential = DefaultAzureCredential()
 
-        # Get configuration from environment
-        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
-        resource_group = os.getenv("RESOURCE_GROUP")
-        workspace_name = os.getenv("AI_FOUNDRY_PROJECT_NAME", "ai-functions")
-
-        if not subscription_id or not resource_group:
-            raise ValueError(
-                "Missing Azure configuration (subscription/resource group)")
-
-        # Create ML client for AI Foundry project management
-        ml_client = MLClient(
-            credential=credential,
-            subscription_id=subscription_id,
-            resource_group_name=resource_group,
-            workspace_name=workspace_name
-        )
-
-        return ml_client, credential
-    except Exception as e:
-        logger.error(f"Failed to initialize ML Client: {str(e)}")
-        raise
-
-
-def get_chat_client() -> Tuple[ChatCompletionsClient, DefaultAzureCredential, MLClient]:
-    """Initialize Azure AI Inference Client with AI Foundry project context"""
-    try:
-        # Get ML client for project context
-        ml_client, credential = get_ml_client()
-
-        # Get the endpoint from environment
+        # Get endpoint from environment
         endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")
         if not endpoint:
-            raise ValueError(
-                "AI_FOUNDRY_ENDPOINT environment variable is not set")
+            raise ValueError("AI_FOUNDRY_ENDPOINT environment variable is not set")
 
-        # Create ChatCompletions client using Azure AI Inference SDK
-        # This client works with AI Foundry deployments
-        chat_client = ChatCompletionsClient(
-            endpoint=endpoint,
-            credential=credential,
-            # API version for AI Foundry compatibility
-            api_version="2024-02-01"
-        )
+        # Build project endpoint in the correct format
+        # Format: https://<AIFoundryResourceName>.services.ai.azure.com/api/projects/<ProjectName>
+        project_name = os.getenv("AI_FOUNDRY_PROJECT_NAME", "ai-functions")
 
-        return chat_client, credential, ml_client
-    except Exception as e:
-        logger.error(f"Failed to initialize Chat Client: {str(e)}")
-        raise
-
-
-def list_project_models(ml_client: MLClient) -> List[Dict]:
-    """List models registered in the AI Foundry project"""
-    try:
-        models = ml_client.models.list()
-        model_list = []
-
-        for model in models:
-            model_list.append({
-                "name": model.name,
-                "version": model.version,
-                "description": model.description,
-                "tags": model.tags,
-                "created_by": model.creation_context.created_by if hasattr(model, 'creation_context') else None,
-                "created_at": str(model.creation_context.created_at) if hasattr(model, 'creation_context') else None
-            })
-
-        return model_list
-    except Exception as e:
-        logger.error(f"Error listing project models: {str(e)}")
-        return []
-
-
-def list_deployments_via_api(credential: DefaultAzureCredential) -> List[str]:
-    """List deployments using the Cognitive Services REST API"""
-    try:
-        # Get configuration
-        endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")
-        if not endpoint:
-            logger.warning(
-                "AI_FOUNDRY_ENDPOINT not set, cannot list deployments")
-            return []
-
-        # Get access token
-        token = credential.get_token("https://management.azure.com/.default")
-
-        # Parse account name from endpoint
+        # Transform cognitive services endpoint to AI Foundry endpoint
         if "cognitiveservices.azure.com" in endpoint:
             account_name = endpoint.split("//")[1].split(".")[0]
-        elif "openai.azure.com" in endpoint:
-            account_name = endpoint.split("//")[1].split(".")[0]
+            project_endpoint = f"https://{account_name}.services.ai.azure.com/api/projects/{project_name}"
         else:
-            logger.warning("Could not determine account name from endpoint")
-            return []
+            # Assume it's already in the correct format
+            project_endpoint = endpoint
 
-        # Get required configuration
-        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
-        resource_group = os.getenv("RESOURCE_GROUP")
+        # Create AI Project Client
+        _project_client = AIProjectClient(
+            endpoint=project_endpoint,
+            credential=credential
+        )
 
-        if not subscription_id or not resource_group:
-            logger.warning(
-                "Missing AZURE_SUBSCRIPTION_ID or RESOURCE_GROUP environment variables")
-            return []
-
-        management_url = f"https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.CognitiveServices/accounts/{account_name}/deployments?api-version=2023-05-01"
-
-        headers = {
-            "Authorization": f"Bearer {token.token}",
-            "Content-Type": "application/json",
-        }
-
-        response = requests.get(management_url, headers=headers, timeout=10)
-
-        if response.status_code == 200:
-            deployments = response.json().get("value", [])
-            return [
-                d["name"]
-                for d in deployments
-                if d.get("properties", {}).get("provisioningState") == "Succeeded"
-            ]
-        else:
-            logger.warning(
-                f"Could not list deployments: {response.status_code}")
-            return []
+        logger.info(f"AI Project Client initialized for endpoint: {project_endpoint}")
+        return _project_client
 
     except Exception as e:
-        logger.error(f"Error listing deployments: {str(e)}")
+        logger.error(f"Failed to initialize AI Project Client: {str(e)}")
+        raise
+
+
+def get_or_create_agent() -> Any:
+    """Get existing agent or create a new one"""
+    global _agent_instance
+
+    if _agent_instance:
+        return _agent_instance
+
+    try:
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Try to find existing agent
+        agent_name = "azure-function-assistant"
+        try:
+            agents = agents_client.list_agents()
+            for agent in agents.data:
+                if agent.name == agent_name:
+                    logger.info(f"Using existing agent: {agent.id}")
+                    _agent_instance = agent
+                    return agent
+        except:
+            pass  # No existing agent found, create new one
+
+        # Create new agent with tools
+        logger.info("Creating new AI agent...")
+
+        # Configure tools for the agent
+        # Tools are defined as dictionaries in the Azure AI Projects SDK
+        code_interpreter_tool = {"type": "code_interpreter"}
+        file_search_tool = {"type": "file_search"}
+
+        # Create the agent
+        _agent_instance = agents_client.create_agent(
+            model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),  # Default to gpt-4 if not specified
+            name=agent_name,
+            instructions="""You are an intelligent AI assistant deployed through Azure AI Projects.
+            You help users with various tasks including:
+            - Answering questions
+            - Performing calculations using code interpreter
+            - Analyzing and searching through files
+            - Providing helpful, accurate, and concise responses
+
+            You have access to code interpreter and file search capabilities.""",
+            tools=[code_interpreter_tool, file_search_tool]
+        )
+
+        logger.info(f"Created new agent: {_agent_instance.id}")
+        return _agent_instance
+
+    except Exception as e:
+        logger.error(f"Failed to create agent: {str(e)}")
+        raise
+
+
+def run_agent_conversation(agent: Any, user_message: str, thread_id: Optional[str] = None) -> Dict:
+    """Run a conversation with the agent"""
+    try:
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Create or retrieve thread
+        if thread_id:
+            thread = agents_client.get_thread(thread_id)
+            logger.info(f"Using existing thread: {thread_id}")
+        else:
+            thread = agents_client.create_thread()
+            logger.info(f"Created new thread: {thread.id}")
+
+        # Add user message to thread
+        message = agents_client.create_message(
+            thread_id=thread.id,
+            role="user",
+            content=user_message
+        )
+
+        # Run the agent
+        run = agents_client.create_run(
+            thread_id=thread.id,
+            agent_id=agent.id
+        )
+
+        # Wait for completion
+        while run.status in ["queued", "in_progress", "requires_action"]:
+            run = agents_client.get_run(thread_id=thread.id, run_id=run.id)
+
+            # Handle tool calls if needed
+            if run.status == "requires_action":
+                # Process any required actions
+                pass
+
+        # Get messages from the thread
+        messages = agents_client.list_messages(thread_id=thread.id)
+
+        # Extract the latest assistant response
+        assistant_response = None
+        for msg in messages.data:
+            if msg.role == "assistant":
+                # Handle different content types
+                if hasattr(msg, 'content') and msg.content:
+                    if isinstance(msg.content, list) and len(msg.content) > 0:
+                        content_item = msg.content[0]
+                        if hasattr(content_item, 'text'):
+                            assistant_response = content_item.text.value
+                    elif isinstance(msg.content, str):
+                        assistant_response = msg.content
+                break
+
+        return {
+            "response": assistant_response or "No response generated",
+            "thread_id": thread.id,
+            "run_id": run.id,
+            "agent_id": agent.id,
+            "agent_name": agent.name,
+            "status": run.status,
+            "usage": {
+                "prompt_tokens": run.usage.prompt_tokens if hasattr(run, 'usage') and run.usage else 0,
+                "completion_tokens": run.usage.completion_tokens if hasattr(run, 'usage') and run.usage else 0,
+                "total_tokens": run.usage.total_tokens if hasattr(run, 'usage') and run.usage else 0,
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"Error in agent conversation: {str(e)}")
+        raise
+
+
+def list_agents() -> List[Dict]:
+    """List all agents in the project"""
+    try:
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        agents = agents_client.list_agents()
+        agent_list = []
+
+        for agent in agents.data:
+            agent_list.append({
+                "id": agent.id,
+                "name": agent.name,
+                "model": agent.model,
+                "instructions": agent.instructions[:200] + "..." if len(agent.instructions) > 200 else agent.instructions,
+                "tools": [str(tool) for tool in agent.tools] if hasattr(agent, 'tools') and agent.tools else [],
+                "created_at": agent.created_at if hasattr(agent, 'created_at') else None
+            })
+
+        return agent_list
+    except Exception as e:
+        logger.error(f"Error listing agents: {str(e)}")
         return []
 
 
-def chat_with_ai_inference(chat_client: ChatCompletionsClient, ml_client: MLClient, prompt: str, deployment_name: str) -> Dict:
-    """Execute chat using Azure AI Inference SDK with project context"""
+def list_threads() -> List[Dict]:
+    """List recent threads"""
     try:
-        # Add project context to the system message
-        project_name = ml_client.workspace_name
+        project_client = get_project_client()
+        agents_client = project_client.agents
 
-        # Create messages using AI Inference models
-        messages = [
-            SystemMessage(
-                content=f"You are an AI assistant deployed through Azure AI Foundry project '{project_name}'. You provide helpful, accurate responses while being concise and friendly."),
-            UserMessage(content=prompt)
-        ]
-
-        # Make the chat completion request using AI Inference SDK
-        response = chat_client.complete(
-            messages=messages,
-            model=deployment_name,
-            max_tokens=800,
-            temperature=0.7
-        )
-
-        # Extract the response
-        ai_response = response.choices[0].message.content if response.choices else "No response generated"
-
-        return {
-            "response": ai_response,
-            "deployment": deployment_name,
-            "project": project_name,
-            "model": response.model if hasattr(response, 'model') else deployment_name,
-            "usage": {
-                "prompt_tokens": response.usage.prompt_tokens if hasattr(response, 'usage') else 0,
-                "completion_tokens": response.usage.completion_tokens if hasattr(response, 'usage') else 0,
-                "total_tokens": response.usage.total_tokens if hasattr(response, 'usage') else 0,
-            },
-            "status": "success"
-        }
-
+        # Note: The API might have limitations on listing all threads
+        # This is a placeholder for the actual implementation
+        return []
     except Exception as e:
-        logger.error(f"Error in AI Inference chat: {str(e)}")
-        raise
+        logger.error(f"Error listing threads: {str(e)}")
+        return []
 
 
 @app.route(route="HttpExample", auth_level=func.AuthLevel.ANONYMOUS)
 def HttpExample(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Simple HTTP trigger function for testing.
-    This demonstrates basic function app connectivity.
-    """
+    """Simple HTTP trigger function for testing."""
     logging.info("Python HTTP trigger function processed a request.")
 
     name = req.params.get("name")
@@ -221,108 +252,210 @@ def HttpExample(req: func.HttpRequest) -> func.HttpResponse:
         )
 
 
-@app.route(route="chat", auth_level=func.AuthLevel.ANONYMOUS)
-def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
+@app.route(route="agent/chat", auth_level=func.AuthLevel.ANONYMOUS)
+def agent_chat(req: func.HttpRequest) -> func.HttpResponse:
     """
-    AI chat endpoint using Azure AI Inference SDK with AI Foundry project context.
-    Uses DefaultAzureCredential (managed identity) to authenticate.
-    Expects JSON body with 'prompt' field.
+    Chat with an AI Agent using Azure AI Foundry SDK.
+    Supports conversation threads for context retention.
 
-    This implementation uses Azure AI Inference SDK instead of OpenAI SDK,
-    aligning with AI Foundry's native capabilities.
+    Expected JSON body:
+    {
+        "message": "user message",
+        "thread_id": "optional-thread-id"  // Optional: for continuing conversation
+    }
     """
-    logger.info("Processing AI chat request using Azure AI Inference SDK")
+    logger.info("Processing agent chat request")
 
     try:
         # Parse request body
         try:
             req_body = req.get_json()
-            prompt = req_body.get("prompt")
+            message = req_body.get("message") or req_body.get("prompt")
+            thread_id = req_body.get("thread_id")
         except ValueError:
-            prompt = req.params.get("prompt")
+            message = req.params.get("message") or req.params.get("prompt")
+            thread_id = req.params.get("thread_id")
 
-        if not prompt:
+        if not message:
             return func.HttpResponse(
                 json.dumps({
-                    "error": "Please provide a 'prompt' in the request body or query parameters",
+                    "error": "Please provide a 'message' in the request body",
                     "status": "error"
                 }),
                 mimetype="application/json",
                 status_code=400,
             )
 
-        # Initialize clients with project context
-        chat_client, credential, ml_client = get_chat_client()
+        # Get or create agent
+        agent = get_or_create_agent()
 
-        # Get deployment name from environment or discover
-        deployment_name = os.getenv("MODEL_DEPLOYMENT_NAME")
+        # Run conversation
+        result = run_agent_conversation(agent, message, thread_id)
 
-        if not deployment_name:
-            # Try to list available deployments
-            logger.info(
-                "No deployment specified, checking available deployments...")
-            deployments = list_deployments_via_api(credential)
+        return func.HttpResponse(
+            json.dumps({
+                "user_message": message,
+                **result,
+                "timestamp": datetime.utcnow().isoformat()
+            }, indent=2),
+            mimetype="application/json",
+            status_code=200,
+        )
 
-            if deployments:
-                deployment_name = deployments[0]
-                logger.info(
-                    f"Using first available deployment: {deployment_name}")
-            else:
-                return func.HttpResponse(
-                    json.dumps({
-                        "error": "No model deployments found",
-                        "hint": "Please deploy a model in Azure AI Foundry first",
-                        "project": ml_client.workspace_name,
-                        "status": "error"
-                    }),
-                    mimetype="application/json",
-                    status_code=500,
-                )
+    except Exception as e:
+        logger.error(f"Error in agent chat: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({
+                "error": f"Failed to process chat: {str(e)}",
+                "status": "error"
+            }),
+            mimetype="application/json",
+            status_code=500,
+        )
 
-        logger.info(
-            f"Using deployment: {deployment_name} in project: {ml_client.workspace_name}")
 
+@app.route(route="agent/delete", auth_level=func.AuthLevel.ANONYMOUS)
+def delete_agent(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Delete an agent by ID.
+
+    Expected JSON body or query params:
+    {
+        "agent_id": "agent-id-to-delete"
+    }
+    """
+    logger.info("Deleting agent")
+
+    try:
+        # Parse request
         try:
-            # Execute chat using AI Inference SDK
-            result = chat_with_ai_inference(
-                chat_client, ml_client, prompt, deployment_name)
+            req_body = req.get_json()
+            agent_id = req_body.get("agent_id")
+        except ValueError:
+            agent_id = req.params.get("agent_id")
 
-            # Return the formatted response
+        if not agent_id:
             return func.HttpResponse(
                 json.dumps({
-                    "prompt": prompt,
-                    **result
-                }, indent=2),
-                mimetype="application/json",
-                status_code=200,
-            )
-
-        except Exception as e:
-            logger.error(f"Error calling AI Inference: {str(e)}")
-
-            # Check if it's an authentication error
-            if "authentication" in str(e).lower() or "401" in str(e):
-                error_msg = "Authentication failed. Ensure the Function App's managed identity has proper access to AI Foundry project"
-            else:
-                error_msg = str(e)
-
-            return func.HttpResponse(
-                json.dumps({
-                    "error": f"Failed to execute chat: {error_msg}",
-                    "deployment_attempted": deployment_name,
-                    "project": ml_client.workspace_name,
-                    "hint": "Ensure the model is deployed and the managed identity has proper permissions",
+                    "error": "Please provide 'agent_id' to delete",
                     "status": "error"
                 }),
                 mimetype="application/json",
-                status_code=500,
+                status_code=400,
             )
 
-    except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Delete the agent
+        agents_client.delete_agent(agent_id)
+
+        # Clear global instance if it was deleted
+        global _agent_instance
+        if _agent_instance and _agent_instance.id == agent_id:
+            _agent_instance = None
+
         return func.HttpResponse(
             json.dumps({
-                "error": f"Internal server error: {str(e)}",
+                "agent_id": agent_id,
+                "status": "deleted",
+                "timestamp": datetime.utcnow().isoformat()
+            }, indent=2),
+            mimetype="application/json",
+            status_code=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Error deleting agent: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({
+                "error": f"Failed to delete agent: {str(e)}",
+                "status": "error"
+            }),
+            mimetype="application/json",
+            status_code=500,
+        )
+
+
+@app.route(route="agent/code-interpreter", auth_level=func.AuthLevel.ANONYMOUS)
+def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Demonstrate agent's code interpreter capability.
+
+    Expected JSON body:
+    {
+        "code_task": "Calculate fibonacci sequence up to n=10"
+    }
+    """
+    logger.info("Demonstrating code interpreter")
+
+    try:
+        req_body = req.get_json()
+        code_task = req_body.get("code_task", "Calculate the sum of squares from 1 to 10")
+
+        # Create agent with code interpreter
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Create specialized agent for code tasks
+        code_agent = agents_client.create_agent(
+            model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
+            name=f"code-interpreter-{datetime.utcnow().strftime('%H%M%S')}",
+            instructions="You are a Python code expert. Use the code interpreter to solve computational tasks.",
+            tools=[{"type": "code_interpreter"}]
+        )
+
+        # Run the code task
+        thread = agents_client.create_thread()
+        message = agents_client.create_message(
+            thread_id=thread.id,
+            role="user",
+            content=f"Please solve this task using code: {code_task}"
+        )
+
+        run = agents_client.create_run(
+            thread_id=thread.id,
+            agent_id=code_agent.id
+        )
+
+        # Wait for completion
+        while run.status in ["queued", "in_progress"]:
+            run = agents_client.get_run(thread_id=thread.id, run_id=run.id)
+
+        # Get results
+        messages = agents_client.list_messages(thread_id=thread.id)
+        result = None
+        for msg in messages.data:
+            if msg.role == "assistant":
+                if hasattr(msg, 'content') and msg.content:
+                    if isinstance(msg.content, list) and len(msg.content) > 0:
+                        content_item = msg.content[0]
+                        if hasattr(content_item, 'text'):
+                            result = content_item.text.value
+                    elif isinstance(msg.content, str):
+                        result = msg.content
+                break
+
+        # Clean up temporary agent
+        agents_client.delete_agent(code_agent.id)
+
+        return func.HttpResponse(
+            json.dumps({
+                "task": code_task,
+                "result": result,
+                "thread_id": thread.id,
+                "status": "completed",
+                "timestamp": datetime.utcnow().isoformat()
+            }, indent=2),
+            mimetype="application/json",
+            status_code=200,
+        )
+
+    except Exception as e:
+        logger.error(f"Error in code interpreter demo: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({
+                "error": f"Failed to execute code task: {str(e)}",
                 "status": "error"
             }),
             mimetype="application/json",
@@ -332,9 +465,7 @@ def chat_with_ai(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="health", auth_level=func.AuthLevel.ANONYMOUS)
 def health_check(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Health check endpoint to verify the function app and AI Foundry connectivity.
-    """
+    """Health check endpoint to verify function app and AI Foundry connectivity."""
     logger.info("Health check requested")
 
     health_status = {
@@ -342,57 +473,41 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         "function_app": "running",
         "configuration": {},
         "ai_foundry": {},
-        "sdk": "Azure AI Inference (No OpenAI SDK)"
+        "sdk": "Azure AI Projects SDK (with Agents)"
     }
 
     # Check configuration
-    endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")
-    project_name = os.getenv("AI_FOUNDRY_PROJECT_NAME")
-
-    health_status["configuration"]["ai_foundry_endpoint"] = endpoint or "not set"
-    health_status["configuration"]["ai_foundry_project"] = project_name or "not set"
-    health_status["configuration"]["resource_group"] = os.getenv(
-        "RESOURCE_GROUP", "not set")
-    health_status["configuration"]["subscription"] = os.getenv(
-        "AZURE_SUBSCRIPTION_ID", "not set")
-
-    # Check if model deployment is configured
-    deployment_name = os.getenv("MODEL_DEPLOYMENT_NAME")
-    health_status["configuration"]["model_deployment"] = deployment_name or "auto-discover"
+    health_status["configuration"] = {
+        "ai_foundry_endpoint": os.getenv("AI_FOUNDRY_ENDPOINT", "not set"),
+        "ai_foundry_project_id": os.getenv("AI_FOUNDRY_PROJECT_ID", "not set"),
+        "ai_foundry_project_name": os.getenv("AI_FOUNDRY_PROJECT_NAME", "not set"),
+        "resource_group": os.getenv("RESOURCE_GROUP", "not set"),
+        "subscription": os.getenv("AZURE_SUBSCRIPTION_ID", "not set"),
+        "model_deployment": os.getenv("MODEL_DEPLOYMENT_NAME", "auto-discover")
+    }
 
     # Try to verify AI Foundry connectivity
     try:
-        chat_client, credential, ml_client = get_chat_client()
+        project_client = get_project_client()
         health_status["ai_foundry"]["client_initialized"] = True
-        health_status["ai_foundry"][
-            "client_type"] = "ChatCompletionsClient (AI Inference SDK)"
-        health_status["ai_foundry"]["project_name"] = ml_client.workspace_name
+        health_status["ai_foundry"]["client_type"] = "AIProjectClient"
+        health_status["ai_foundry"]["project_name"] = os.getenv("AI_FOUNDRY_PROJECT_NAME")
 
-        # Try to list project models
+        # Try to list agents
         try:
-            project_models = list_project_models(ml_client)
-            health_status["ai_foundry"]["project_models"] = project_models
-            health_status["ai_foundry"]["project_model_count"] = len(
-                project_models)
-        except Exception as e:
-            health_status["ai_foundry"]["project_models_error"] = str(e)[:200]
+            agents = list_agents()
+            health_status["ai_foundry"]["agents"] = agents
+            health_status["ai_foundry"]["agent_count"] = len(agents)
 
-        # Try to list deployments
-        try:
-            deployments = list_deployments_via_api(credential)
-            health_status["ai_foundry"]["available_deployments"] = deployments
-            health_status["ai_foundry"]["deployment_count"] = len(deployments)
-
-            if not deployments:
-                health_status["ai_foundry"]["warning"] = "No deployments found. Please deploy a model in Azure AI Foundry."
-                health_status["status"] = "warning"
+            if len(agents) == 0:
+                health_status["ai_foundry"]["info"] = "No agents found. Create one using /agent/create endpoint."
         except Exception as e:
-            health_status["ai_foundry"]["deployments_error"] = str(e)[:200]
+            health_status["ai_foundry"]["agents_error"] = str(e)[:200]
 
         # Check authentication
         try:
-            token = credential.get_token(
-                "https://cognitiveservices.azure.com/.default")
+            credential = DefaultAzureCredential()
+            token = credential.get_token("https://cognitiveservices.azure.com/.default")
             health_status["ai_foundry"]["authentication"] = "Success - Managed Identity working"
         except Exception as e:
             health_status["ai_foundry"]["authentication"] = f"Failed: {str(e)[:100]}"
@@ -403,10 +518,6 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         health_status["ai_foundry"]["error"] = str(e)[:200]
         health_status["status"] = "unhealthy"
 
-    # Overall status determination
-    if health_status["status"] == "healthy" and not health_status.get("ai_foundry", {}).get("available_deployments"):
-        health_status["status"] = "partially configured"
-
     return func.HttpResponse(
         json.dumps(health_status, indent=2),
         mimetype="application/json",
@@ -414,92 +525,215 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
     )
 
 
-@app.route(route="list-models", auth_level=func.AuthLevel.ANONYMOUS)
-def list_deployed_models(req: func.HttpRequest) -> func.HttpResponse:
+@app.route(route="demo", auth_level=func.AuthLevel.ANONYMOUS)
+def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Lists all deployed models in the AI Foundry project.
-    Uses ML Client to access project models and REST API for deployments.
+    Demonstrate various agent capabilities in one endpoint.
+    Shows creating an agent, having a conversation, and using tools.
     """
-    logger.info("Listing deployed models")
+    logger.info("Running agent capabilities demo")
+
+    demo_results = {
+        "demo": "Agent Capabilities Showcase",
+        "timestamp": datetime.utcnow().isoformat(),
+        "steps": []
+    }
 
     try:
-        # Initialize clients
-        chat_client, credential, ml_client = get_chat_client()
+        project_client = get_project_client()
+        agents_client = project_client.agents
 
-        # Get model deployments from Cognitive Services
-        subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
-        resource_group = os.getenv("RESOURCE_GROUP")
+        # Step 1: Create a demo agent
+        demo_results["steps"].append({"step": 1, "action": "Creating demo agent"})
 
-        # Parse account name
-        endpoint = os.getenv("AI_FOUNDRY_ENDPOINT", "")
-        if "cognitiveservices.azure.com" in endpoint:
-            account_name = endpoint.split("//")[1].split(".")[0]
-        elif "openai.azure.com" in endpoint:
-            account_name = endpoint.split("//")[1].split(".")[0]
-        else:
-            account_name = "unknown"
+        demo_agent = agents_client.create_agent(
+            model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
+            name=f"demo-agent-{datetime.utcnow().strftime('%H%M%S')}",
+            instructions="""You are a demonstration agent showcasing Azure AI Foundry capabilities.
+            You can:
+            1. Answer questions
+            2. Perform calculations using code interpreter
+            3. Maintain conversation context""",
+            tools=[{"type": "code_interpreter"}]
+        )
 
-        # List deployments
-        deployments = list_deployments_via_api(credential)
+        demo_results["agent_created"] = {
+            "id": demo_agent.id,
+            "name": demo_agent.name
+        }
 
-        # List project models
-        project_models = list_project_models(ml_client)
+        # Step 2: Create a conversation thread
+        demo_results["steps"].append({"step": 2, "action": "Creating conversation thread"})
+        thread = agents_client.create_thread()
+        demo_results["thread_id"] = thread.id
 
-        # Format deployment details if possible
-        models_info = []
-        if subscription_id and resource_group and account_name != "unknown":
-            token = credential.get_token(
-                "https://management.azure.com/.default")
-            management_url = f"https://management.azure.com/subscriptions/{subscription_id}/resourceGroups/{resource_group}/providers/Microsoft.CognitiveServices/accounts/{account_name}/deployments?api-version=2023-05-01"
+        # Step 3: Ask a general question
+        demo_results["steps"].append({"step": 3, "action": "Asking general question"})
 
-            headers = {
-                "Authorization": f"Bearer {token.token}",
-                "Content-Type": "application/json",
-            }
+        msg1 = agents_client.create_message(
+            thread_id=thread.id,
+            role="user",
+            content="Hello! What can you help me with today?"
+        )
 
-            response = requests.get(
-                management_url, headers=headers, timeout=10)
+        run1 = agents_client.create_run(thread_id=thread.id, agent_id=demo_agent.id)
+        while run1.status in ["queued", "in_progress"]:
+            run1 = agents_client.get_run(thread_id=thread.id, run_id=run1.id)
 
-            if response.status_code == 200:
-                deployments_data = response.json()
-                for deployment in deployments_data.get("value", []):
-                    properties = deployment.get("properties", {})
-                    model_info = properties.get("model", {})
+        # Step 4: Ask for a calculation
+        demo_results["steps"].append({"step": 4, "action": "Requesting calculation with code interpreter"})
 
-                    models_info.append({
-                        "deployment_name": deployment.get("name"),
-                        "model_name": model_info.get("name"),
-                        "model_version": model_info.get("version"),
-                        "model_format": model_info.get("format"),
-                        "capacity": properties.get("scaleSettings", {}).get("capacity"),
-                        "provisioning_state": properties.get("provisioningState"),
-                        "created_at": properties.get("createdAt"),
-                        "updated_at": properties.get("updatedAt"),
-                    })
+        msg2 = agents_client.create_message(
+            thread_id=thread.id,
+            role="user",
+            content="Calculate the factorial of 10 and explain what factorial means"
+        )
+
+        run2 = agents_client.create_run(thread_id=thread.id, agent_id=demo_agent.id)
+        while run2.status in ["queued", "in_progress"]:
+            run2 = agents_client.get_run(thread_id=thread.id, run_id=run2.id)
+
+        # Get all messages
+        messages = agents_client.list_messages(thread_id=thread.id)
+
+        conversation = []
+        for msg in reversed(list(messages.data)):
+            content_text = ""
+            if hasattr(msg, 'content') and msg.content:
+                if isinstance(msg.content, list) and len(msg.content) > 0:
+                    content_item = msg.content[0]
+                    if hasattr(content_item, 'text'):
+                        content_text = content_item.text.value
+                elif isinstance(msg.content, str):
+                    content_text = msg.content
+
+            conversation.append({
+                "role": msg.role,
+                "content": content_text or "No content"
+            })
+
+        demo_results["conversation"] = conversation
+
+        # Clean up demo agent
+        agents_client.delete_agent(demo_agent.id)
+        demo_results["cleanup"] = "Demo agent deleted"
+
+        demo_results["status"] = "success"
+
+        return func.HttpResponse(
+            json.dumps(demo_results, indent=2),
+            mimetype="application/json",
+            status_code=200,
+        )
+
+    except Exception as e:
+        demo_results["error"] = str(e)
+        demo_results["status"] = "error"
+
+        return func.HttpResponse(
+            json.dumps(demo_results, indent=2),
+            mimetype="application/json",
+            status_code=500,
+        )
+
+
+@app.route(route="agent/create", auth_level=func.AuthLevel.ANONYMOUS)
+def create_custom_agent(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Create a custom agent with specified configuration.
+
+    Expected JSON body:
+    {
+        "name": "agent-name",
+        "instructions": "agent instructions",
+        "model": "model-deployment-name",
+        "enable_code_interpreter": true,
+        "enable_file_search": false
+    }
+    """
+    logger.info("Creating custom agent")
+
+    try:
+        req_body = req.get_json()
+
+        if not req_body:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "Please provide agent configuration in request body",
+                    "status": "error"
+                }),
+                mimetype="application/json",
+                status_code=400,
+            )
+
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Configure tools based on request
+        tools = []
+        if req_body.get("enable_code_interpreter", True):
+            tools.append({"type": "code_interpreter"})
+        if req_body.get("enable_file_search", False):
+            tools.append({"type": "file_search"})
+
+        # Create agent
+        agent = agents_client.create_agent(
+            model=req_body.get("model", os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4")),
+            name=req_body.get("name", f"custom-agent-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"),
+            instructions=req_body.get("instructions", "You are a helpful AI assistant."),
+            tools=tools
+        )
 
         return func.HttpResponse(
             json.dumps({
-                "deployments": models_info if models_info else deployments,
-                "project_models": project_models,
-                "account": account_name,
-                "project": ml_client.workspace_name,
-                "resource_group": resource_group,
-                "deployment_count": len(models_info) if models_info else len(deployments),
-                "project_model_count": len(project_models),
-                "status": "success",
-                "sdk": "Azure AI Inference SDK",
-                "hint": "Using AI Foundry native SDK without OpenAI dependency"
+                "agent_id": agent.id,
+                "name": agent.name,
+                "model": agent.model,
+                "instructions": agent.instructions,
+                "tools": [str(tool) for tool in tools],
+                "status": "created",
+                "timestamp": datetime.utcnow().isoformat()
+            }, indent=2),
+            mimetype="application/json",
+            status_code=201,
+        )
+
+    except Exception as e:
+        logger.error(f"Error creating agent: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({
+                "error": f"Failed to create agent: {str(e)}",
+                "status": "error"
+            }),
+            mimetype="application/json",
+            status_code=500,
+        )
+
+
+@app.route(route="agent/list", auth_level=func.AuthLevel.ANONYMOUS)
+def list_all_agents(req: func.HttpRequest) -> func.HttpResponse:
+    """List all agents in the AI Foundry project."""
+    logger.info("Listing all agents")
+
+    try:
+        agents = list_agents()
+
+        return func.HttpResponse(
+            json.dumps({
+                "agents": agents,
+                "count": len(agents),
+                "project": os.getenv("AI_FOUNDRY_PROJECT_NAME"),
+                "status": "success"
             }, indent=2),
             mimetype="application/json",
             status_code=200,
         )
 
     except Exception as e:
-        logger.error(f"Error listing models: {str(e)}")
+        logger.error(f"Error listing agents: {str(e)}")
         return func.HttpResponse(
             json.dumps({
-                "error": f"Failed to list models: {str(e)}",
-                "hint": "Ensure you have deployed models in Azure AI Foundry and the managed identity has proper permissions",
+                "error": f"Failed to list agents: {str(e)}",
                 "status": "error"
             }),
             mimetype="application/json",
