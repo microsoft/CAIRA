@@ -14,13 +14,19 @@ foundry_application_insights_id    = "/subscriptions/.../resourceGroups/.../prov
 foundry_log_analytics_workspace_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.OperationalInsights/workspaces/..."
 
 # Optional: Function-specific configuration
-project_name      = "ai-integration"
-function_tier     = "Dynamic"
-function_sku_size = "Y1"
-python_version    = "3.11"
+project_name = "ai-integration"
 
+# Function App SKU Configuration
+function_tier     = "Dedicated"  # Options: "Dynamic", "ElasticPremium", "Dedicated"
+function_sku_size = "B1"         # Must match the tier selected above
+
+# Python runtime version
+python_version = "3.11"
+
+# Resource tags
 tags = {
   Environment = "Development"
   Project     = "AI Integration"
   Layer       = "Application"
+  ManagedBy   = "Terraform"
 }
