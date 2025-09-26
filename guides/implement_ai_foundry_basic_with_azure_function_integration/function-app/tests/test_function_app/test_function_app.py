@@ -10,9 +10,10 @@ from datetime import datetime
 class TestHealthCheck:
     """Test suite for health check endpoint"""
 
-    def test_health_check_success(self, http_request_factory, azure_environment,
-                                  mock_ai_project_client_class, mock_list_agents,
-                                  mock_default_credential):
+    def test_health_check_success(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_list_agents,
+            mock_default_credential):
         """Test successful health check"""
         # Arrange
         from function_app import health_check
@@ -101,8 +102,9 @@ class TestHttpExample:
 class TestAgentCreate:
     """Test suite for agent creation endpoint"""
 
-    def test_create_agent_success(self, http_request_factory, azure_environment,
-                                  mock_ai_project_client_class, mock_datetime):
+    def test_create_agent_success(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test successful agent creation"""
         # Arrange
         from function_app import create_custom_agent
@@ -128,8 +130,9 @@ class TestAgentCreate:
         assert response_data['name'] == 'test-assistant'
         assert response_data['model'] == 'gpt-4'
 
-    def test_create_agent_no_body(self, http_request_factory, azure_environment,
-                                  mock_ai_project_client_class):
+    def test_create_agent_no_body(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class):
         """Test agent creation with no request body"""
         # Arrange
         from function_app import create_custom_agent
@@ -148,8 +151,9 @@ class TestAgentCreate:
         assert response_data['status'] == 'error'
         assert 'Failed to create agent' in response_data['error']
 
-    def test_create_agent_with_defaults(self, http_request_factory, azure_environment,
-                                        mock_ai_project_client_class, mock_datetime):
+    def test_create_agent_with_defaults(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test agent creation with default values"""
         # Arrange
         from function_app import create_custom_agent
@@ -185,8 +189,9 @@ class TestAgentCreate:
 class TestAgentList:
     """Test suite for listing agents"""
 
-    def test_list_agents_success(self, http_request_factory, azure_environment,
-                                 mock_list_agents):
+    def test_list_agents_success(
+            self, http_request_factory, azure_environment,
+            mock_list_agents):
         """Test successful agent listing"""
         # Arrange
         from function_app import list_all_agents
@@ -222,9 +227,10 @@ class TestAgentList:
 class TestAgentChat:
     """Test suite for agent chat endpoint"""
 
-    def test_chat_success(self, http_request_factory, azure_environment,
-                          mock_get_or_create_agent, mock_run_agent_conversation,
-                          mock_datetime):
+    def test_chat_success(
+            self, http_request_factory, azure_environment,
+            mock_get_or_create_agent, mock_run_agent_conversation,
+            mock_datetime):
         """Test successful chat interaction"""
         # Arrange
         from function_app import agent_chat
@@ -244,9 +250,10 @@ class TestAgentChat:
         assert response_data['response'] == 'Test response from agent'
         assert response_data['thread_id'] == 'thread_test123'
 
-    def test_chat_with_thread_id(self, http_request_factory, azure_environment,
-                                 mock_get_or_create_agent, mock_run_agent_conversation,
-                                 mock_datetime):
+    def test_chat_with_thread_id(
+            self, http_request_factory, azure_environment,
+            mock_get_or_create_agent, mock_run_agent_conversation,
+            mock_datetime):
         """Test chat with existing thread ID"""
         # Arrange
         from function_app import agent_chat
@@ -289,9 +296,10 @@ class TestAgentChat:
         assert response_data['status'] == 'error'
         assert 'Please provide a \'message\'' in response_data['error']
 
-    def test_chat_with_prompt_key(self, http_request_factory, azure_environment,
-                                  mock_get_or_create_agent, mock_run_agent_conversation,
-                                  mock_datetime):
+    def test_chat_with_prompt_key(
+            self, http_request_factory, azure_environment,
+            mock_get_or_create_agent, mock_run_agent_conversation,
+            mock_datetime):
         """Test chat using 'prompt' key instead of 'message'"""
         # Arrange
         from function_app import agent_chat
@@ -313,8 +321,9 @@ class TestAgentChat:
 class TestAgentDelete:
     """Test suite for agent deletion"""
 
-    def test_delete_agent_success(self, http_request_factory, azure_environment,
-                                  mock_ai_project_client_class, mock_datetime):
+    def test_delete_agent_success(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test successful agent deletion"""
         # Arrange
         from function_app import delete_agent
@@ -356,8 +365,9 @@ class TestAgentDelete:
 class TestAgentCodeInterpreter:
     """Test suite for code interpreter demo"""
 
-    def test_code_interpreter_success(self, http_request_factory, azure_environment,
-                                      mock_ai_project_client_class, mock_datetime):
+    def test_code_interpreter_success(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test successful code interpreter execution"""
         # Arrange
         from function_app import agent_code_interpreter_demo
@@ -384,8 +394,9 @@ class TestAgentCodeInterpreter:
         assert response_data['status'] == 'completed'
         assert response_data['task'] == 'Calculate fibonacci sequence'
 
-    def test_code_interpreter_default_task(self, http_request_factory, azure_environment,
-                                           mock_ai_project_client_class, mock_datetime):
+    def test_code_interpreter_default_task(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test code interpreter with default task"""
         # Arrange
         from function_app import agent_code_interpreter_demo
@@ -415,8 +426,9 @@ class TestAgentCodeInterpreter:
 class TestDemo:
     """Test suite for demo endpoint"""
 
-    def test_demo_success(self, http_request_factory, azure_environment,
-                          mock_ai_project_client_class, mock_datetime):
+    def test_demo_success(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
         """Test successful demo execution"""
         # Arrange
         from function_app import demo_agent_capabilities
@@ -443,8 +455,9 @@ class TestDemo:
         assert 'thread_id' in response_data
         assert 'conversation' in response_data
 
-    def test_demo_handles_error(self, http_request_factory, azure_environment,
-                                mock_ai_project_client_class):
+    def test_demo_handles_error(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class):
         """Test demo error handling"""
         # Arrange
         from function_app import demo_agent_capabilities
@@ -561,8 +574,9 @@ class TestAgentOperations:
         assert agent.id == 'asst_new'
         mock_project_client.agents.create_agent.assert_called_once()
 
-    def test_run_agent_conversation_new_thread(self, azure_environment, mock_project_client,
-                                               mock_agent, mock_thread, mock_run, mock_message):
+    def test_run_agent_conversation_new_thread(
+            self, azure_environment, mock_project_client,
+            mock_agent, mock_thread, mock_run, mock_message):
         """Test running agent conversation with new thread"""
         # Arrange
         from function_app import run_agent_conversation
@@ -588,8 +602,9 @@ class TestAgentOperations:
         assert result['status'] == 'completed'
         mock_project_client.agents.threads.create.assert_called_once()
 
-    def test_run_agent_conversation_existing_thread(self, azure_environment, mock_project_client,
-                                                    mock_agent, mock_thread, mock_run, mock_message):
+    def test_run_agent_conversation_existing_thread(
+            self, azure_environment, mock_project_client,
+            mock_agent, mock_thread, mock_run, mock_message):
         """Test running agent conversation with existing thread"""
         # Arrange
         from function_app import run_agent_conversation
