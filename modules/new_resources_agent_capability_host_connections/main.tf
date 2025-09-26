@@ -87,12 +87,8 @@ resource "azapi_resource" "ai_search" {
       hostingMode    = "default"
       semanticSearch = "disabled"
 
-      disableLocalAuth = false
-      authOptions = {
-        aadOrApiKey = {
-          aadAuthFailureMode = "http401WithBearerChallenge"
-        }
-      }
+      disableLocalAuth = true
+
       encryptionWithCmk = {
         enforcement = "Unspecified"
       }

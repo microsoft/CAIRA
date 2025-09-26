@@ -51,6 +51,7 @@ Entra
 envprovider
 evhn
 evhub
+exfiltration
 frontmatter
 Frontmatter
 genai
@@ -93,6 +94,7 @@ Swetha
 TFFMT
 TFINIT
 tflint
+tfsec
 TFVALIDATE
 tfvars
 TFVERSION

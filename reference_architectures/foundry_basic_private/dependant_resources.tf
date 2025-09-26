@@ -22,4 +22,9 @@ module "application_insights" {
   enable_telemetry    = var.enable_telemetry
   application_type    = "other"
   tags                = var.tags
+  monitor_private_link_scope = var.monitor_private_link_scope_resource_id != null ? {
+    "ampls" = {
+      resource_id = var.monitor_private_link_scope_resource_id
+    }
+  } : {}
 }
