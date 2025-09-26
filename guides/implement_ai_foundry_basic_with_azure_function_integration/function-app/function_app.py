@@ -7,8 +7,7 @@ from azure.core.exceptions import AzureError
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.projects import AIProjectClient
 from typing import List, Dict, Optional, Tuple, Any
-import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = func.FunctionApp()
 
@@ -34,7 +33,8 @@ def get_project_client() -> AIProjectClient:
         # Get endpoint from environment
         endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")
         if not endpoint:
-            raise ValueError("AI_FOUNDRY_ENDPOINT environment variable is not set")
+            raise ValueError(
+                "AI_FOUNDRY_ENDPOINT environment variable is not set")
 
         # Build project endpoint in the correct format
         # Format: https://<AIFoundryResourceName>.services.ai.azure.com/api/projects/<ProjectName>
@@ -54,7 +54,8 @@ def get_project_client() -> AIProjectClient:
             credential=credential
         )
 
-        logger.info(f"AI Project Client initialized for endpoint: {project_endpoint}")
+        logger.info(
+            f"AI Project Client initialized for endpoint: {project_endpoint}")
         return _project_client
 
     except Exception as e:
@@ -77,7 +78,7 @@ def get_or_create_agent() -> Any:
         agent_name = "azure-function-assistant"
         try:
             agents = agents_client.list_agents()
-            for agent in agents.data:
+            for agent in agents:
                 if agent.name == agent_name:
                     logger.info(f"Using existing agent: {agent.id}")
                     _agent_instance = agent
@@ -95,7 +96,8 @@ def get_or_create_agent() -> Any:
 
         # Create the agent
         _agent_instance = agents_client.create_agent(
-            model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),  # Default to gpt-4 if not specified
+            # Default to gpt-4 if not specified
+            model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
             name=agent_name,
             instructions="""You are an intelligent AI assistant deployed through Azure AI Projects.
             You help users with various tasks including:
@@ -124,28 +126,28 @@ def run_agent_conversation(agent: Any, user_message: str, thread_id: Optional[st
 
         # Create or retrieve thread
         if thread_id:
-            thread = agents_client.get_thread(thread_id)
+            thread = agents_client.threads.get(thread_id)
             logger.info(f"Using existing thread: {thread_id}")
         else:
-            thread = agents_client.create_thread()
+            thread = agents_client.threads.create()
             logger.info(f"Created new thread: {thread.id}")
 
         # Add user message to thread
-        message = agents_client.create_message(
+        message = agents_client.messages.create(
             thread_id=thread.id,
             role="user",
             content=user_message
         )
 
         # Run the agent
-        run = agents_client.create_run(
+        run = agents_client.runs.create(
             thread_id=thread.id,
             agent_id=agent.id
         )
 
         # Wait for completion
         while run.status in ["queued", "in_progress", "requires_action"]:
-            run = agents_client.get_run(thread_id=thread.id, run_id=run.id)
+            run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
 
             # Handle tool calls if needed
             if run.status == "requires_action":
@@ -153,11 +155,11 @@ def run_agent_conversation(agent: Any, user_message: str, thread_id: Optional[st
                 pass
 
         # Get messages from the thread
-        messages = agents_client.list_messages(thread_id=thread.id)
+        messages = agents_client.messages.list(thread_id=thread.id)
 
         # Extract the latest assistant response
         assistant_response = None
-        for msg in messages.data:
+        for msg in messages:
             if msg.role == "assistant":
                 # Handle different content types
                 if hasattr(msg, 'content') and msg.content:
@@ -197,7 +199,7 @@ def list_agents() -> List[Dict]:
         agents = agents_client.list_agents()
         agent_list = []
 
-        for agent in agents.data:
+        for agent in agents:
             agent_list.append({
                 "id": agent.id,
                 "name": agent.name,
@@ -296,7 +298,7 @@ def agent_chat(req: func.HttpRequest) -> func.HttpResponse:
             json.dumps({
                 "user_message": message,
                 **result,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }, indent=2),
             mimetype="application/json",
             status_code=200,
@@ -359,7 +361,7 @@ def delete_agent(req: func.HttpRequest) -> func.HttpResponse:
             json.dumps({
                 "agent_id": agent_id,
                 "status": "deleted",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }, indent=2),
             mimetype="application/json",
             status_code=200,
@@ -391,7 +393,8 @@ def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         req_body = req.get_json()
-        code_task = req_body.get("code_task", "Calculate the sum of squares from 1 to 10")
+        code_task = req_body.get(
+            "code_task", "Calculate the sum of squares from 1 to 10")
 
         # Create agent with code interpreter
         project_client = get_project_client()
@@ -400,32 +403,32 @@ def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
         # Create specialized agent for code tasks
         code_agent = agents_client.create_agent(
             model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
-            name=f"code-interpreter-{datetime.utcnow().strftime('%H%M%S')}",
+            name=f"code-interpreter-{datetime.now(timezone.utc).strftime('%H%M%S')}",
             instructions="You are a Python code expert. Use the code interpreter to solve computational tasks.",
             tools=[{"type": "code_interpreter"}]
         )
 
         # Run the code task
-        thread = agents_client.create_thread()
-        message = agents_client.create_message(
+        thread = agents_client.threads.create()
+        message = agents_client.messages.create(
             thread_id=thread.id,
             role="user",
             content=f"Please solve this task using code: {code_task}"
         )
 
-        run = agents_client.create_run(
+        run = agents_client.runs.create(
             thread_id=thread.id,
             agent_id=code_agent.id
         )
 
         # Wait for completion
         while run.status in ["queued", "in_progress"]:
-            run = agents_client.get_run(thread_id=thread.id, run_id=run.id)
+            run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
 
         # Get results
-        messages = agents_client.list_messages(thread_id=thread.id)
+        messages = agents_client.messages.list(thread_id=thread.id)
         result = None
-        for msg in messages.data:
+        for msg in messages:
             if msg.role == "assistant":
                 if hasattr(msg, 'content') and msg.content:
                     if isinstance(msg.content, list) and len(msg.content) > 0:
@@ -445,7 +448,7 @@ def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
                 "result": result,
                 "thread_id": thread.id,
                 "status": "completed",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }, indent=2),
             mimetype="application/json",
             status_code=200,
@@ -491,7 +494,8 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         project_client = get_project_client()
         health_status["ai_foundry"]["client_initialized"] = True
         health_status["ai_foundry"]["client_type"] = "AIProjectClient"
-        health_status["ai_foundry"]["project_name"] = os.getenv("AI_FOUNDRY_PROJECT_NAME")
+        health_status["ai_foundry"]["project_name"] = os.getenv(
+            "AI_FOUNDRY_PROJECT_NAME")
 
         # Try to list agents
         try:
@@ -507,7 +511,8 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
         # Check authentication
         try:
             credential = DefaultAzureCredential()
-            token = credential.get_token("https://cognitiveservices.azure.com/.default")
+            token = credential.get_token(
+                "https://cognitiveservices.azure.com/.default")
             health_status["ai_foundry"]["authentication"] = "Success - Managed Identity working"
         except Exception as e:
             health_status["ai_foundry"]["authentication"] = f"Failed: {str(e)[:100]}"
@@ -535,7 +540,7 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
 
     demo_results = {
         "demo": "Agent Capabilities Showcase",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "steps": []
     }
 
@@ -544,11 +549,12 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
         agents_client = project_client.agents
 
         # Step 1: Create a demo agent
-        demo_results["steps"].append({"step": 1, "action": "Creating demo agent"})
+        demo_results["steps"].append(
+            {"step": 1, "action": "Creating demo agent"})
 
         demo_agent = agents_client.create_agent(
             model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
-            name=f"demo-agent-{datetime.utcnow().strftime('%H%M%S')}",
+            name=f"demo-agent-{datetime.now(timezone.utc).strftime('%H%M%S')}",
             instructions="""You are a demonstration agent showcasing Azure AI Foundry capabilities.
             You can:
             1. Answer questions
@@ -563,41 +569,46 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
         }
 
         # Step 2: Create a conversation thread
-        demo_results["steps"].append({"step": 2, "action": "Creating conversation thread"})
-        thread = agents_client.create_thread()
+        demo_results["steps"].append(
+            {"step": 2, "action": "Creating conversation thread"})
+        thread = agents_client.threads.create()
         demo_results["thread_id"] = thread.id
 
         # Step 3: Ask a general question
-        demo_results["steps"].append({"step": 3, "action": "Asking general question"})
+        demo_results["steps"].append(
+            {"step": 3, "action": "Asking general question"})
 
-        msg1 = agents_client.create_message(
+        msg1 = agents_client.messages.create(
             thread_id=thread.id,
             role="user",
             content="Hello! What can you help me with today?"
         )
 
-        run1 = agents_client.create_run(thread_id=thread.id, agent_id=demo_agent.id)
+        run1 = agents_client.runs.create(
+            thread_id=thread.id, agent_id=demo_agent.id)
         while run1.status in ["queued", "in_progress"]:
-            run1 = agents_client.get_run(thread_id=thread.id, run_id=run1.id)
+            run1 = agents_client.runs.get(thread_id=thread.id, run_id=run1.id)
 
         # Step 4: Ask for a calculation
-        demo_results["steps"].append({"step": 4, "action": "Requesting calculation with code interpreter"})
+        demo_results["steps"].append(
+            {"step": 4, "action": "Requesting calculation with code interpreter"})
 
-        msg2 = agents_client.create_message(
+        msg2 = agents_client.messages.create(
             thread_id=thread.id,
             role="user",
             content="Calculate the factorial of 10 and explain what factorial means"
         )
 
-        run2 = agents_client.create_run(thread_id=thread.id, agent_id=demo_agent.id)
+        run2 = agents_client.runs.create(
+            thread_id=thread.id, agent_id=demo_agent.id)
         while run2.status in ["queued", "in_progress"]:
-            run2 = agents_client.get_run(thread_id=thread.id, run_id=run2.id)
+            run2 = agents_client.runs.get(thread_id=thread.id, run_id=run2.id)
 
         # Get all messages
-        messages = agents_client.list_messages(thread_id=thread.id)
+        messages = agents_client.messages.list(thread_id=thread.id)
 
         conversation = []
-        for msg in reversed(list(messages.data)):
+        for msg in reversed(list(messages)):
             content_text = ""
             if hasattr(msg, 'content') and msg.content:
                 if isinstance(msg.content, list) and len(msg.content) > 0:
@@ -678,9 +689,12 @@ def create_custom_agent(req: func.HttpRequest) -> func.HttpResponse:
 
         # Create agent
         agent = agents_client.create_agent(
-            model=req_body.get("model", os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4")),
-            name=req_body.get("name", f"custom-agent-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"),
-            instructions=req_body.get("instructions", "You are a helpful AI assistant."),
+            model=req_body.get("model", os.getenv(
+                "MODEL_DEPLOYMENT_NAME", "gpt-4")),
+            name=req_body.get(
+                "name", f"custom-agent-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"),
+            instructions=req_body.get(
+                "instructions", "You are a helpful AI assistant."),
             tools=tools
         )
 
@@ -692,7 +706,7 @@ def create_custom_agent(req: func.HttpRequest) -> func.HttpResponse:
                 "instructions": agent.instructions,
                 "tools": [str(tool) for tool in tools],
                 "status": "created",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }, indent=2),
             mimetype="application/json",
             status_code=201,

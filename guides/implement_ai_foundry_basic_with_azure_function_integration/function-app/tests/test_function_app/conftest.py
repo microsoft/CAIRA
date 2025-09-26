@@ -134,13 +134,11 @@ def mock_run():
 
 @pytest.fixture
 def mock_agents_client(mock_agent, mock_thread, mock_message, mock_run):
-    """Mock agents client"""
+    """Mock agents client with nested structure for threads, messages, and runs"""
     agents_client = Mock()
 
-    # Setup list_agents
-    agents_response = Mock()
-    agents_response.data = [mock_agent]
-    agents_client.list_agents = Mock(return_value=agents_response)
+    # Setup list_agents to return a list directly (not a .data attribute)
+    agents_client.list_agents = Mock(return_value=[mock_agent])
 
     # Setup create_agent to dynamically create agent based on input
     def create_agent_side_effect(*args, **kwargs):
@@ -148,7 +146,8 @@ def mock_agents_client(mock_agent, mock_thread, mock_message, mock_run):
         new_agent.id = 'asst_test123'
         new_agent.name = kwargs.get('name', 'test-assistant')
         new_agent.model = kwargs.get('model', 'gpt-4')
-        new_agent.instructions = kwargs.get('instructions', 'You are a helpful assistant.')
+        new_agent.instructions = kwargs.get(
+            'instructions', 'You are a helpful assistant.')
         new_agent.tools = kwargs.get('tools', [])
         new_agent.created_at = '2024-01-01T00:00:00Z'
         return new_agent
@@ -158,19 +157,20 @@ def mock_agents_client(mock_agent, mock_thread, mock_message, mock_run):
     # Setup delete_agent
     agents_client.delete_agent = Mock()
 
-    # Setup thread operations
-    agents_client.create_thread = Mock(return_value=mock_thread)
-    agents_client.get_thread = Mock(return_value=mock_thread)
+    # Setup nested threads operations
+    agents_client.threads = Mock()
+    agents_client.threads.create = Mock(return_value=mock_thread)
+    agents_client.threads.get = Mock(return_value=mock_thread)
 
-    # Setup message operations
-    agents_client.create_message = Mock(return_value=mock_message)
-    messages_response = Mock()
-    messages_response.data = [mock_message]
-    agents_client.list_messages = Mock(return_value=messages_response)
+    # Setup nested messages operations
+    agents_client.messages = Mock()
+    agents_client.messages.create = Mock(return_value=mock_message)
+    agents_client.messages.list = Mock(return_value=[mock_message])
 
-    # Setup run operations
-    agents_client.create_run = Mock(return_value=mock_run)
-    agents_client.get_run = Mock(return_value=mock_run)
+    # Setup nested runs operations
+    agents_client.runs = Mock()
+    agents_client.runs.create = Mock(return_value=mock_run)
+    agents_client.runs.get = Mock(return_value=mock_run)
 
     return agents_client
 
@@ -348,6 +348,13 @@ def prevent_real_api_calls():
 def mock_datetime():
     """Mock datetime for consistent timestamps in tests"""
     with patch('function_app.datetime') as mock_dt:
-        mock_dt.utcnow.return_value.isoformat.return_value = '2024-01-01T00:00:00.000000'
-        mock_dt.utcnow.return_value.strftime.return_value = '20240101000000'
+        mock_now_result = Mock()
+        mock_now_result.isoformat.return_value = '2024-01-01T00:00:00.000000'
+        mock_now_result.strftime.return_value = '20240101000000'
+
+        mock_dt.now.return_value = mock_now_result
+
+        mock_dt.timezone = Mock()
+        mock_dt.timezone.utc = Mock()
+
         yield mock_dt

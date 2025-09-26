@@ -160,7 +160,6 @@ resource "null_resource" "function_app" {
           "PYTHON_ENABLE_WORKER_EXTENSIONS=1" \
           "PYTHON_ISOLATE_WORKER_DEPENDENCIES=1" \
           "AZURE_AI_FOUNDRY_ENDPOINT=${local.ai_foundry_endpoint}" \
-          "AZURE_AI_FOUNDRY_KEY=${local.ai_foundry_key}" \
           "AZURE_AI_FOUNDRY_PROJECT_NAME=${var.foundry_ai_foundry_project_name}" \
           "APPLICATIONINSIGHTS_CONNECTION_STRING=${data.azurerm_application_insights.this.connection_string}" \
           "APPINSIGHTS_INSTRUMENTATIONKEY=${data.azurerm_application_insights.this.instrumentation_key}" \

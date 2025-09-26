@@ -57,5 +57,4 @@ locals {
   function_app_name    = module.naming.function_app.name_unique
   storage_account_name = replace(module.naming.storage_account.name_unique, "-", "")
   ai_foundry_endpoint  = data.azurerm_cognitive_account.ai_foundry.endpoint
-  ai_foundry_key       = data.azurerm_cognitive_account.ai_foundry.primary_access_key
 }

@@ -87,7 +87,8 @@ class TestHttpExample:
         """Test HTTP example without name"""
         # Arrange
         from function_app import HttpExample
-        req = http_request_factory(method='GET', url='/api/HttpExample', body=b'')
+        req = http_request_factory(
+            method='GET', url='/api/HttpExample', body=b'')
 
         # Act
         response = HttpExample(req)
@@ -159,7 +160,8 @@ class TestAgentCreate:
             mock_agent.id = 'asst_test123'
             mock_agent.name = kwargs.get('name', 'test-assistant')
             mock_agent.model = kwargs.get('model', 'gpt-4')
-            mock_agent.instructions = kwargs.get('instructions', 'You are a helpful assistant.')
+            mock_agent.instructions = kwargs.get(
+                'instructions', 'You are a helpful assistant.')
             mock_agent.tools = kwargs.get('tools', [])
             return mock_agent
 
@@ -360,8 +362,13 @@ class TestAgentCodeInterpreter:
         # Arrange
         from function_app import agent_code_interpreter_demo
         mock_client = mock_ai_project_client_class.return_value
-        mock_run = mock_client.agents.create_run.return_value
+
+        # Setup the mock run to return completed status immediately
+        mock_run = Mock()
         mock_run.status = 'completed'
+        mock_client.agents.runs.create.return_value = mock_run
+        mock_client.agents.runs.get.return_value = mock_run
+
         req = http_request_factory(
             method='POST',
             url='/api/agent/code-interpreter',
@@ -383,8 +390,13 @@ class TestAgentCodeInterpreter:
         # Arrange
         from function_app import agent_code_interpreter_demo
         mock_client = mock_ai_project_client_class.return_value
-        mock_run = mock_client.agents.create_run.return_value
+
+        # Setup the mock run
+        mock_run = Mock()
         mock_run.status = 'completed'
+        mock_client.agents.runs.create.return_value = mock_run
+        mock_client.agents.runs.get.return_value = mock_run
+
         req = http_request_factory(
             method='POST',
             url='/api/agent/code-interpreter',
@@ -404,13 +416,18 @@ class TestDemo:
     """Test suite for demo endpoint"""
 
     def test_demo_success(self, http_request_factory, azure_environment,
-                         mock_ai_project_client_class, mock_datetime):
+                          mock_ai_project_client_class, mock_datetime):
         """Test successful demo execution"""
         # Arrange
         from function_app import demo_agent_capabilities
         mock_client = mock_ai_project_client_class.return_value
-        mock_run = mock_client.agents.create_run.return_value
+
+        # Setup mock run
+        mock_run = Mock()
         mock_run.status = 'completed'
+        mock_client.agents.runs.create.return_value = mock_run
+        mock_client.agents.runs.get.return_value = mock_run
+
         req = http_request_factory(method='GET', url='/api/demo')
 
         # Act
@@ -489,7 +506,8 @@ class TestProjectClientInitialization:
         # Act & Assert
         with pytest.raises(ValueError) as exc_info:
             get_project_client()
-        assert "AI_FOUNDRY_ENDPOINT environment variable is not set" in str(exc_info.value)
+        assert "AI_FOUNDRY_ENDPOINT environment variable is not set" in str(
+            exc_info.value)
 
 
 class TestAgentOperations:
@@ -506,9 +524,8 @@ class TestAgentOperations:
         mock_agent.name = 'azure-function-assistant'
         mock_agent.id = 'asst_existing'
 
-        agents_response = Mock()
-        agents_response.data = [mock_agent]
-        mock_project_client.agents.list_agents.return_value = agents_response
+        # Create an iterable list of agents directly
+        mock_project_client.agents.list_agents.return_value = [mock_agent]
 
         # Act
         with patch('function_app.get_project_client', return_value=mock_project_client):
@@ -525,13 +542,13 @@ class TestAgentOperations:
         import function_app
         function_app._agent_instance = None
 
-        agents_response = Mock()
-        agents_response.data = []
-        mock_project_client.agents.list_agents.return_value = agents_response
+        # Return empty list when no agents exist
+        mock_project_client.agents.list_agents.return_value = []
 
         mock_new_agent = Mock()
         mock_new_agent.id = 'asst_new'
         mock_new_agent.name = 'azure-function-assistant'
+        # Clear the side_effect and set return_value directly
         mock_project_client.agents.create_agent.side_effect = None
         mock_project_client.agents.create_agent.return_value = mock_new_agent
 
@@ -550,6 +567,17 @@ class TestAgentOperations:
         # Arrange
         from function_app import run_agent_conversation
 
+        # Setup threads to return mock thread
+        mock_project_client.agents.threads.create.return_value = mock_thread
+
+        # Setup messages
+        mock_project_client.agents.messages.create.return_value = mock_message
+        mock_project_client.agents.messages.list.return_value = [mock_message]
+
+        # Setup runs
+        mock_project_client.agents.runs.create.return_value = mock_run
+        mock_project_client.agents.runs.get.return_value = mock_run
+
         # Act
         with patch('function_app.get_project_client', return_value=mock_project_client):
             result = run_agent_conversation(mock_agent, "Test message")
@@ -558,19 +586,32 @@ class TestAgentOperations:
         assert result['thread_id'] == 'thread_test123'
         assert result['response'] == 'Test response from assistant'
         assert result['status'] == 'completed'
-        mock_project_client.agents.create_thread.assert_called_once()
+        mock_project_client.agents.threads.create.assert_called_once()
 
     def test_run_agent_conversation_existing_thread(self, azure_environment, mock_project_client,
-                                                   mock_agent, mock_thread, mock_run, mock_message):
+                                                    mock_agent, mock_thread, mock_run, mock_message):
         """Test running agent conversation with existing thread"""
         # Arrange
         from function_app import run_agent_conversation
 
+        # Setup threads to get existing thread
+        mock_project_client.agents.threads.get.return_value = mock_thread
+
+        # Setup messages
+        mock_project_client.agents.messages.create.return_value = mock_message
+        mock_project_client.agents.messages.list.return_value = [mock_message]
+
+        # Setup runs
+        mock_project_client.agents.runs.create.return_value = mock_run
+        mock_project_client.agents.runs.get.return_value = mock_run
+
         # Act
         with patch('function_app.get_project_client', return_value=mock_project_client):
-            result = run_agent_conversation(mock_agent, "Test message", "thread_existing")
+            result = run_agent_conversation(
+                mock_agent, "Test message", "thread_existing")
 
         # Assert
         assert result['thread_id'] == 'thread_test123'
-        mock_project_client.agents.get_thread.assert_called_once_with('thread_existing')
-        mock_project_client.agents.create_thread.assert_not_called()
+        mock_project_client.agents.threads.get.assert_called_once_with(
+            'thread_existing')
+        mock_project_client.agents.threads.create.assert_not_called()
