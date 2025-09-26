@@ -42,12 +42,6 @@ AI_FOUNDRY_ENDPOINT=$(az cognitiveservices account show \
 # Get subscription ID from Azure CLI
 AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
-# Get the primary key for the AI Foundry account (for local development)
-AI_FOUNDRY_KEY=$(az cognitiveservices account keys list \
-    --name "$AI_FOUNDRY_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --query "key1" -o tsv)
-
 # Navigate to function-app directory
 cd ../function-app
 
@@ -60,7 +54,6 @@ cat >local.settings.json <<EOF
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "FUNCTIONS_EXTENSION_VERSION": "~4",
     "AZURE_AI_FOUNDRY_ENDPOINT": "$AI_FOUNDRY_ENDPOINT",
-    "AZURE_AI_FOUNDRY_KEY": "$AI_FOUNDRY_KEY",
     "AZURE_AI_FOUNDRY_PROJECT_NAME": "$AI_FOUNDRY_PROJECT_NAME",
     "RESOURCE_GROUP": "$RESOURCE_GROUP",
     "AZURE_SUBSCRIPTION_ID": "$AZURE_SUBSCRIPTION_ID",

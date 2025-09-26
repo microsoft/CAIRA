@@ -135,11 +135,6 @@ run "test_connectivity" {
   }
 
   assert {
-    condition     = local.ai_foundry_key != null && local.ai_foundry_key != ""
-    error_message = "AI Foundry key should be available"
-  }
-
-  assert {
     condition     = var.foundry_ai_foundry_project_name != null && var.foundry_ai_foundry_project_name != ""
     error_message = "Project name should be configured"
   }
