@@ -6,13 +6,13 @@ ms.date: 09/25/2025
 ms.topic: concept
 estimated_reading_time: 8
 keywords:
-    - security
-    - deployment
-    - best practices
-    - terraform
-    - azure security
-    - reference architecture
-    - security posture
+   - security
+   - deployment
+   - best practices
+   - terraform
+   - azure security
+   - reference architecture
+   - security posture
 -->
 
 # CAIRA Security Posture
@@ -104,20 +104,13 @@ provider "azurerm" {
 
 **Implementation Pattern**:
 
-```terraform
-# Storage accounts use Azure AD authentication
+#### Storage accounts use Azure AD authentication
+
 storage_use_azuread = true
 
-# Cosmos DB disables local authentication
-local_authentication_disabled = true
+#### Cosmos DB disables local authentication
 
-# AI Search allows both Azure AD and API key authentication
-authOptions = {
-  aadOrApiKey = {
-    aadAuthFailureMode = "http401WithBearerChallenge"
-  }
-}
-```
+local_authentication_disabled = true
 
 **Rationale**:
 
