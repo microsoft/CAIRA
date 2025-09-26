@@ -81,9 +81,9 @@ The recommended way to engage with this sample is through a [development contain
 1. In the VS Code menu, click Terminal -> New Terminal to open a terminal within the container.
 1. Install the Azure Functions Core Tools (will be needed for deploying the Azure Function):
 
-   ``` bash
-   sudo apt-get install azure-functions-core-tools-4
-   ```
+    Install Link here: <https://github.com/Azure/azure-functions-core-tools>
+
+   > **Note**: The Linux-ARM64 based Dev Container has limited support for Azure Functions Core Tools. ARM64 support was recently added (December 2024) but may not be available in all distribution channels yet. For reliable function deployment, use the Azure CLI rather than `func` commands, or work outside the Dev Container in your local environment.
 
 ### 1. Clone and Setup
 
@@ -356,7 +356,7 @@ curl -X POST "$FUNCTION_URL/api/agent/chat" \
 
 ## Local Development
 
-> **Note**: If you're using the VS Code Dev Container, the Azure Functions Core Tools are already installed. Run these commands inside the container terminal. If you're not using the Dev Container, run these commands in your local environment.
+> **Note**: The Azure Functions Core Tools are in early support for the Linux-ARM64 based Dev Container. If you're using the Dev Container for development, you'll need to deploy your functions using the Azure CLI and test them remotely. For issues with local function debugging with `func start`, work outside the Dev Container in your local environment where Azure Functions Core Tools can be installed.
 
 ### 1. Setup Python Environment
 
