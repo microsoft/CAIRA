@@ -516,7 +516,8 @@ az monitor metrics list \
 
 ### Network Security
 
-- Consider implementing Private Endpoints for production (CAIRA includes private configurations)
+- For production deployments requiring private endpoints, use `foundry_basic_private` reference architecture located at `../../reference_architectures/foundry_basic_private`
+- The private configuration provides network isolation with Private Endpoints for all services
 - Use IP restrictions on Function App if needed
 - Enable CORS only for trusted domains
 
