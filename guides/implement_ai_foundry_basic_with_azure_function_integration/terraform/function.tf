@@ -18,8 +18,9 @@ resource "azurerm_storage_account" "function" {
   shared_access_key_enabled       = false
 
   # Default network rules
+  # trivy:ignore:AVD-AZU-0012
   network_rules {
-    default_action = "Allow"
+    default_action = "Allow" # Educational simplification - use "Deny" in production
     bypass         = ["AzureServices"]
   }
 
