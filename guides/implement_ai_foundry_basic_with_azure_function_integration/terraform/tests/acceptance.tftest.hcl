@@ -88,7 +88,7 @@ run "testacc_function_app_configuration" {
     python_version    = "3.11"
   }
 
-  # Test the Terraform-managed resources that still exist
+  # Test the native Terraform-managed resources
   assert {
     condition     = azurerm_service_plan.function.os_type == "Linux"
     error_message = "The App Service Plan should be Linux-based"
@@ -99,20 +99,37 @@ run "testacc_function_app_configuration" {
     error_message = "The App Service Plan SKU should be 'B1' for Dedicated tier"
   }
 
-  # Test the CLI-based resources (null_resources)
+  # Test the new native storage account resource
   assert {
-    condition     = null_resource.storage_account != null
-    error_message = "Storage account null_resource should be defined"
+    condition     = azurerm_storage_account.function.account_tier == "Standard"
+    error_message = "Storage account should be Standard tier"
   }
 
   assert {
-    condition     = null_resource.function_app != null
-    error_message = "Function app null_resource should be defined"
+    condition     = azurerm_storage_account.function.shared_access_key_enabled == false
+    error_message = "Storage account should have shared access keys disabled for security"
+  }
+
+  # Test the new native function app resource
+  assert {
+    condition     = azurerm_linux_function_app.main.storage_uses_managed_identity == true
+    error_message = "Function app should use managed identity for storage access"
   }
 
   assert {
-    condition     = null_resource.diagnostic_settings != null
-    error_message = "Diagnostic settings null_resource should be defined"
+    condition     = azurerm_linux_function_app.main.functions_extension_version == "~4"
+    error_message = "Function app should use Functions runtime version 4"
+  }
+
+  assert {
+    condition     = azurerm_linux_function_app.main.identity[0].type == "SystemAssigned"
+    error_message = "Function app should have System Assigned managed identity"
+  }
+
+  # Test diagnostic settings
+  assert {
+    condition     = azurerm_monitor_diagnostic_setting.function != null
+    error_message = "Diagnostic settings should be configured"
   }
 }
 
@@ -132,21 +149,31 @@ run "testacc_role_assignments" {
     project_name = "test-ai-func"
   }
 
-  # Test CLI-based role assignments
+  # Test native Terraform role assignments
   assert {
-    condition     = null_resource.role_ai_foundry_contributor != null
+    condition     = azurerm_role_assignment.function_ai_foundry_contributor.role_definition_name == "Cognitive Services Contributor"
     error_message = "Cognitive Services Contributor role assignment should exist"
   }
 
   assert {
-    condition     = null_resource.role_ai_foundry_user != null
+    condition     = azurerm_role_assignment.function_ai_foundry_user.role_definition_name == "Cognitive Services User"
     error_message = "Cognitive Services User role assignment should exist"
   }
 
-  # Storage role assignments are created within the function_app resource
+  # Test storage role assignments
   assert {
-    condition     = null_resource.function_app != null
-    error_message = "Function app resource should include storage role assignments"
+    condition     = azurerm_role_assignment.function_storage_blob.role_definition_name == "Storage Blob Data Owner"
+    error_message = "Storage Blob Data Owner role assignment should exist"
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.function_storage_file.role_definition_name == "Storage File Data SMB Share Contributor"
+    error_message = "Storage File Data SMB Share Contributor role assignment should exist"
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.function_storage_queue.role_definition_name == "Storage Queue Data Contributor"
+    error_message = "Storage Queue Data Contributor role assignment should exist"
   }
 }
 
@@ -187,5 +214,60 @@ run "testacc_naming_conventions" {
   assert {
     condition     = module.naming != null
     error_message = "Naming module should be referenced"
+  }
+
+  # Verify that resources are defined (values are computed at plan time)
+  assert {
+    condition     = azurerm_storage_account.function != null
+    error_message = "Storage account resource should be defined"
+  }
+
+  # Verify function app resource is defined
+  assert {
+    condition     = azurerm_linux_function_app.main != null
+    error_message = "Function app resource should be defined"
+  }
+}
+
+run "testacc_security_configuration" {
+  command = plan
+
+  variables {
+    foundry_resource_group_name        = "rg-basic-test123"
+    foundry_ai_foundry_name            = "cog-basic-test123"
+    foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
+    foundry_ai_foundry_project_name    = "default-project"
+    foundry_application_insights_name  = "appi-basic-test123"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
+    foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
+
+    project_name = "test-ai-func"
+  }
+
+  # Test security configurations
+  assert {
+    condition     = azurerm_storage_account.function.min_tls_version == "TLS1_2"
+    error_message = "Storage account should use minimum TLS 1.2"
+  }
+
+  assert {
+    condition     = azurerm_storage_account.function.https_traffic_only_enabled == true
+    error_message = "Storage account should only allow HTTPS traffic"
+  }
+
+  assert {
+    condition     = azurerm_storage_account.function.allow_nested_items_to_be_public == false
+    error_message = "Storage account should not allow public blob access"
+  }
+
+  assert {
+    condition     = azurerm_linux_function_app.main.site_config[0].ftps_state == "Disabled"
+    error_message = "Function app should have FTPS disabled"
+  }
+
+  assert {
+    condition     = azurerm_linux_function_app.main.site_config[0].minimum_tls_version == "1.2"
+    error_message = "Function app should use minimum TLS 1.2"
   }
 }

@@ -24,4 +24,8 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
+
+  # Enable Azure AD authentication for storage operations
+  # This allows Terraform to manage storage accounts without shared keys
+  storage_use_azuread = true
 }
