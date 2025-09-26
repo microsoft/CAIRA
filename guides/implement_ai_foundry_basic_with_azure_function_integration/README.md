@@ -414,7 +414,7 @@ func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
 
 **Symptom**:
 
-```
+```txt
 "AuthorizationFailed: The client '...' does not have authorization to perform action"
 ```
 
