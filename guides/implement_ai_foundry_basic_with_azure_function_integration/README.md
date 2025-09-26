@@ -4,74 +4,42 @@
 
 ## Overview
 
-This guide extends the CAIRA `foundry_basic` reference architecture with Azure Functions to enable serverless compute capabilities integrated with Azure AI Foundry. The solution leverages the existing foundry_basic pattern and adds Azure Functions for serverless AI integration using Azure OpenAI services.
+This guide demonstrates how to extend the CAIRA `foundry_basic` reference architecture with Azure Functions to enable serverless AI agent capabilities. The solution builds upon the existing foundry_basic pattern and adds Azure Functions for serverless AI integration using Azure AI Foundry Projects SDK.
 
 ## Architecture Components
 
 ![Architecture Diagram](./images/architecture.mermaid.png)
 
-- **Azure AI Foundry**: Cognitive Services account for AI capabilities (via foundry_basic module)
-- **Azure AI Project**: Organized workspace for AI workloads (via foundry_basic module)
+- **Azure AI Foundry**: AI services and project management (via foundry_basic module)
+- **Azure AI Project**: Organized workspace for AI agents (via foundry_basic module)
 - **Azure Function App**: Serverless compute with system-assigned managed identity
 - **Application Insights**: Monitoring and diagnostics (via foundry_basic module)
 - **Log Analytics**: Centralized logging (via foundry_basic module)
 
-## Project Directory Structure
+## Project Structure
 
-```plaintext
-guides/implement_ai_foundry_basic_with_azure_function_integration/
-├── function-app/                    # Azure Function application code
-│   ├── function_app.py              # Main function implementation (uses OpenAI SDK)
-│   ├── host.json                    # Function app global configuration
-│   ├── local.settings.json          # Local development settings
-│   ├── requirements.txt             # Python dependencies
-│   ├── requirements.test.txt        # Python test dependencies (pytest, mock, etc.)
-│   └── tests/                       # Python test directory
-│       ├── pytest.ini               # Pytest configuration (test discovery, markers)
-│       └── test_function_app/       # Python function app test sub-directory
-│           ├── test_function_app.py # Unit tests for function endpoints
-│           └── conftest.py          # Pytest fixtures and test configuration
-├── terraform/                       # Simplified Infrastructure as Code
-│   ├── main.tf                      # Calls foundry_basic + adds function
-│   ├── variables.tf                 # Input variables
-│   ├── outputs.tf                   # Combined outputs
-│   ├── providers.tf                 # Provider configuration
-│   ├── function.tf                  # Azure Function resources
-│   ├── terraform.tfvars.example     # Example configuration
-│   └── tests/                       # Terraform tests directory
-│       ├── acceptance.tftest.hcl    # Plan-only tests (validate config without creating resources)
-│       └── integration.tftest.hcl   # Apply tests (create and verify actual resources)
-├── scripts/                         # Automation scripts
-│   ├── deploy.sh                    # Single deployment script
-│   └── configure-local-settings.sh  # Updated for AI Foundry
-└── README.md                        # This guide
-```
+The implementation consists of:
+
+- **function-app/** - Azure Function application code using AI Projects SDK
+- **terraform/** - Infrastructure as Code for the function layer
+- **scripts/** - Automation and configuration scripts
+- **tests/** - Unit and integration tests
 
 ## Key Implementation Details
 
-### Azure OpenAI Integration
+### Azure AI Foundry Integration
 
-The function app uses the **Azure OpenAI SDK** (not ML SDK) to connect to Cognitive Services:
+The function app uses the **Azure AI Projects SDK** to:
 
-- Uses `openai` Python library with Azure-specific authentication
-- Connects directly to Cognitive Services endpoints
-- Supports GPT-3.5, GPT-4, and other OpenAI models deployed in Azure
+- Create and manage AI agents with tools (code interpreter, file search)
+- Maintain conversation threads for context retention
+- Connect to AI Foundry projects using managed identity authentication
 
 ### Authentication Method
 
 - **DefaultAzureCredential** for seamless authentication
 - **System-assigned Managed Identity** in Azure
-- Requires proper RBAC roles on Cognitive Services account
-
-### Python Dependencies
-
-```txt
-azure-functions
-azure-identity
-openai>=1.0.0
-azure-core
-requests
-```
+- RBAC roles automatically assigned via Terraform
 
 ## Prerequisites
 
@@ -86,7 +54,7 @@ requests
 
 - Active Azure subscription with sufficient permissions
 - App Service Plan quota in target region (B1 tier or higher)
-- Azure OpenAI service availability in your region
+- Azure AI Foundry service availability in your region
 
 ## Quick Start
 
@@ -137,16 +105,25 @@ export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 
 ### 3. Configure Variables
 
-Create a `terraform.tfvars` file:
+The function layer expects outputs from a deployed foundry_basic instance. First deploy foundry_basic, then create a `terraform.tfvars` file with its outputs:
 
 ```bash
 cd terraform
 cat > terraform.tfvars <<EOF
-location             = "swedencentral"
-project_name         = "ai-functions"
-project_display_name = "AI Functions Integration"
-project_description  = "AI Foundry with Azure Functions for serverless AI"
-function_app_sku     = "B1"
+# Outputs from foundry_basic deployment
+foundry_resource_group_name        = "rg-from-foundry-basic"
+foundry_ai_foundry_name            = "cog-from-foundry-basic"
+foundry_ai_foundry_id              = "/subscriptions/.../providers/Microsoft.CognitiveServices/accounts/..."
+foundry_ai_foundry_project_id      = "/subscriptions/.../projects/..."
+foundry_ai_foundry_project_name    = "project-name-from-foundry-basic"
+foundry_application_insights_name  = "appi-from-foundry-basic"
+foundry_application_insights_id    = "/subscriptions/.../components/..."
+foundry_log_analytics_workspace_id = "/subscriptions/.../workspaces/..."
+
+# Function-specific configuration
+project_name      = "ai-integration"
+function_sku_size = "B1"
+python_version    = "3.11"
 tags = {
   Environment = "dev"
   Project     = "AI-Functions"
@@ -154,110 +131,108 @@ tags = {
 EOF
 ```
 
-## Complete Deployment Steps
+## Deployment Steps
 
-### Step 1: Deploy Infrastructure
+### Step 1: Deploy Foundry Basic (if not already deployed)
+
+First, deploy the foundry_basic reference architecture:
 
 ```bash
-cd terraform
+cd ../../reference_architectures/foundry_basic
 terraform init
 terraform plan
 terraform apply
 ```
 
-This deploys:
-
-- Cognitive Services account (AI Foundry)
-- AI Project
-- Function App with managed identity
-- Storage account for Function App
-- Application Insights and Log Analytics
-
-### Step 2: Configure Managed Identity Permissions
-
-The Function App's managed identity needs proper permissions to access Cognitive Services:
+After deployment, capture the outputs you'll need:
 
 ```bash
-# Get the Function App's managed identity principal ID
-FUNCTION_APP_NAME=$(terraform output -raw function_app_name)
-RESOURCE_GROUP=$(terraform output -raw resource_group_name)
-PRINCIPAL_ID=$(az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --query principalId -o tsv)
-
-# Get the Cognitive Services account name
-COG_ACCOUNT_NAME=$(terraform output -raw ai_foundry_name)
-
-# Grant required roles
-az role assignment create \
-  --assignee $PRINCIPAL_ID \
-  --role "Cognitive Services User" \
-  --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.CognitiveServices/accounts/$COG_ACCOUNT_NAME
-
-az role assignment create \
-  --assignee $PRINCIPAL_ID \
-  --role "Cognitive Services OpenAI User" \
-  --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.CognitiveServices/accounts/$COG_ACCOUNT_NAME
-
-# For listing deployments, also grant Contributor role
-az role assignment create \
-  --assignee $PRINCIPAL_ID \
-  --role "Cognitive Services Contributor" \
-  --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.CognitiveServices/accounts/$COG_ACCOUNT_NAME
+# Save outputs for the function layer
+terraform output resource_group_name
+terraform output ai_foundry_name
+terraform output ai_foundry_id
+terraform output ai_foundry_project_id
+terraform output ai_foundry_project_name
+terraform output application_insights_id
+terraform output log_analytics_workspace_id
 ```
 
-### Step 3: Configure Function App Settings
+### Step 2: Configure Function Layer Variables
+
+Navigate to the function integration terraform directory and create your configuration:
 
 ```bash
-# Set required environment variables
-az functionapp config appsettings set \
-  --name $FUNCTION_APP_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --settings \
-  AI_FOUNDRY_ENDPOINT="https://$COG_ACCOUNT_NAME.cognitiveservices.azure.com/" \
-  AZURE_SUBSCRIPTION_ID="$(az account show --query id -o tsv)" \
-  RESOURCE_GROUP="$RESOURCE_GROUP" \
-  AI_FOUNDRY_PROJECT_NAME="$(terraform output -raw ai_foundry_project_name)" \
-  AI_FOUNDRY_PROJECT_ID="$(terraform output -raw ai_foundry_id)"
+cd guides/implement_ai_foundry_basic_with_azure_function_integration/terraform
 ```
+
+Create `terraform.tfvars` using the outputs from Step 1:
+
+```hcl
+# Required inputs from foundry_basic deployment
+foundry_resource_group_name        = "<output from Step 1>"
+foundry_ai_foundry_name            = "<output from Step 1>"
+foundry_ai_foundry_id              = "<output from Step 1>"
+foundry_ai_foundry_project_id      = "<output from Step 1>"
+foundry_ai_foundry_project_name    = "<output from Step 1>"
+
+# Extract the Application Insights name from its ID
+# Format: /subscriptions/.../resourceGroups/.../providers/microsoft.insights/components/NAME
+foundry_application_insights_name  = "<last segment of application_insights_id>"
+foundry_application_insights_id    = "<output from Step 1>"
+foundry_log_analytics_workspace_id = "<output from Step 1>"
+
+# Function-specific configuration
+project_name      = "ai-integration"
+function_tier     = "Dedicated"
+function_sku_size = "B1"
+python_version    = "3.11"
+
+tags = {
+  Environment = "dev"
+  Project     = "AI-Functions"
+}
+```
+
+### Step 3: Deploy Function Infrastructure
+
+Deploy the function infrastructure with Terraform. This will:
+
+- Create a Function App with system-assigned managed identity
+- Create a storage account for the Function App
+- Configure all necessary RBAC role assignments automatically:
+  - Cognitive Services Contributor on AI Foundry
+  - Cognitive Services User on AI Foundry
+  - Storage roles for Function App operation
+- Set up Application Insights integration
+- Configure the Function App with the AI Foundry endpoint
+
+```bash
+terraform init
+terraform plan  # Review the resources that will be created
+terraform apply
+```
+
+The Terraform configuration automatically:
+
+- Assigns the managed identity proper roles to access AI Foundry Project
+- Configures the Function App settings with the correct AI Foundry endpoint
+- Sets up authentication using managed identity (no keys required)
 
 ### Step 4: Deploy Function Code
 
 ```bash
 cd ../function-app
 
-# Deploy using Azure Functions Core Tools
+# Get the Function App name from Terraform output
+FUNCTION_APP_NAME=$(cd ../terraform && terraform output -raw function_app_name)
+
+# Deploy the Python function code
 func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
 ```
 
 The `--build remote` flag ensures dependencies are built in Azure's environment, which is crucial for Python functions.
 
-### Step 5: Deploy AI Models (Required for Chat Endpoint)
-
-Before using the chat endpoint, you must deploy at least one model:
-
-1. Go to [Azure AI Foundry](https://ai.azure.com)
-1. Select your project (e.g., "ai-functions")
-
-    - If you end up in the Management Center, click "Go to project"
-
-1. Under "My assets" in the left-hand bar, select "Models + endpoints"
-1. Deploy a model such as:
-
-   - GPT-3.5-turbo
-   - GPT-4
-   - GPT-4-turbo
-
-1. Note the deployment name
-
-Set the deployment as default:
-
-```bash
-az functionapp config appsettings set \
-  --name $FUNCTION_APP_NAME \
-  --resource-group $RESOURCE_GROUP \
-  --settings MODEL_DEPLOYMENT_NAME="your-deployment-name"
-```
-
-### Step 6: Verify Deployment
+### Step 5: Verify Deployment
 
 ```bash
 # Return to terraform directory
@@ -268,11 +243,8 @@ curl $(terraform output -raw function_app_url)/api/health | jq .
 
 # Expected response should show:
 # - "status": "healthy"
-# - "azure_openai": { "client_initialized": true }
-# - "available_deployments": [list of deployed models]
-
-# Test list-models endpoint
-curl $(terraform output -raw function_app_url)/api/list-models | jq .
+# - "ai_foundry": { "client_initialized": true }
+# - Agent information if any exist
 ```
 
 ## Function Endpoints
@@ -281,32 +253,67 @@ curl $(terraform output -raw function_app_url)/api/list-models | jq .
 
 - **Method**: GET
 - **Auth**: Anonymous
-- **Purpose**: Verifies Function App and Azure OpenAI connectivity
+- **Purpose**: Verifies Function App and AI Foundry connectivity
 - **Response**: JSON with configuration and connection status
 
-### 2. List Models (`/api/list-models`)
-
-- **Method**: GET
-- **Auth**: Anonymous
-- **Purpose**: Lists all deployed OpenAI models in the Cognitive Services account
-- **Response**: JSON array of available deployments
-
-### 3. Chat (`/api/chat`)
+### 2. Create Agent (`/api/agent/create`)
 
 - **Method**: POST
-- **Auth**: Function key required
-- **Purpose**: Chat with deployed AI models
+- **Auth**: Anonymous
+- **Purpose**: Create a new AI agent with specified capabilities
 - **Request Body**:
 
   ```json
   {
-    "prompt": "Your question here"
+    "name": "assistant-name",
+    "instructions": "You are a helpful assistant",
+    "model": "gpt-4",
+    "enable_code_interpreter": true,
+    "enable_file_search": false
   }
   ```
 
-- **Response**: AI-generated response with usage metrics
+### 3. Chat with Agent (`/api/agent/chat`)
 
-### 4. HttpExample (`/api/HttpExample`)
+- **Method**: POST
+- **Auth**: Anonymous
+- **Purpose**: Have conversations with AI agents
+- **Request Body**:
+
+  ```json
+  {
+    "message": "Your message here",
+    "thread_id": "optional-thread-id"
+  }
+  ```
+
+### 4. List Agents (`/api/agent/list`)
+
+- **Method**: GET
+- **Auth**: Anonymous
+- **Purpose**: List all agents in the AI Foundry project
+- **Response**: JSON array of available agents
+
+### 5. Delete Agent (`/api/agent/delete`)
+
+- **Method**: POST
+- **Auth**: Anonymous
+- **Purpose**: Delete an agent by ID
+- **Request Body**:
+
+  ```json
+  {
+    "agent_id": "agent-id-to-delete"
+  }
+  ```
+
+### 6. Demo (`/api/demo`)
+
+- **Method**: GET
+- **Auth**: Anonymous
+- **Purpose**: Demonstrates agent capabilities including conversation and code interpreter
+
+### 7. HttpExample (`/api/HttpExample`)
 
 - **Method**: GET
 - **Auth**: Anonymous
@@ -327,21 +334,29 @@ curl "$FUNCTION_URL/api/HttpExample?name=Azure"
 curl "$FUNCTION_URL/api/health" | jq .
 ```
 
-### Test Model Listing
+### Create an Agent
 
 ```bash
-curl "$FUNCTION_URL/api/list-models" | jq .
+curl -X POST "$FUNCTION_URL/api/agent/create" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-assistant",
+    "instructions": "You are a helpful AI assistant",
+    "enable_code_interpreter": true
+  }' | jq .
 ```
 
-### Test Chat Endpoint
+### Chat with Agent
 
 ```bash
-curl -X POST "$FUNCTION_URL/api/chat" \
+curl -X POST "$FUNCTION_URL/api/agent/chat" \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "What is Azure Functions?"}' | jq .
+  -d '{"message": "What is Azure Functions?"}' | jq .
 ```
 
 ## Local Development
+
+> **Note**: If you're using the VS Code Dev Container, the Azure Functions Core Tools are already installed. Run these commands inside the container terminal. If you're not using the Dev Container, run these commands in your local environment.
 
 ### 1. Setup Python Environment
 
@@ -359,22 +374,7 @@ cd ../scripts
 ./configure-local-settings.sh
 ```
 
-Or manually create `function-app/local.settings.json`:
-
-```json
-{
-  "IsEncrypted": false,
-  "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "python",
-    "AI_FOUNDRY_ENDPOINT": "https://your-cog-account.cognitiveservices.azure.com/",
-    "AI_FOUNDRY_PROJECT_NAME": "your-project-name",
-    "AI_FOUNDRY_PROJECT_ID": "/subscriptions/.../providers/Microsoft.CognitiveServices/accounts/.../projects/...",
-    "RESOURCE_GROUP": "your-rg",
-    "AZURE_SUBSCRIPTION_ID": "your-subscription-id"
-  }
-}
-```
+Or manually create `function-app/local.settings.json` with the AI Foundry endpoint and project details from your deployment.
 
 ### 3. Run Locally
 
@@ -389,10 +389,10 @@ func start
 # Test health
 curl http://localhost:7071/api/health | jq .
 
-# Test chat (requires Azure authentication)
-curl -X POST http://localhost:7071/api/chat \
+# Create and chat with agent
+curl -X POST http://localhost:7071/api/agent/chat \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "Hello from local development"}' | jq .
+  -d '{"message": "Hello from local development"}' | jq .
 ```
 
 ## Troubleshooting
@@ -403,7 +403,7 @@ curl -X POST http://localhost:7071/api/chat \
 
 **Symptom**: `curl` returns 404 for all endpoints
 
-**Solution**: Functions aren't deployed. Deploy the function code:
+**Solution**: Deploy the function code:
 
 ```bash
 cd function-app
@@ -414,46 +414,25 @@ func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
 
 **Symptom**:
 
-```plaintext
+```
 "AuthorizationFailed: The client '...' does not have authorization to perform action"
 ```
 
-**Solution**: Grant managed identity permissions:
+**Solution**: Role assignments are handled by Terraform. If issues persist:
 
 ```bash
-# Get principal ID
-PRINCIPAL_ID=$(az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --query principalId -o tsv)
-
-# Grant Cognitive Services roles
-az role assignment create --assignee $PRINCIPAL_ID --role "Cognitive Services User" --scope $(terraform output -raw ai_foundry_id)
-az role assignment create --assignee $PRINCIPAL_ID --role "Cognitive Services OpenAI User" --scope $(terraform output -raw ai_foundry_id)
-az role assignment create --assignee $PRINCIPAL_ID --role "Cognitive Services Contributor" --scope $(terraform output -raw ai_foundry_id)
-
-# Restart Function App
-az functionapp restart --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP
+cd terraform
+terraform apply -refresh-only
+terraform apply
 ```
 
-#### 3. ML Workspace Not Found
+Then restart the Function App:
 
-**Symptom**:
-
-```plaintext
-"ResourceNotFound: The Resource 'Microsoft.MachineLearningServices/workspaces/...' was not found"
+```bash
+az functionapp restart --name $FUNCTION_APP_NAME --resource-group $(terraform output -raw resource_group_name)
 ```
 
-**Solution**: The function app is using the wrong SDK. Ensure you're using the updated `function_app.py` that uses OpenAI SDK instead of ML SDK.
-
-#### 4. No Models Available
-
-**Symptom**: `list-models` returns empty array
-
-**Solution**: Deploy models in Azure AI Studio:
-
-1. Go to [Azure AI Studio](https://ai.azure.com)
-1. Select your project
-1. Deploy a model (GPT-3.5-turbo or GPT-4)
-
-#### 5. Function Deployment Fails
+#### 3. Function Deployment Fails
 
 **Symptom**: `func azure functionapp publish` fails
 
@@ -464,7 +443,7 @@ az functionapp restart --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROU
 - Verify Function App exists: `az functionapp list --resource-group $RESOURCE_GROUP`
 - Use `--build remote` flag: `func azure functionapp publish $FUNCTION_APP_NAME --python --build remote`
 
-#### 6. Local Development Authentication Issues
+#### 5. Local Development Authentication Issues
 
 **Symptom**: DefaultAzureCredential fails locally
 
@@ -487,49 +466,23 @@ az functionapp config appsettings list --name $FUNCTION_APP_NAME --resource-grou
 # Verify managed identity
 az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP
 
-# List role assignments
-PRINCIPAL_ID=$(az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --query principalId -o tsv)
-az role assignment list --assignee $PRINCIPAL_ID --output table
-
 # Check deployed functions
 az functionapp function list --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --output table
 ```
 
 ## Testing
 
-### Python Tests
+The implementation includes both Python unit tests and Terraform integration tests. To run tests:
 
 ```bash
-# Run all tests
+# Python tests
 cd function-app
 pytest
 
-# Run with coverage
-pytest --cov=function_app
-
-# Run specific test
-pytest tests/test_function_app/test_function_app.py::test_health
-```
-
-### Terraform Tests
-
-```bash
-# Run all tests
+# Terraform tests
 cd terraform
-terraform init
 terraform test
-
-# Run acceptance tests only (no resources created)
-terraform test -filter=tests/acceptance.tftest.hcl
-
-# Run integration tests only (creates real resources)
-terraform test -filter=tests/integration.tftest.hcl
 ```
-
-### Prerequisites
-
-- Python tests: `pip install -r requirements.test.txt`
-- Terraform tests: `export ARM_SUBSCRIPTION_ID=<your-subscription-id>`
 
 ## Monitoring
 
@@ -563,7 +516,7 @@ az monitor metrics list \
 
 ### Network Security
 
-- Consider implementing Private Endpoints for production
+- Consider implementing Private Endpoints for production (CAIRA includes private configurations)
 - Use IP restrictions on Function App if needed
 - Enable CORS only for trusted domains
 
@@ -576,14 +529,13 @@ az monitor metrics list \
 ## Cost Optimization
 
 - **Function App**:
-  - Consumption plan: ~$0 for low usage
-  - B1 App Service Plan: ~$55/month (better for consistent load)
-- **Cognitive Services**:
-  - Pay-per-token for OpenAI models
-  - GPT-3.5-turbo: ~$0.0015 per 1K tokens
-  - GPT-4: ~$0.03 per 1K tokens
-- **Storage**: ~$5/month for Function App storage
-- **Monitoring**: ~$5/month for Application Insights (low volume)
+  - Consumption plan: Pay-per-execution model for sporadic usage
+  - B1 App Service Plan: Fixed monthly cost for consistent load
+- **AI Foundry**:
+  - Pay-per-token for AI models
+  - Agent usage based on model selected
+- **Storage**: Minimal cost for Function App storage
+- **Monitoring**: Application Insights costs scale with telemetry volume
 
 ## Clean Up
 
@@ -592,99 +544,21 @@ Remove all resources:
 ```bash
 cd terraform
 terraform destroy -auto-approve
-
-# Optional: Remove any role assignments
-PRINCIPAL_ID=$(az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --query principalId -o tsv 2>/dev/null)
-if [ ! -z "$PRINCIPAL_ID" ]; then
-  az role assignment delete --assignee $PRINCIPAL_ID
-fi
 ```
 
 ## Known Limitations
 
 - AI Foundry Projects is evolving; some features may change
-- Model availability varies by region (check Azure OpenAI availability)
+- Model availability varies by region
 - Function consumption plan has cold start delays
-- The foundry_basic module must be available in the relative path
-- Azure OpenAI has rate limits and quotas per subscription
-
-## Using GitHub Copilot for Implementation
-
-When implementing this solution, GitHub Copilot can assist with code generation. Here are effective prompts:
-
-### For Terraform Resources
-
-```plaintext
-# Prompt: "Create an Azure Cognitive Services account with OpenAI capabilities and system-assigned identity"
-# Prompt: "Add a Function App with managed identity that can access Cognitive Services using RBAC"
-# Prompt: "Generate Terraform outputs for Function App URL and Cognitive Services endpoint"
-```
-
-### For Python Functions
-
-```plaintext
-# Prompt: "Create an Azure Function that uses Azure OpenAI SDK with DefaultAzureCredential for managed identity authentication"
-# Prompt: "Implement chat completion using Azure OpenAI with retry logic and error handling"
-# Prompt: "Write a function to list OpenAI model deployments using Azure Management API"
-```
-
-### For Scripts
-
-```plaintext
-# Prompt: "Create a bash script that grants Cognitive Services roles to a Function App managed identity"
-# Prompt: "Write a script to configure local.settings.json from Terraform outputs for Azure OpenAI endpoints"
-# Prompt: "Generate deployment script that uses func azure functionapp publish with remote build"
-```
-
-## HVE (HyperVelocity Engineering) Prompts
-
-For step-by-step guidance, use these Copilot prompts at each stage:
-
-### Initial Setup
-
-1. "How do I get the managed identity principal ID for my Function App?"
-   - Copilot will guide you to use Azure CLI or Terraform outputs
-
-1. "Generate Terraform code for Cognitive Services with OpenAI deployments"
-   - Creates the necessary infrastructure for AI services
-
-### Function Development
-
-1. "Create a Python Azure Function that calls Azure OpenAI using managed identity authentication"
-   - Ensures proper use of DefaultAzureCredential with OpenAI SDK
-
-1. "Add comprehensive error handling for Azure OpenAI API calls with exponential backoff"
-   - Implements production-ready resilience for rate limits
-
-### Deployment & Configuration
-
-1. "Generate Azure CLI commands to assign Cognitive Services roles to Function App managed identity"
-   - Creates the necessary RBAC assignments
-
-1. "Create a script to deploy function code with func azure functionapp publish and remote build"
-   - Automates the deployment with proper Python dependency handling
-
-### Testing & Debugging
-
-1. "Generate curl commands to test Azure Function endpoints with function key authentication"
-   - Creates test scenarios for all endpoints
-
-1. "Write KQL queries for Application Insights to monitor OpenAI API usage and errors"
-   - Sets up proper monitoring and diagnostics
-
-### Troubleshooting
-
-1. "How to fix 'AuthorizationFailed' errors when Function App calls Cognitive Services?"
-   - Guides through RBAC role assignments
-
-1. "Debug why deployed functions return 404 in Azure but work locally"
-   - Helps verify deployment and configuration
+- The foundry_basic module must be deployed first
+- Agent capabilities depend on deployed models in foundry_basic
 
 ## Support and Resources
 
-- [Azure OpenAI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+- [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)
+- [Azure AI Projects SDK Documentation](https://learn.microsoft.com/en-us/azure/ai-studio/)
 - [Azure Functions Python Developer Guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python)
-- [Azure AI Studio](https://ai.azure.com)
 - [CAIRA Reference Architectures](../../reference_architectures/)
 
 ## Contributing
