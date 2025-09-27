@@ -79,11 +79,29 @@ The recommended way to engage with this sample is through a [development contain
     ![Connecting to Dev Container](images/connecting_to_dev_container.png)
 
 1. In the VS Code menu, click Terminal -> New Terminal to open a terminal within the container.
-1. Install the Azure Functions Core Tools (will be needed for deploying the Azure Function):
+1. Install Python 3.11 and Azure Functions Core Tools for ARM64:
 
-    Install Link here: <https://github.com/Azure/azure-functions-core-tools>
+    ```bash
+    # Ensure Python 3.11 is installed (required for function app compatibility)
+    sudo apt update
+    sudo apt install -y python3.11 python3.11-venv python3.11-dev
 
-   > **Note**: The Linux-ARM64 based Dev Container has limited support for Azure Functions Core Tools. ARM64 support was recently added (December 2024) but may not be available in all distribution channels yet. For reliable function deployment, use the Azure CLI rather than `func` commands, or work outside the Dev Container in your local environment.
+    # Download and install ARM64 Azure Functions Core Tools in /opt
+    # Using preview version for ARM64 support
+    cd /tmp
+    wget https://github.com/Azure/azure-functions-core-tools/releases/download/4.3.0-preview1/Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+    sudo unzip -d /opt/azure-functions-cli Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+    sudo chmod +x /opt/azure-functions-cli/func /opt/azure-functions-cli/gozip
+    sudo ln -sf /opt/azure-functions-cli/func /usr/local/bin/func
+    sudo ln -sf /opt/azure-functions-cli/gozip /usr/local/bin/gozip
+    rm Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+
+    # If you have a conflicting npm version installed, remove it:
+    npm uninstall -g azure-functions-core-tools 2>/dev/null || true
+
+    # Verify installation (should show 4.3.0-preview1)
+    func --version
+    ```
 
 ### 1. Clone and Setup
 
@@ -356,7 +374,7 @@ curl -X POST "$FUNCTION_URL/api/agent/chat" \
 
 ## Local Development
 
-> **Note**: The Azure Functions Core Tools are in early support for the Linux-ARM64 based Dev Container. If you're using the Dev Container for development, you'll need to deploy your functions using the Azure CLI and test them remotely. For issues with local function debugging with `func start`, work outside the Dev Container in your local environment where Azure Functions Core Tools can be installed.
+> **Important:**: Always use a Python 3.11 virtual environment to match the Azure Function runtime requirements.
 
 ### 1. Setup Python Environment
 
