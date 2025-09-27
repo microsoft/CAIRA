@@ -54,12 +54,10 @@ run "test_function_deployment" {
     foundry_ai_foundry_project_name = run.setup_foundry_basic.ai_foundry_project_name
     # Extract Application Insights name from its ID (last segment after /)
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     # Function-specific configuration
     project_name      = "inttest"
-    function_tier     = "Dedicated"
     function_sku_size = "B1"
     python_version    = "3.11"
     tags = {
@@ -112,7 +110,6 @@ run "test_connectivity" {
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
@@ -167,7 +164,6 @@ run "test_role_assignments" {
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
@@ -223,7 +219,6 @@ run "test_outputs" {
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
@@ -277,7 +272,6 @@ run "test_security" {
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"

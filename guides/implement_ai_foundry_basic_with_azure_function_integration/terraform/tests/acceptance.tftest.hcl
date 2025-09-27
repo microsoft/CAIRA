@@ -40,11 +40,9 @@ run "testacc_prerequisites" {
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
     foundry_ai_foundry_project_name    = "default-project"
     foundry_application_insights_name  = "appi-basic-test123"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name      = "test-ai-func"
-    function_tier     = "Dedicated"
     function_sku_size = "B1"
     python_version    = "3.11"
     tags = {
@@ -79,11 +77,9 @@ run "testacc_function_app_configuration" {
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
     foundry_ai_foundry_project_name    = "default-project"
     foundry_application_insights_name  = "appi-basic-test123"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name      = "test-ai-func"
-    function_tier     = "Dedicated"
     function_sku_size = "B1"
     python_version    = "3.11"
   }
@@ -143,7 +139,6 @@ run "testacc_role_assignments" {
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
     foundry_ai_foundry_project_name    = "default-project"
     foundry_application_insights_name  = "appi-basic-test123"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name = "test-ai-func"
@@ -187,7 +182,6 @@ run "testacc_naming_conventions" {
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
     foundry_ai_foundry_project_name    = "default-project"
     foundry_application_insights_name  = "appi-basic-test123"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name = "test-ai-func"
@@ -239,7 +233,6 @@ run "testacc_security_configuration" {
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
     foundry_ai_foundry_project_name    = "default-project"
     foundry_application_insights_name  = "appi-basic-test123"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/microsoft.insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name = "test-ai-func"
