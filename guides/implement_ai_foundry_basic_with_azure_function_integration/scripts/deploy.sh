@@ -1,6 +1,5 @@
 #!/bin/bash
 # deploy.sh - Single deployment script for AI Foundry with Functions
-
 set -e
 
 # Colors for output
@@ -40,6 +39,6 @@ print_message "$GREEN" "Function App: $FUNCTION_APP_NAME"
 # Deploy function code
 print_message "$YELLOW" "Deploying function code..."
 cd ../function-app
-func azure functionapp publish $FUNCTION_APP_NAME --python
+func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
 
 print_message "$GREEN" "Function deployment complete!"
