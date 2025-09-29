@@ -81,20 +81,11 @@ resource "azurerm_linux_function_app" "main" {
 
   # Application settings
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"              = "python"
-    "FUNCTIONS_EXTENSION_VERSION"           = "~4"
-    "WEBSITE_RUN_FROM_PACKAGE"              = "1"
-    "WEBSITE_MOUNT_ENABLED"                 = "1"
-    "SCM_DO_BUILD_DURING_DEPLOYMENT"        = "true"
-    "PYTHON_ENABLE_WORKER_EXTENSIONS"       = "1"
-    "PYTHON_ISOLATE_WORKER_DEPENDENCIES"    = "1"
-    "AZURE_AI_FOUNDRY_ENDPOINT"             = local.ai_foundry_endpoint
-    "AZURE_AI_FOUNDRY_PROJECT_NAME"         = var.foundry_ai_foundry_project_name
-    "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string
-    "APPINSIGHTS_INSTRUMENTATIONKEY"        = data.azurerm_application_insights.this.instrumentation_key
-    "WEBSITE_ENABLE_SYNC_UPDATE_SITE"       = "true"
-    "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function.name
-    "AzureWebJobsStorage__credential"       = "managedidentity"
+    "FUNCTIONS_WORKER_RUNTIME"         = "python"
+    "AZURE_AI_FOUNDRY_ENDPOINT"        = local.ai_foundry_endpoint
+    "AZURE_AI_FOUNDRY_PROJECT_NAME"    = var.foundry_ai_foundry_project_name
+    "AzureWebJobsStorage__accountName" = azurerm_storage_account.function.name
+    "AzureWebJobsStorage__credential"  = "managedidentity"
   }
 
   tags = var.tags

@@ -61,31 +61,3 @@ output "ai_foundry_endpoint" {
   description = "The endpoint URL for the AI Foundry service"
   value       = local.ai_foundry_endpoint
 }
-
-output "deployment_status" {
-  description = "Status of the deployment including all resources"
-  value = {
-    storage_account = {
-      created = azurerm_storage_account.function.id != null
-      name    = azurerm_storage_account.function.name
-      id      = azurerm_storage_account.function.id
-    }
-    function_app = {
-      created  = azurerm_linux_function_app.main.id != null
-      name     = azurerm_linux_function_app.main.name
-      hostname = azurerm_linux_function_app.main.default_hostname
-      id       = azurerm_linux_function_app.main.id
-    }
-    role_assignments = {
-      ai_foundry_contributor = azurerm_role_assignment.function_ai_foundry_contributor.id != null
-      ai_foundry_user        = azurerm_role_assignment.function_ai_foundry_user.id != null
-      storage_blob           = azurerm_role_assignment.function_storage_blob.id != null
-      storage_file           = azurerm_role_assignment.function_storage_file.id != null
-      storage_queue          = azurerm_role_assignment.function_storage_queue.id != null
-    }
-    diagnostics = {
-      configured = azurerm_monitor_diagnostic_setting.function.id != null
-      name       = azurerm_monitor_diagnostic_setting.function.name
-    }
-  }
-}
