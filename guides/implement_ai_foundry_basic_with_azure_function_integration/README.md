@@ -39,7 +39,7 @@ The function app uses the **Azure AI Projects SDK** to:
 
 - **DefaultAzureCredential** for seamless authentication
 - **System-assigned Managed Identity** in Azure
-- RBAC roles automatically assigned via Terraform
+- **RBAC roles assigned via Terraform** - The Terraform configuration explicitly creates role assignments for the Function App's managed identity to access AI Foundry and storage resources
 
 ## Prerequisites
 
@@ -202,7 +202,7 @@ Deploy the function infrastructure with Terraform. This will:
 
 - Create a Function App with system-assigned managed identity
 - Create a storage account for the Function App
-- Configure all necessary RBAC role assignments automatically:
+- Configure all necessary RBAC role assignments:
   - Cognitive Services Contributor on AI Foundry
   - Cognitive Services User on AI Foundry
   - Storage roles for Function App operation
@@ -215,7 +215,7 @@ terraform plan
 terraform apply
 ```
 
-The Terraform configuration automatically:
+The Terraform configuration handles:
 
 - Assigns the managed identity proper roles to access AI Foundry Project
 - Configures the Function App settings with the correct AI Foundry endpoint
