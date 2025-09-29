@@ -241,4 +241,4 @@ CAIRA provides a **secure foundation** rather than a **production-ready security
 
 The security decisions in CAIRA are intentionally **transparent and documented** to help teams understand the trade-offs and make informed decisions about additional security controls needed for their specific use cases. We encourage teams to engage with their security professionals early in the adoption process to identify and implement appropriate additional controls.
 
-For questions about security implementations or to report security vulnerabilities, please refer to our [Security Policy](../SECURITY.md).
+For questions about security implementations or to report security vulnerabilities, please refer to our [Security Policy](https://github.com/microsoft/CAIRA/blob/main/SECURITY.md).
