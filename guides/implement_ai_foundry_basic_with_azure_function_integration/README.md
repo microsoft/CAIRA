@@ -177,7 +177,7 @@ terraform output log_analytics_workspace_id
 Navigate to the function integration terraform directory and create your configuration:
 
 ```bash
-cd guides/implement_ai_foundry_basic_with_azure_function_integration/terraform
+cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terraform
 ```
 
 Create `terraform.tfvars` using the outputs from Step 1:
