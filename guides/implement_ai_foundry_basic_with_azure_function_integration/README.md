@@ -140,7 +140,6 @@ First, deploy the foundry_basic reference architecture:
 ```bash
 cd ../../reference_architectures/foundry_basic
 terraform init
-terraform plan
 terraform apply
 ```
 
@@ -211,7 +210,6 @@ Deploy the function infrastructure with Terraform. This will:
 
 ```bash
 terraform init
-terraform plan
 terraform apply
 ```
 
