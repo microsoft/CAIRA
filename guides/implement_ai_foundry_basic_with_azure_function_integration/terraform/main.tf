@@ -4,7 +4,7 @@
 # This Terraform configuration deploys Azure Functions that
 # integrate with an existing AI Foundry deployment.
 #
-# Prerequisites: foundry_basic must be deployed first
+# Prerequisites: any accessible foundry instance
 ############################################################
 
 # Data sources for existing foundry_basic resources
