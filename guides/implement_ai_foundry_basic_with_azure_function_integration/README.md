@@ -555,13 +555,12 @@ terraform destroy -auto-approve
 - AI Foundry Projects is evolving; some features may change
 - Model availability varies by region
 - Function consumption plan has cold start delays
-- The foundry_basic module must be deployed first
 - Agent capabilities depend on deployed models in foundry_basic
 
 ## Support and Resources
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)
-- [Azure AI Projects SDK Documentation](https://learn.microsoft.com/en-us/azure/ai-studio/)
+- [Azure AI Projects SDK Documentation](https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme?view=azure-python)
 - [Azure Functions Python Developer Guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python)
 - [CAIRA Reference Architectures](../../reference_architectures/)
 
