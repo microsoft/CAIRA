@@ -88,9 +88,9 @@ provider "azurerm" {
 
 **Rationale**:
 
-- **Choice and Flexibility**: Teams can select the appropriate network posture for their use case
-- **Progressive Security**: Teams can start with public access and migrate to private endpoints as requirements mature
-- **Real-World Patterns**: Both patterns reflect legitimate enterprise deployment scenarios
+- **Choice and Flexibility**: Teams can select the appropriate network posture for their use case.
+- **Progressive Security**: Teams can start with public access and migrate to private endpoints as requirements mature.
+- **Production-First Mindset**: Both patterns reflect legitimate enterprise scenarios, but persistent environments (dev, staging, production) should use private networking for enhanced security.
 
 **Production Considerations**:
 
