@@ -118,34 +118,6 @@ az account set --subscription <your-subscription-id>
 export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 ```
 
-### 3. Configure Variables
-
-The function layer expects outputs from a deployed foundry_basic instance. First deploy foundry_basic, then create a `terraform.tfvars` file with its outputs:
-
-```bash
-cd terraform
-cat > terraform.tfvars <<EOF
-# Outputs from foundry_basic deployment
-foundry_resource_group_name        = "rg-from-foundry-basic"
-foundry_ai_foundry_name            = "cog-from-foundry-basic"
-foundry_ai_foundry_id              = "/subscriptions/.../providers/Microsoft.CognitiveServices/accounts/..."
-foundry_ai_foundry_project_id      = "/subscriptions/.../projects/..."
-foundry_ai_foundry_project_name    = "project-name-from-foundry-basic"
-foundry_application_insights_name  = "appi-from-foundry-basic"
-foundry_application_insights_id    = "/subscriptions/.../components/..."
-foundry_log_analytics_workspace_id = "/subscriptions/.../workspaces/..."
-
-# Function-specific configuration
-project_name      = "ai-integration"
-function_sku_size = "B1"
-python_version    = "3.11"
-tags = {
-  Environment = "dev"
-  Project     = "AI-Functions"
-}
-EOF
-```
-
 ## Deployment Steps
 
 ### Step 1: Deploy Foundry Basic (if not already deployed)
