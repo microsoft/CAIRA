@@ -47,58 +47,6 @@ class TestHealthCheck:
         assert response_data['ai_foundry']['client_initialized'] == False
 
 
-class TestHttpExample:
-    """Test suite for simple HTTP trigger"""
-
-    def test_http_example_with_name(self, http_request_factory):
-        """Test HTTP example with name parameter"""
-        # Arrange
-        from function_app import HttpExample
-        req = http_request_factory(
-            method='GET',
-            url='/api/HttpExample',
-            params={'name': 'TestUser'}
-        )
-
-        # Act
-        response = HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert b'Hello, TestUser' in response.get_body()
-
-    def test_http_example_with_json_body(self, http_request_factory):
-        """Test HTTP example with JSON body"""
-        # Arrange
-        from function_app import HttpExample
-        req = http_request_factory(
-            method='POST',
-            url='/api/HttpExample',
-            body={'name': 'JsonUser'}
-        )
-
-        # Act
-        response = HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert b'Hello, JsonUser' in response.get_body()
-
-    def test_http_example_without_name(self, http_request_factory):
-        """Test HTTP example without name"""
-        # Arrange
-        from function_app import HttpExample
-        req = http_request_factory(
-            method='GET', url='/api/HttpExample', body=b'')
-
-        # Act
-        response = HttpExample(req)
-
-        # Assert
-        assert response.status_code == 200
-        assert b'This HTTP triggered function executed successfully' in response.get_body()
-
-
 class TestAgentCreate:
     """Test suite for agent creation endpoint"""
 

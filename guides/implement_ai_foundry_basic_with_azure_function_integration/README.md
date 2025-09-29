@@ -314,20 +314,7 @@ curl $(terraform output -raw function_app_url)/api/health | jq .
 - **Auth**: Anonymous
 - **Purpose**: Demonstrates agent capabilities including conversation and code interpreter
 
-### 7. HttpExample (`/api/HttpExample`)
-
-- **Method**: GET
-- **Auth**: Anonymous
-- **Purpose**: Basic connectivity test
-
 ## Testing the Deployed Functions
-
-### Test Basic Connectivity
-
-```bash
-FUNCTION_URL=$(terraform output -raw function_app_url)
-curl "$FUNCTION_URL/api/HttpExample?name=Azure"
-```
 
 ### Test Health Check
 
