@@ -202,9 +202,7 @@ Deploy the function infrastructure with Terraform. This will:
 - Create a Function App with system-assigned managed identity
 - Create a storage account for the Function App
 - Configure all necessary RBAC role assignments:
-  - Cognitive Services Contributor on AI Foundry
   - Cognitive Services User on AI Foundry
-  - Storage roles for Function App operation
 - Set up Application Insights integration
 - Configure the Function App with the AI Foundry endpoint
 
