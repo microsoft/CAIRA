@@ -344,7 +344,7 @@ curl -X POST "$FUNCTION_URL/api/agent/chat" \
 
 ## Local Development
 
-> **Important:**: Always use a Python 3.11 virtual environment to match the Azure Function runtime requirements.
+> **Important:** Always use a Python 3.11 virtual environment to match the Azure Function runtime requirements.
 
 ### 1. Setup Python Environment
 
