@@ -48,4 +48,4 @@ This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised i
 ## Escalation Path
 
 1. GitHub [Issues](https://github.com/microsoft/CAIRA/issues) for bugs and feature requests
-1. Security vulnerabilities: [cmaint@microsoft.com] (private disclosure)
+1. Security vulnerabilities: [cmaint@microsoft.com](mailto:cmaint@microsoft.com) (private disclosure)
