@@ -7,26 +7,21 @@
 foundry_resource_group_name        = "rg-basic-xxxxx"
 foundry_ai_foundry_name            = "cog-basic-xxxxx"
 foundry_ai_foundry_id              = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/..."
-foundry_ai_foundry_project_id      = "/subscriptions/.../resourceGroups/.../providers/Microsoft.MachineLearningServices/workspaces/..."
+foundry_ai_foundry_project_id      = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/.../projects/..."
 foundry_ai_foundry_project_name    = "default-project"
 foundry_application_insights_name  = "appi-basic-xxxxx"
-foundry_application_insights_id    = "/subscriptions/.../resourceGroups/.../providers/microsoft.insights/components/..."
 foundry_log_analytics_workspace_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.OperationalInsights/workspaces/..."
 
 # Optional: Function-specific configuration
-project_name = "ai-integration"
+# These have defaults in variables.tf but can be overridden
+project_name      = "ai-integration"
+function_sku_size = "B1"         # Default: "B1"
+python_version    = "3.11"       # Default: "3.11"
 
-# Function App SKU Configuration
-function_tier     = "Dedicated"  # Options: "Dynamic", "ElasticPremium", "Dedicated"
-function_sku_size = "B1"         # Must match the tier selected above
-
-# Python runtime version
-python_version = "3.11"
-
-# Resource tags
+# Resource tags (optional - defaults to empty map)
 tags = {
   Environment = "Development"
-  Project     = "AI Integration"
+  Project     = "AI-Functions"
   Layer       = "Application"
   ManagedBy   = "Terraform"
 }

@@ -163,13 +163,16 @@ After deployment, capture the outputs you'll need:
 
 ```bash
 # Save outputs for the function layer
-terraform output resource_group_name
-terraform output ai_foundry_name
-terraform output ai_foundry_id
-terraform output ai_foundry_project_id
-terraform output ai_foundry_project_name
-terraform output application_insights_id
-terraform output log_analytics_workspace_id
+RG_NAME=$(terraform output -raw resource_group_name)
+AI_FOUNDRY_NAME=$(terraform output -raw ai_foundry_name)
+AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
+AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
+AI_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
+APPINSIGHTS_ID=$(terraform output -raw application_insights_id)
+LOG_WORKSPACE_ID=$(terraform output -raw log_analytics_workspace_id)
+
+# Extract Application Insights name from its ID
+APPINSIGHTS_NAME=${APPINSIGHTS_ID##*/}
 ```
 
 ### Step 2: Configure Function Layer Variables
@@ -182,23 +185,20 @@ cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terra
 
 Create `terraform.tfvars` using the outputs from Step 1:
 
-```hcl
-# Required inputs from foundry_basic deployment
-foundry_resource_group_name        = "<output from Step 1>"
-foundry_ai_foundry_name            = "<output from Step 1>"
-foundry_ai_foundry_id              = "<output from Step 1>"
-foundry_ai_foundry_project_id      = "<output from Step 1>"
-foundry_ai_foundry_project_name    = "<output from Step 1>"
-
-# Extract the Application Insights name from its ID
-# Format: /subscriptions/.../resourceGroups/.../providers/microsoft.insights/components/NAME
-foundry_application_insights_name  = "<last segment of application_insights_id>"
-foundry_application_insights_id    = "<output from Step 1>"
-foundry_log_analytics_workspace_id = "<output from Step 1>"
+```bash
+# Create terraform.tfvars with the captured values
+cat > terraform.tfvars <<EOF
+# Outputs from foundry_basic deployment
+foundry_resource_group_name        = "$RG_NAME"
+foundry_ai_foundry_name            = "$AI_FOUNDRY_NAME"
+foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
+foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
+foundry_ai_foundry_project_name    = "$AI_PROJECT_NAME"
+foundry_application_insights_name  = "$APPINSIGHTS_NAME"
+foundry_log_analytics_workspace_id = "$LOG_WORKSPACE_ID"
 
 # Function-specific configuration
 project_name      = "ai-integration"
-function_tier     = "Dedicated"
 function_sku_size = "B1"
 python_version    = "3.11"
 
@@ -206,6 +206,9 @@ tags = {
   Environment = "dev"
   Project     = "AI-Functions"
 }
+EOF
+
+echo "✅ terraform.tfvars created with outputs from foundry_basic"
 ```
 
 ### Step 3: Deploy Function Infrastructure
