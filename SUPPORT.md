@@ -25,7 +25,7 @@ This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised i
 
 - Public issue tracking and discussion
 - Documentation and self-service resources
-- Regular monthly release cycles except where necessity dictates out of band releases in response to a breaking change of security related fix.
+- Regular monthly release cycles. Out-of-band releases may occur when necessary, such as in response to a breaking change or a security-related fix.
 - Security patches for critical vulnerabilities in supported versions (up to last published version).
 
 ### What We Don't Provide
