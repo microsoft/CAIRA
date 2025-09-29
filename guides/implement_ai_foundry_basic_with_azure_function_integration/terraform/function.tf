@@ -70,7 +70,7 @@ resource "azurerm_linux_function_app" "main" {
 
     # Python configuration
     application_stack {
-      python_version = var.python_version
+      python_version = "3.11"
     }
   }
 
@@ -99,6 +99,7 @@ resource "azurerm_linux_function_app" "main" {
 }
 
 # Role Assignment: Function App -> Storage Blob Data Owner
+# Required for function runtime storage
 resource "azurerm_role_assignment" "function_storage_blob" {
   scope                = azurerm_storage_account.function.id
   role_definition_name = "Storage Blob Data Owner"
@@ -107,34 +108,8 @@ resource "azurerm_role_assignment" "function_storage_blob" {
   depends_on = [azurerm_linux_function_app.main]
 }
 
-# Role Assignment: Function App -> Storage File Data SMB Share Contributor
-resource "azurerm_role_assignment" "function_storage_file" {
-  scope                = azurerm_storage_account.function.id
-  role_definition_name = "Storage File Data SMB Share Contributor"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-
-  depends_on = [azurerm_linux_function_app.main]
-}
-
-# Role Assignment: Function App -> Storage Queue Data Contributor
-resource "azurerm_role_assignment" "function_storage_queue" {
-  scope                = azurerm_storage_account.function.id
-  role_definition_name = "Storage Queue Data Contributor"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-
-  depends_on = [azurerm_linux_function_app.main]
-}
-
-# Role Assignment: Function App -> AI Foundry Contributor
-resource "azurerm_role_assignment" "function_ai_foundry_contributor" {
-  scope                = var.foundry_ai_foundry_id
-  role_definition_name = "Cognitive Services Contributor"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
-
-  depends_on = [azurerm_linux_function_app.main]
-}
-
 # Role Assignment: Function App -> AI Foundry User
+# Sufficient for calling AI services and managing agents
 resource "azurerm_role_assignment" "function_ai_foundry_user" {
   scope                = var.foundry_ai_foundry_id
   role_definition_name = "Cognitive Services User"

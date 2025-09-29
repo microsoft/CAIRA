@@ -528,11 +528,53 @@ az monitor metrics list \
 
 ## Clean Up
 
-Remove all resources:
+To remove all resources and avoid ongoing charges:
+
+### 1. Remove Function Layer Resources
 
 ```bash
-cd terraform
+# Navigate to function terraform directory
+cd guides/implement_ai_foundry_basic_with_azure_function_integration/terraform
+
+# Destroy all function layer resources
 terraform destroy -auto-approve
+
+# Remove terraform state files
+rm -rf .terraform terraform.tfstate* .terraform.lock.hcl
+```
+
+### 2. Remove Foundry Basic Resources
+
+```bash
+# Navigate to foundry_basic directory
+cd ../../../reference_architectures/foundry_basic
+
+# Destroy foundry_basic resources
+terraform destroy -auto-approve
+
+# Remove terraform state files
+rm -rf .terraform terraform.tfstate* .terraform.lock.hcl
+```
+
+### 3. Clean Local Development Environment
+
+```bash
+# Navigate to function-app directory
+cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/function-app
+
+# Deactivate virtual environment if active
+deactivate 2>/dev/null || true
+
+# Remove Python virtual environment
+rm -rf .venv
+
+# Remove local settings and deployment files
+rm -f local.settings.json
+rm -f deploy.zip
+
+# Remove Python cache
+find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name "*.pyc" -delete 2>/dev/null || true
 ```
 
 ## Known Limitations

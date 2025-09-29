@@ -55,12 +55,6 @@ variable "function_sku_size" {
   default     = "B1"
 }
 
-variable "python_version" {
-  type        = string
-  description = "Python version for the Function App"
-  default     = "3.11"
-}
-
 variable "tags" {
   type        = map(string)
   default     = {}
