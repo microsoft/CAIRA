@@ -96,9 +96,6 @@ The recommended way to engage with this sample is through a [development contain
     sudo ln -sf /opt/azure-functions-cli/gozip /usr/local/bin/gozip
     rm Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
 
-    # If you have a conflicting npm version installed, remove it:
-    npm uninstall -g azure-functions-core-tools 2>/dev/null || true
-
     # Verify installation (should show 4.3.0-preview1)
     func --version
     ```
