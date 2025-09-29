@@ -79,24 +79,37 @@ The recommended way to engage with this sample is through a [development contain
     ![Connecting to Dev Container](images/connecting_to_dev_container.png)
 
 1. In the VS Code menu, click Terminal -> New Terminal to open a terminal within the container.
-1. Install Python 3.11 and Azure Functions Core Tools for ARM64:
+1. Install Python 3.11 and Azure Functions Core Tools:
 
     ```bash
     # Ensure Python 3.11 is installed (required for function app compatibility)
     sudo apt update
     sudo apt install -y python3.11 python3.11-venv python3.11-dev
 
-    # Download and install ARM64 Azure Functions Core Tools in /opt
-    # Using preview version for ARM64 support
+    # Detect architecture and install appropriate Azure Functions Core Tools
+    ARCH=$(uname -m)
+    echo "Detected architecture: $ARCH"
+
     cd /tmp
-    wget https://github.com/Azure/azure-functions-core-tools/releases/download/4.3.0-preview1/Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
-    sudo unzip -d /opt/azure-functions-cli Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+
+    if [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+        echo "Installing Azure Functions Core Tools for ARM64 (Apple Silicon)..."
+        wget https://github.com/Azure/azure-functions-core-tools/releases/download/4.3.0-preview1/Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+        sudo unzip -d /opt/azure-functions-cli Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+        rm Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
+    else
+        echo "Installing Azure Functions Core Tools for x64 (Intel/AMD)..."
+        wget https://github.com/Azure/azure-functions-core-tools/releases/download/4.0.5858/Azure.Functions.Cli.linux-x64.4.0.5858.zip
+        sudo unzip -d /opt/azure-functions-cli Azure.Functions.Cli.linux-x64.4.0.5858.zip
+        rm Azure.Functions.Cli.linux-x64.4.0.5858.zip
+    fi
+
+    # Set permissions and create symlinks (common for both architectures)
     sudo chmod +x /opt/azure-functions-cli/func /opt/azure-functions-cli/gozip
     sudo ln -sf /opt/azure-functions-cli/func /usr/local/bin/func
     sudo ln -sf /opt/azure-functions-cli/gozip /usr/local/bin/gozip
-    rm Azure.Functions.Cli.linux-arm64.4.3.0-preview1.zip
 
-    # Verify installation (should show 4.3.0-preview1)
+    # Verify installation
     func --version
     ```
 
