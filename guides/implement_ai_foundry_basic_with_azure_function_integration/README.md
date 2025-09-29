@@ -226,7 +226,7 @@ Deploy the function infrastructure with Terraform. This will:
 
 ```bash
 terraform init
-terraform plan  # Review the resources that will be created
+terraform plan
 terraform apply
 ```
 
