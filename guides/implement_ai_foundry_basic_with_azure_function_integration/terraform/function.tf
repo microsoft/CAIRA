@@ -81,11 +81,13 @@ resource "azurerm_linux_function_app" "main" {
 
   # Application settings
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"         = "python"
-    "AZURE_AI_FOUNDRY_ENDPOINT"        = local.ai_foundry_endpoint
-    "AZURE_AI_FOUNDRY_PROJECT_NAME"    = var.foundry_ai_foundry_project_name
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.function.name
-    "AzureWebJobsStorage__credential"  = "managedidentity"
+    "FUNCTIONS_WORKER_RUNTIME"              = "python"
+    "AZURE_AI_FOUNDRY_ENDPOINT"             = local.ai_foundry_endpoint
+    "AZURE_AI_FOUNDRY_PROJECT_NAME"         = var.foundry_ai_foundry_project_name
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string
+    "APPINSIGHTS_INSTRUMENTATIONKEY"        = data.azurerm_application_insights.this.instrumentation_key
+    "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function.name
+    "AzureWebJobsStorage__credential"       = "managedidentity"
   }
 
   tags = var.tags
