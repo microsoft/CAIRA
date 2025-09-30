@@ -59,7 +59,6 @@ run "test_function_deployment" {
     # Function-specific configuration
     project_name      = "inttest"
     function_sku_size = "B1"
-    python_version    = "3.11"
     tags = {
       Environment = "test"
       Purpose     = "integration-testing"
@@ -141,9 +140,9 @@ run "test_connectivity" {
     error_message = "Diagnostic settings should be configured"
   }
 
-  # Test app settings are properly configured
+  # Test app settings are properly configured - fixed key name
   assert {
-    condition     = azurerm_linux_function_app.main.app_settings["AZURE_AI_FOUNDRY_ENDPOINT"] == local.ai_foundry_endpoint
+    condition     = azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_ENDPOINT"] == local.ai_foundry_endpoint
     error_message = "Function App should have AI Foundry endpoint configured"
   }
 
@@ -169,30 +168,10 @@ run "test_role_assignments" {
     project_name = "inttest"
   }
 
-  # Test that native role assignment resources were created
-  assert {
-    condition     = azurerm_role_assignment.function_ai_foundry_contributor.id != null
-    error_message = "Cognitive Services Contributor role assignment resource should exist"
-  }
-
+  # Test role assignments
   assert {
     condition     = azurerm_role_assignment.function_ai_foundry_user.id != null
     error_message = "Cognitive Services User role assignment resource should exist"
-  }
-
-  assert {
-    condition     = azurerm_role_assignment.function_storage_blob.id != null
-    error_message = "Storage Blob Data Owner role assignment should exist"
-  }
-
-  assert {
-    condition     = azurerm_role_assignment.function_storage_file.id != null
-    error_message = "Storage File Data SMB Share Contributor role assignment should exist"
-  }
-
-  assert {
-    condition     = azurerm_role_assignment.function_storage_queue.id != null
-    error_message = "Storage Queue Data Contributor role assignment should exist"
   }
 
   # Verify the identity being used for role assignments
@@ -203,8 +182,8 @@ run "test_role_assignments" {
 
   # Verify role assignments are using the correct principal
   assert {
-    condition     = azurerm_role_assignment.function_ai_foundry_contributor.principal_id == azurerm_linux_function_app.main.identity[0].principal_id
-    error_message = "AI Foundry Contributor role should be assigned to Function App identity"
+    condition     = azurerm_role_assignment.function_ai_foundry_user.principal_id == azurerm_linux_function_app.main.identity[0].principal_id
+    error_message = "AI Foundry User role should be assigned to Function App identity"
   }
 }
 

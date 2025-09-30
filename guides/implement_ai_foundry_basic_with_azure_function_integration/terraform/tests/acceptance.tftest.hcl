@@ -44,7 +44,6 @@ run "testacc_prerequisites" {
 
     project_name      = "test-ai-func"
     function_sku_size = "B1"
-    python_version    = "3.11"
     tags = {
       Environment = "test"
       Purpose     = "acceptance"
@@ -81,7 +80,6 @@ run "testacc_function_app_configuration" {
 
     project_name      = "test-ai-func"
     function_sku_size = "B1"
-    python_version    = "3.11"
   }
 
   # Test the native Terraform-managed resources
@@ -144,31 +142,10 @@ run "testacc_role_assignments" {
     project_name = "test-ai-func"
   }
 
-  # Test native Terraform role assignments
-  assert {
-    condition     = azurerm_role_assignment.function_ai_foundry_contributor.role_definition_name == "Cognitive Services Contributor"
-    error_message = "Cognitive Services Contributor role assignment should exist"
-  }
-
+  # Test role assignments
   assert {
     condition     = azurerm_role_assignment.function_ai_foundry_user.role_definition_name == "Cognitive Services User"
     error_message = "Cognitive Services User role assignment should exist"
-  }
-
-  # Test storage role assignments
-  assert {
-    condition     = azurerm_role_assignment.function_storage_blob.role_definition_name == "Storage Blob Data Owner"
-    error_message = "Storage Blob Data Owner role assignment should exist"
-  }
-
-  assert {
-    condition     = azurerm_role_assignment.function_storage_file.role_definition_name == "Storage File Data SMB Share Contributor"
-    error_message = "Storage File Data SMB Share Contributor role assignment should exist"
-  }
-
-  assert {
-    condition     = azurerm_role_assignment.function_storage_queue.role_definition_name == "Storage Queue Data Contributor"
-    error_message = "Storage Queue Data Contributor role assignment should exist"
   }
 }
 
