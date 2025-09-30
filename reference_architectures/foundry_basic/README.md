@@ -21,7 +21,7 @@ This Terraform configuration deploys a baseline Azure AI Foundry environment des
 
 ## Overview
 
-This Basic AI Foundry configuration creates a minimal but complete AI development environment suitable for:
+The Basic AI Foundry configuration creates a minimal but complete AI development environment suitable for:
 
 - **Generative AI POC Development**: Building custom copilots, chatbots, and AI-powered applications
 - **Model Experimentation**: Testing and fine-tuning AI models in a controlled environment
