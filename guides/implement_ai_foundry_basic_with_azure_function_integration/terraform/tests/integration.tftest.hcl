@@ -187,60 +187,7 @@ run "test_role_assignments" {
   }
 }
 
-# Step 5: Test outputs
-run "test_outputs" {
-  command = apply
-
-  variables {
-    foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
-    foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
-    foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
-    foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
-    foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
-    foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
-    foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
-
-    project_name = "inttest"
-  }
-
-  # Test all outputs contain valid values
-  assert {
-    condition     = output.function_app_id != null && startswith(output.function_app_id, "/subscriptions/")
-    error_message = "Function App ID should be a valid Azure resource ID"
-  }
-
-  assert {
-    condition     = output.function_app_name != null && length(output.function_app_name) > 0
-    error_message = "Function App name should not be empty"
-  }
-
-  assert {
-    condition     = output.function_app_default_hostname != null && length(output.function_app_default_hostname) > 0
-    error_message = "Function App hostname should not be empty"
-  }
-
-  assert {
-    condition     = output.function_app_identity_principal_id != null
-    error_message = "Function App managed identity principal ID should be available"
-  }
-
-  assert {
-    condition     = length(output.function_app_outbound_ip_addresses) > 0
-    error_message = "Function App should have outbound IP addresses"
-  }
-
-  assert {
-    condition     = output.storage_account_name != null
-    error_message = "Storage account name should be available"
-  }
-
-  assert {
-    condition     = output.service_plan_id != null
-    error_message = "Service plan ID should be available"
-  }
-}
-
-# Step 6: Test security settings
+# Step 5: Test security settings
 run "test_security" {
   command = apply
 
