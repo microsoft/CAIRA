@@ -27,9 +27,9 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 - **Model Experimentation**: Testing and fine-tuning AI models in a controlled environment
 - **Learning and Training**: Educational environments for teams new to Azure AI services
 
-**WARNING**: For ease of experimentation, this reference architecture uses public endpoints with minimal network restrictions, making it insecure by design. Adversaries frequently target non-production environments with public endpoints to find pathways into production. For this reason, it is **suboptimal for any production, staging, or long-term development environments**.
+**WARNING**: For ease of experimentation, this reference architecture uses public endpoints with minimal network restrictions. Adversaries frequently target public endpoints, even if non-production systems, to find pathways into production. For this reason, it is **suboptimal for any production, staging, or other long-term environments**.
 
-For these scenarios, we recommend you use the [foundry_basic_private](../foundry_basic_private/README.md) reference architecture. For a full set of security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
+For these scenarios, we recommend you use the [foundry_basic_private](../foundry_basic_private/README.md) reference architecture. For a full set of other security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
 
 ## Architecture
 
