@@ -11,14 +11,14 @@ This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised i
 | Issue Type                        | Triage Response Time |
 |-----------------------------------|----------------------|
 | Critical security vulnerabilities | 2 days               |
-| Bugs affecting core functionality | 5  days              |
+| Bugs affecting core functionality | 5 days               |
 | Feature requests and enhancements | 14 days              |
 | General questions                 | 14 days              |
 
 ### Definitions
 
 - Response means initial acknowledgment, labeling, or request for clarification - not necessarily a resolution
-- Business days are **Monday-Friday**, excluding major holidays
+- Days are to be interpreted as business days from **Monday-Friday**, excluding major holidays
 - Times are calculated from issue creation to first maintainer response
 
 ### What We Provide
