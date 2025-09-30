@@ -86,3 +86,49 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
   private_dns_zone_name = azurerm_private_dns_zone.openai.name
   virtual_network_id    = azurerm_virtual_network.this.id
 }
+
+# =============================================================================
+# CAPABILITY HOST RESOURCES (for existing resource reference testing)
+# =============================================================================
+# These resources simulate "existing" capability host infrastructure that
+# foundry_standard_private references instead of creating new resources
+
+resource "azurerm_cosmosdb_account" "this" {
+  name                = module.naming.cosmosdb_account.name_unique
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Session"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.this.location
+    failover_priority = 0
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+}
+
+resource "azurerm_storage_account" "this" {
+  name                      = module.naming.storage_account.name_unique
+  resource_group_name       = azurerm_resource_group.this.name
+  location                  = azurerm_resource_group.this.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  account_kind              = "StorageV2"
+  
+  # Disable shared key access per subscription policy
+  shared_access_key_enabled = false
+}
+
+resource "azurerm_search_service" "this" {
+  name                = module.naming.search_service.name_unique
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "basic"
+}
