@@ -27,6 +27,8 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 - **Model Experimentation**: Testing and fine-tuning AI models in a controlled environment
 - **Learning and Training**: Educational environments for teams new to Azure AI services
 
+**NOTE**: This reference architecture is incompatible with the AI Agent Service. If you need that service, we recommend you use the [foundry_standard_private](../foundry_standard_private/README.md) reference architecture.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)

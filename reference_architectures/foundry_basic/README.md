@@ -29,7 +29,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 **WARNING**: For ease of experimentation, this reference architecture uses public endpoints with minimal network restrictions, making it insecure by design. Adversaries frequently target non-production environments with public endpoints to find pathways into production. For this reason, it is **suboptimal for any production, staging, or long-term development environments**.
 
-For these scenarios, we recommend you use the [Standard Private reference architecture](../foundry_standard_private/README.md).
+For these scenarios, we recommend you use the [foundry_basic_private](../foundry_basic_private/README.md) reference architecture. For a full set of security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
 
 ## Architecture
 
