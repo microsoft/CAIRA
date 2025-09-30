@@ -580,7 +580,7 @@ find . -type f -name "*.pyc" -delete 2>/dev/null || true
 - AI Foundry Projects is evolving; some features may change
 - Model availability varies by region
 - Function consumption plan has cold start delays
-- Agent capabilities depend on deployed models in foundry_basic
+- Agent model selection (gpt-4, etc.) depends on what's available in your AI Foundry region
 
 ## Support and Resources
 
