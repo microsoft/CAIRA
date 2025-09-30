@@ -1,19 +1,19 @@
 # Support Statement
 
-We understand that long-term support from Microsoft in an initiative like CAIRA is critical to its adoption and success. Therefore the maintainer team have aligned to provide support as outlined below.
+This open source project is provided "as-is" without official formal support from Microsoft. That said, the maintainer team strives to provide best effort responses along the timelines provided below.
 
 ## Scope
 
-This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised in the public [GitHub repository](https://github.com/microsoft/caira). It does not constitute a guarantee or legal agreement, but rather our team's Best-Effort commitment to the community.
+This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised in the public [GitHub repository](https://github.com/microsoft/caira).
 
 ### Response Times
 
 | Issue Type                        | Triage Response Time |
 |-----------------------------------|----------------------|
-| Critical security vulnerabilities | 24-48 hours          |
-| Bugs affecting core functionality | 3-5 business days    |
-| Feature requests and enhancements | 7-14 days            |
-| General questions                 | 7-14 days            |
+| Critical security vulnerabilities | 2 days               |
+| Bugs affecting core functionality | 5  days              |
+| Feature requests and enhancements | 14 days              |
+| General questions                 | 14 days              |
 
 ### Definitions
 
