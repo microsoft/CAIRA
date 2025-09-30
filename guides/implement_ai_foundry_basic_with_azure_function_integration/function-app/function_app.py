@@ -37,7 +37,6 @@ def get_project_client() -> AIProjectClient:
                 "AI_FOUNDRY_ENDPOINT environment variable is not set")
 
         # Build project endpoint in the correct format
-        # Format: https://<AIFoundryResourceName>.services.ai.azure.com/api/projects/<ProjectName>
         project_name = os.getenv("AI_FOUNDRY_PROJECT_NAME", "ai-functions")
 
         # Transform cognitive services endpoint to AI Foundry endpoint
@@ -45,7 +44,6 @@ def get_project_client() -> AIProjectClient:
             account_name = endpoint.split("//")[1].split(".")[0]
             project_endpoint = f"https://{account_name}.services.ai.azure.com/api/projects/{project_name}"
         else:
-            # Assume it's already in the correct format
             project_endpoint = endpoint
 
         # Create AI Project Client
@@ -90,13 +88,11 @@ def get_or_create_agent() -> Any:
         logger.info("Creating new AI agent...")
 
         # Configure tools for the agent
-        # Tools are defined as dictionaries in the Azure AI Projects SDK
         code_interpreter_tool = {"type": "code_interpreter"}
         file_search_tool = {"type": "file_search"}
 
         # Create the agent
         _agent_instance = agents_client.create_agent(
-            # Default to gpt-4 if not specified
             model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
             name=agent_name,
             instructions="""You are an intelligent AI assistant deployed through Azure AI Projects.
@@ -148,11 +144,6 @@ def run_agent_conversation(agent: Any, user_message: str, thread_id: Optional[st
         # Wait for completion
         while run.status in ["queued", "in_progress", "requires_action"]:
             run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
-
-            # Handle tool calls if needed
-            if run.status == "requires_action":
-                # Process any required actions
-                pass
 
         # Get messages from the thread
         messages = agents_client.messages.list(thread_id=thread.id)
@@ -215,48 +206,200 @@ def list_agents() -> List[Dict]:
         return []
 
 
-def list_threads() -> List[Dict]:
-    """List recent threads"""
+@app.route(route="health", auth_level=func.AuthLevel.ANONYMOUS)
+def health_check(req: func.HttpRequest) -> func.HttpResponse:
+    """Health check endpoint to verify function app and AI Foundry connectivity."""
+    logger.info("Health check requested")
+
+    health_status = {
+        "status": "healthy",
+        "function_app": "running",
+        "configuration": {},
+        "ai_foundry": {},
+        "sdk": "Azure AI Projects SDK (with Agents)"
+    }
+
+    # Check configuration
+    health_status["configuration"] = {
+        "ai_foundry_endpoint": os.getenv("AI_FOUNDRY_ENDPOINT", "not set"),
+        "ai_foundry_project_id": os.getenv("AI_FOUNDRY_PROJECT_ID", "not set"),
+        "ai_foundry_project_name": os.getenv("AI_FOUNDRY_PROJECT_NAME", "not set"),
+        "resource_group": os.getenv("RESOURCE_GROUP", "not set"),
+        "subscription": os.getenv("AZURE_SUBSCRIPTION_ID", "not set"),
+        "model_deployment": os.getenv("MODEL_DEPLOYMENT_NAME", "auto-discover")
+    }
+
+    # Try to verify AI Foundry connectivity
     try:
         project_client = get_project_client()
-        agents_client = project_client.agents
+        health_status["ai_foundry"]["client_initialized"] = True
+        health_status["ai_foundry"]["client_type"] = "AIProjectClient"
+        health_status["ai_foundry"]["project_name"] = os.getenv(
+            "AI_FOUNDRY_PROJECT_NAME")
 
-        # Note: The API might have limitations on listing all threads
-        # This is a placeholder for the actual implementation
-        return []
+        # Try to list agents
+        try:
+            agents = list_agents()
+            health_status["ai_foundry"]["agents"] = agents
+            health_status["ai_foundry"]["agent_count"] = len(agents)
+
+            if len(agents) == 0:
+                health_status["ai_foundry"]["info"] = "No agents found. Create one using /agent endpoint with action=create."
+        except Exception as e:
+            health_status["ai_foundry"]["agents_error"] = str(e)[:200]
+
+        # Check authentication
+        try:
+            credential = DefaultAzureCredential()
+            token = credential.get_token(
+                "https://cognitiveservices.azure.com/.default")
+            health_status["ai_foundry"]["authentication"] = "Success - Managed Identity working"
+        except Exception as e:
+            health_status["ai_foundry"]["authentication"] = f"Failed: {str(e)[:100]}"
+            health_status["status"] = "unhealthy"
+
     except Exception as e:
-        logger.error(f"Error listing threads: {str(e)}")
-        return []
+        health_status["ai_foundry"]["client_initialized"] = False
+        health_status["ai_foundry"]["error"] = str(e)[:200]
+        health_status["status"] = "unhealthy"
+
+    return func.HttpResponse(
+        json.dumps(health_status, indent=2),
+        mimetype="application/json",
+        status_code=200,
+    )
 
 
-@app.route(route="agent/chat", auth_level=func.AuthLevel.ANONYMOUS)
-def agent_chat(req: func.HttpRequest) -> func.HttpResponse:
+@app.route(route="agent", auth_level=func.AuthLevel.ANONYMOUS)
+def agent_operations(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Chat with an AI Agent using Azure AI Foundry SDK.
-    Supports conversation threads for context retention.
+    Unified agent operations endpoint.
+
+    Actions:
+    - create: Create a new agent
+    - chat: Chat with an agent
+    - list: List all agents
+    - delete: Delete an agent
+    - code-interpreter: Demonstrate code interpreter capability
 
     Expected JSON body:
     {
-        "message": "user message",
-        "thread_id": "optional-thread-id"  // Optional: for continuing conversation
+        "action": "create|chat|list|delete|code-interpreter",
+        ... additional parameters based on action ...
     }
     """
-    logger.info("Processing agent chat request")
+    logger.info("Agent operation requested")
 
     try:
         # Parse request body
         try:
             req_body = req.get_json()
-            message = req_body.get("message") or req_body.get("prompt")
-            thread_id = req_body.get("thread_id")
+            action = req_body.get("action")
         except ValueError:
-            message = req.params.get("message") or req.params.get("prompt")
-            thread_id = req.params.get("thread_id")
+            # Fallback to query parameters
+            action = req.params.get("action")
+            req_body = {}
+
+        if not action:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "Please provide an 'action' parameter",
+                    "available_actions": ["create", "chat", "list", "delete", "code-interpreter"],
+                    "status": "error"
+                }),
+                mimetype="application/json",
+                status_code=400,
+            )
+
+        # Route to appropriate action handler
+        if action == "create":
+            return handle_create_agent(req_body)
+        elif action == "chat":
+            return handle_chat(req_body, req.params)
+        elif action == "list":
+            return handle_list_agents()
+        elif action == "delete":
+            return handle_delete_agent(req_body, req.params)
+        elif action == "code-interpreter":
+            return handle_code_interpreter(req_body)
+        else:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": f"Unknown action: {action}",
+                    "available_actions": ["create", "chat", "list", "delete", "code-interpreter"],
+                    "status": "error"
+                }),
+                mimetype="application/json",
+                status_code=400,
+            )
+
+    except Exception as e:
+        logger.error(f"Error in agent operations: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({
+                "error": f"Failed to process agent operation: {str(e)}",
+                "status": "error"
+            }),
+            mimetype="application/json",
+            status_code=500,
+        )
+
+
+def handle_create_agent(req_body: dict) -> func.HttpResponse:
+    """Handle agent creation"""
+    try:
+        project_client = get_project_client()
+        agents_client = project_client.agents
+
+        # Configure tools based on request
+        tools = []
+        if req_body.get("enable_code_interpreter", True):
+            tools.append({"type": "code_interpreter"})
+        if req_body.get("enable_file_search", False):
+            tools.append({"type": "file_search"})
+
+        # Create agent
+        agent = agents_client.create_agent(
+            model=req_body.get("model", os.getenv(
+                "MODEL_DEPLOYMENT_NAME", "gpt-4")),
+            name=req_body.get(
+                "name", f"custom-agent-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"),
+            instructions=req_body.get(
+                "instructions", "You are a helpful AI assistant."),
+            tools=tools
+        )
+
+        return func.HttpResponse(
+            json.dumps({
+                "action": "create",
+                "agent_id": agent.id,
+                "name": agent.name,
+                "model": agent.model,
+                "instructions": agent.instructions,
+                "tools": [str(tool) for tool in tools],
+                "status": "created",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }, indent=2),
+            mimetype="application/json",
+            status_code=201,
+        )
+
+    except Exception as e:
+        logger.error(f"Error creating agent: {str(e)}")
+        raise
+
+
+def handle_chat(req_body: dict, params: dict) -> func.HttpResponse:
+    """Handle chat with agent"""
+    try:
+        message = req_body.get("message") or req_body.get(
+            "prompt") or params.get("message") or params.get("prompt")
+        thread_id = req_body.get("thread_id") or params.get("thread_id")
 
         if not message:
             return func.HttpResponse(
                 json.dumps({
-                    "error": "Please provide a 'message' in the request body",
+                    "error": "Please provide a 'message' in the request",
                     "status": "error"
                 }),
                 mimetype="application/json",
@@ -271,6 +414,7 @@ def agent_chat(req: func.HttpRequest) -> func.HttpResponse:
 
         return func.HttpResponse(
             json.dumps({
+                "action": "chat",
                 "user_message": message,
                 **result,
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -280,36 +424,36 @@ def agent_chat(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     except Exception as e:
-        logger.error(f"Error in agent chat: {str(e)}")
+        logger.error(f"Error in chat: {str(e)}")
+        raise
+
+
+def handle_list_agents() -> func.HttpResponse:
+    """Handle listing agents"""
+    try:
+        agents = list_agents()
+
         return func.HttpResponse(
             json.dumps({
-                "error": f"Failed to process chat: {str(e)}",
-                "status": "error"
-            }),
+                "action": "list",
+                "agents": agents,
+                "count": len(agents),
+                "project": os.getenv("AI_FOUNDRY_PROJECT_NAME"),
+                "status": "success"
+            }, indent=2),
             mimetype="application/json",
-            status_code=500,
+            status_code=200,
         )
 
+    except Exception as e:
+        logger.error(f"Error listing agents: {str(e)}")
+        raise
 
-@app.route(route="agent/delete", auth_level=func.AuthLevel.ANONYMOUS)
-def delete_agent(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Delete an agent by ID.
 
-    Expected JSON body or query params:
-    {
-        "agent_id": "agent-id-to-delete"
-    }
-    """
-    logger.info("Deleting agent")
-
+def handle_delete_agent(req_body: dict, params: dict) -> func.HttpResponse:
+    """Handle agent deletion"""
     try:
-        # Parse request
-        try:
-            req_body = req.get_json()
-            agent_id = req_body.get("agent_id")
-        except ValueError:
-            agent_id = req.params.get("agent_id")
+        agent_id = req_body.get("agent_id") or params.get("agent_id")
 
         if not agent_id:
             return func.HttpResponse(
@@ -334,6 +478,7 @@ def delete_agent(req: func.HttpRequest) -> func.HttpResponse:
 
         return func.HttpResponse(
             json.dumps({
+                "action": "delete",
                 "agent_id": agent_id,
                 "status": "deleted",
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -344,34 +489,15 @@ def delete_agent(req: func.HttpRequest) -> func.HttpResponse:
 
     except Exception as e:
         logger.error(f"Error deleting agent: {str(e)}")
-        return func.HttpResponse(
-            json.dumps({
-                "error": f"Failed to delete agent: {str(e)}",
-                "status": "error"
-            }),
-            mimetype="application/json",
-            status_code=500,
-        )
+        raise
 
 
-@app.route(route="agent/code-interpreter", auth_level=func.AuthLevel.ANONYMOUS)
-def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Demonstrate agent's code interpreter capability.
-
-    Expected JSON body:
-    {
-        "code_task": "Calculate fibonacci sequence up to n=10"
-    }
-    """
-    logger.info("Demonstrating code interpreter")
-
+def handle_code_interpreter(req_body: dict) -> func.HttpResponse:
+    """Handle code interpreter demonstration"""
     try:
-        req_body = req.get_json()
         code_task = req_body.get(
             "code_task", "Calculate the sum of squares from 1 to 10")
 
-        # Create agent with code interpreter
         project_client = get_project_client()
         agents_client = project_client.agents
 
@@ -419,6 +545,7 @@ def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
 
         return func.HttpResponse(
             json.dumps({
+                "action": "code-interpreter",
                 "task": code_task,
                 "result": result,
                 "thread_id": thread.id,
@@ -430,91 +557,20 @@ def agent_code_interpreter_demo(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     except Exception as e:
-        logger.error(f"Error in code interpreter demo: {str(e)}")
-        return func.HttpResponse(
-            json.dumps({
-                "error": f"Failed to execute code task: {str(e)}",
-                "status": "error"
-            }),
-            mimetype="application/json",
-            status_code=500,
-        )
-
-
-@app.route(route="health", auth_level=func.AuthLevel.ANONYMOUS)
-def health_check(req: func.HttpRequest) -> func.HttpResponse:
-    """Health check endpoint to verify function app and AI Foundry connectivity."""
-    logger.info("Health check requested")
-
-    health_status = {
-        "status": "healthy",
-        "function_app": "running",
-        "configuration": {},
-        "ai_foundry": {},
-        "sdk": "Azure AI Projects SDK (with Agents)"
-    }
-
-    # Check configuration
-    health_status["configuration"] = {
-        "ai_foundry_endpoint": os.getenv("AI_FOUNDRY_ENDPOINT", "not set"),
-        "ai_foundry_project_id": os.getenv("AI_FOUNDRY_PROJECT_ID", "not set"),
-        "ai_foundry_project_name": os.getenv("AI_FOUNDRY_PROJECT_NAME", "not set"),
-        "resource_group": os.getenv("RESOURCE_GROUP", "not set"),
-        "subscription": os.getenv("AZURE_SUBSCRIPTION_ID", "not set"),
-        "model_deployment": os.getenv("MODEL_DEPLOYMENT_NAME", "auto-discover")
-    }
-
-    # Try to verify AI Foundry connectivity
-    try:
-        project_client = get_project_client()
-        health_status["ai_foundry"]["client_initialized"] = True
-        health_status["ai_foundry"]["client_type"] = "AIProjectClient"
-        health_status["ai_foundry"]["project_name"] = os.getenv(
-            "AI_FOUNDRY_PROJECT_NAME")
-
-        # Try to list agents
-        try:
-            agents = list_agents()
-            health_status["ai_foundry"]["agents"] = agents
-            health_status["ai_foundry"]["agent_count"] = len(agents)
-
-            if len(agents) == 0:
-                health_status["ai_foundry"]["info"] = "No agents found. Create one using /agent/create endpoint."
-        except Exception as e:
-            health_status["ai_foundry"]["agents_error"] = str(e)[:200]
-
-        # Check authentication
-        try:
-            credential = DefaultAzureCredential()
-            token = credential.get_token(
-                "https://cognitiveservices.azure.com/.default")
-            health_status["ai_foundry"]["authentication"] = "Success - Managed Identity working"
-        except Exception as e:
-            health_status["ai_foundry"]["authentication"] = f"Failed: {str(e)[:100]}"
-            health_status["status"] = "unhealthy"
-
-    except Exception as e:
-        health_status["ai_foundry"]["client_initialized"] = False
-        health_status["ai_foundry"]["error"] = str(e)[:200]
-        health_status["status"] = "unhealthy"
-
-    return func.HttpResponse(
-        json.dumps(health_status, indent=2),
-        mimetype="application/json",
-        status_code=200,
-    )
+        logger.error(f"Error in code interpreter: {str(e)}")
+        raise
 
 
 @app.route(route="demo", auth_level=func.AuthLevel.ANONYMOUS)
 def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Demonstrate various agent capabilities in one endpoint.
+    One-click demonstration of the entire integration.
     Shows creating an agent, having a conversation, and using tools.
     """
     logger.info("Running agent capabilities demo")
 
     demo_results = {
-        "demo": "Agent Capabilities Showcase",
+        "demo": "Complete Agent Integration Showcase",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "steps": []
     }
@@ -560,7 +616,10 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
         )
 
         run1 = agents_client.runs.create(
-            thread_id=thread.id, agent_id=demo_agent.id)
+            thread_id=thread.id,
+            agent_id=demo_agent.id
+        )
+
         while run1.status in ["queued", "in_progress"]:
             run1 = agents_client.runs.get(thread_id=thread.id, run_id=run1.id)
 
@@ -575,7 +634,10 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
         )
 
         run2 = agents_client.runs.create(
-            thread_id=thread.id, agent_id=demo_agent.id)
+            thread_id=thread.id,
+            agent_id=demo_agent.id
+        )
+
         while run2.status in ["queued", "in_progress"]:
             run2 = agents_client.runs.get(thread_id=thread.id, run_id=run2.id)
 
@@ -605,6 +667,7 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
         demo_results["cleanup"] = "Demo agent deleted"
 
         demo_results["status"] = "success"
+        demo_results["summary"] = "Successfully demonstrated agent creation, conversation, and code interpreter capabilities"
 
         return func.HttpResponse(
             json.dumps(demo_results, indent=2),
@@ -618,113 +681,6 @@ def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
 
         return func.HttpResponse(
             json.dumps(demo_results, indent=2),
-            mimetype="application/json",
-            status_code=500,
-        )
-
-
-@app.route(route="agent/create", auth_level=func.AuthLevel.ANONYMOUS)
-def create_custom_agent(req: func.HttpRequest) -> func.HttpResponse:
-    """
-    Create a custom agent with specified configuration.
-
-    Expected JSON body:
-    {
-        "name": "agent-name",
-        "instructions": "agent instructions",
-        "model": "model-deployment-name",
-        "enable_code_interpreter": true,
-        "enable_file_search": false
-    }
-    """
-    logger.info("Creating custom agent")
-
-    try:
-        req_body = req.get_json()
-
-        if not req_body:
-            return func.HttpResponse(
-                json.dumps({
-                    "error": "Please provide agent configuration in request body",
-                    "status": "error"
-                }),
-                mimetype="application/json",
-                status_code=400,
-            )
-
-        project_client = get_project_client()
-        agents_client = project_client.agents
-
-        # Configure tools based on request
-        tools = []
-        if req_body.get("enable_code_interpreter", True):
-            tools.append({"type": "code_interpreter"})
-        if req_body.get("enable_file_search", False):
-            tools.append({"type": "file_search"})
-
-        # Create agent
-        agent = agents_client.create_agent(
-            model=req_body.get("model", os.getenv(
-                "MODEL_DEPLOYMENT_NAME", "gpt-4")),
-            name=req_body.get(
-                "name", f"custom-agent-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"),
-            instructions=req_body.get(
-                "instructions", "You are a helpful AI assistant."),
-            tools=tools
-        )
-
-        return func.HttpResponse(
-            json.dumps({
-                "agent_id": agent.id,
-                "name": agent.name,
-                "model": agent.model,
-                "instructions": agent.instructions,
-                "tools": [str(tool) for tool in tools],
-                "status": "created",
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }, indent=2),
-            mimetype="application/json",
-            status_code=201,
-        )
-
-    except Exception as e:
-        logger.error(f"Error creating agent: {str(e)}")
-        return func.HttpResponse(
-            json.dumps({
-                "error": f"Failed to create agent: {str(e)}",
-                "status": "error"
-            }),
-            mimetype="application/json",
-            status_code=500,
-        )
-
-
-@app.route(route="agent/list", auth_level=func.AuthLevel.ANONYMOUS)
-def list_all_agents(req: func.HttpRequest) -> func.HttpResponse:
-    """List all agents in the AI Foundry project."""
-    logger.info("Listing all agents")
-
-    try:
-        agents = list_agents()
-
-        return func.HttpResponse(
-            json.dumps({
-                "agents": agents,
-                "count": len(agents),
-                "project": os.getenv("AI_FOUNDRY_PROJECT_NAME"),
-                "status": "success"
-            }, indent=2),
-            mimetype="application/json",
-            status_code=200,
-        )
-
-    except Exception as e:
-        logger.error(f"Error listing agents: {str(e)}")
-        return func.HttpResponse(
-            json.dumps({
-                "error": f"Failed to list agents: {str(e)}",
-                "status": "error"
-            }),
             mimetype="application/json",
             status_code=500,
         )

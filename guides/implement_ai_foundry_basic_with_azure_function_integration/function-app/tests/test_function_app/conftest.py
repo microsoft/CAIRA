@@ -320,7 +320,7 @@ def mock_health_response():
             'project_name': 'ai-functions',
             'agents': [],
             'agent_count': 0,
-            'info': 'No agents found. Create one using /agent/create endpoint.',
+            'info': 'No agents found. Create one using /agent endpoint with action=create.',
             'authentication': 'Success - Managed Identity working'
         },
         'sdk': 'Azure AI Projects SDK (with Agents)'
@@ -358,3 +358,71 @@ def mock_datetime():
         mock_dt.timezone.utc = Mock()
 
         yield mock_dt
+
+
+@pytest.fixture
+def mock_agent_operations_handlers():
+    """Mock all handler functions for agent operations"""
+    with patch('function_app.handle_create_agent') as mock_create, \
+            patch('function_app.handle_chat') as mock_chat, \
+            patch('function_app.handle_list_agents') as mock_list, \
+            patch('function_app.handle_delete_agent') as mock_delete, \
+            patch('function_app.handle_code_interpreter') as mock_code:
+
+        # Configure default successful responses
+        mock_create.return_value = func.HttpResponse(
+            json.dumps({
+                "action": "create",
+                "agent_id": "asst_test123",
+                "status": "created"
+            }),
+            mimetype="application/json",
+            status_code=201
+        )
+
+        mock_chat.return_value = func.HttpResponse(
+            json.dumps({
+                "action": "chat",
+                "response": "Test response",
+                "thread_id": "thread_test123"
+            }),
+            mimetype="application/json",
+            status_code=200
+        )
+
+        mock_list.return_value = func.HttpResponse(
+            json.dumps({
+                "action": "list",
+                "agents": [],
+                "count": 0
+            }),
+            mimetype="application/json",
+            status_code=200
+        )
+
+        mock_delete.return_value = func.HttpResponse(
+            json.dumps({
+                "action": "delete",
+                "status": "deleted"
+            }),
+            mimetype="application/json",
+            status_code=200
+        )
+
+        mock_code.return_value = func.HttpResponse(
+            json.dumps({
+                "action": "code-interpreter",
+                "result": "Calculation complete",
+                "status": "completed"
+            }),
+            mimetype="application/json",
+            status_code=200
+        )
+
+        yield {
+            'create': mock_create,
+            'chat': mock_chat,
+            'list': mock_list,
+            'delete': mock_delete,
+            'code_interpreter': mock_code
+        }

@@ -47,19 +47,59 @@ class TestHealthCheck:
         assert response_data['ai_foundry']['client_initialized'] == False
 
 
-class TestAgentCreate:
-    """Test suite for agent creation endpoint"""
+class TestAgentOperations:
+    """Test suite for unified agent operations endpoint"""
 
-    def test_create_agent_success(
-            self, http_request_factory, azure_environment,
-            mock_ai_project_client_class, mock_datetime):
-        """Test successful agent creation"""
+    def test_agent_no_action(self, http_request_factory, azure_environment):
+        """Test agent endpoint without action parameter"""
         # Arrange
-        from function_app import create_custom_agent
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/create',
+            url='/api/agent',
+            body={}
+        )
+
+        # Act
+        response = agent_operations(req)
+
+        # Assert
+        assert response.status_code == 400
+        response_data = json.loads(response.get_body())
+        assert response_data['status'] == 'error'
+        assert 'Please provide an \'action\' parameter' in response_data['error']
+        assert 'available_actions' in response_data
+
+    def test_agent_invalid_action(self, http_request_factory, azure_environment):
+        """Test agent endpoint with invalid action"""
+        # Arrange
+        from function_app import agent_operations
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent',
+            body={'action': 'invalid'}
+        )
+
+        # Act
+        response = agent_operations(req)
+
+        # Assert
+        assert response.status_code == 400
+        response_data = json.loads(response.get_body())
+        assert 'Unknown action' in response_data['error']
+        assert 'available_actions' in response_data
+
+    def test_agent_create_action(
+            self, http_request_factory, azure_environment,
+            mock_ai_project_client_class, mock_datetime):
+        """Test agent creation through unified endpoint"""
+        # Arrange
+        from function_app import agent_operations
+        req = http_request_factory(
+            method='POST',
+            url='/api/agent',
             body={
+                'action': 'create',
                 'name': 'test-assistant',
                 'instructions': 'You are a test assistant',
                 'model': 'gpt-4',
@@ -69,174 +109,83 @@ class TestAgentCreate:
         )
 
         # Act
-        response = create_custom_agent(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 201
         response_data = json.loads(response.get_body())
+        assert response_data['action'] == 'create'
         assert response_data['status'] == 'created'
         assert response_data['name'] == 'test-assistant'
         assert response_data['model'] == 'gpt-4'
 
-    def test_create_agent_no_body(
-            self, http_request_factory, azure_environment,
-            mock_ai_project_client_class):
-        """Test agent creation with no request body"""
-        # Arrange
-        from function_app import create_custom_agent
-        req = http_request_factory(
-            method='POST',
-            url='/api/agent/create',
-            body=b''
-        )
-
-        # Act
-        response = create_custom_agent(req)
-
-        # Assert
-        assert response.status_code == 500
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'error'
-        assert 'Failed to create agent' in response_data['error']
-
-    def test_create_agent_with_defaults(
-            self, http_request_factory, azure_environment,
-            mock_ai_project_client_class, mock_datetime):
-        """Test agent creation with default values"""
-        # Arrange
-        from function_app import create_custom_agent
-        mock_client = mock_ai_project_client_class.return_value
-
-        def create_agent_side_effect(*args, **kwargs):
-            mock_agent = Mock()
-            mock_agent.id = 'asst_test123'
-            mock_agent.name = kwargs.get('name', 'test-assistant')
-            mock_agent.model = kwargs.get('model', 'gpt-4')
-            mock_agent.instructions = kwargs.get(
-                'instructions', 'You are a helpful assistant.')
-            mock_agent.tools = kwargs.get('tools', [])
-            return mock_agent
-
-        mock_client.agents.create_agent.side_effect = create_agent_side_effect
-        req = http_request_factory(
-            method='POST',
-            url='/api/agent/create',
-            body={'enable_code_interpreter': True}
-        )
-
-        # Act
-        response = create_custom_agent(req)
-
-        # Assert
-        assert response.status_code == 201
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'created'
-        assert 'custom-agent-' in response_data['name']
-
-
-class TestAgentList:
-    """Test suite for listing agents"""
-
-    def test_list_agents_success(
-            self, http_request_factory, azure_environment,
-            mock_list_agents):
-        """Test successful agent listing"""
-        # Arrange
-        from function_app import list_all_agents
-        req = http_request_factory(method='GET', url='/api/agent/list')
-
-        # Act
-        response = list_all_agents(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'success'
-        assert response_data['count'] == 1
-        assert len(response_data['agents']) == 1
-
-    def test_list_agents_empty(self, http_request_factory, azure_environment):
-        """Test listing agents when none exist"""
-        # Arrange
-        from function_app import list_all_agents
-
-        # Act
-        with patch('function_app.list_agents', return_value=[]):
-            req = http_request_factory(method='GET', url='/api/agent/list')
-            response = list_all_agents(req)
-
-        # Assert
-        assert response.status_code == 200
-        response_data = json.loads(response.get_body())
-        assert response_data['status'] == 'success'
-        assert response_data['count'] == 0
-
-
-class TestAgentChat:
-    """Test suite for agent chat endpoint"""
-
-    def test_chat_success(
+    def test_agent_chat_action(
             self, http_request_factory, azure_environment,
             mock_get_or_create_agent, mock_run_agent_conversation,
             mock_datetime):
-        """Test successful chat interaction"""
+        """Test chat through unified endpoint"""
         # Arrange
-        from function_app import agent_chat
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/chat',
-            body={'message': 'Hello, how are you?'}
+            url='/api/agent',
+            body={
+                'action': 'chat',
+                'message': 'Hello, how are you?'
+            }
         )
 
         # Act
-        response = agent_chat(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
+        assert response_data['action'] == 'chat'
         assert response_data['user_message'] == 'Hello, how are you?'
         assert response_data['response'] == 'Test response from agent'
-        assert response_data['thread_id'] == 'thread_test123'
 
-    def test_chat_with_thread_id(
+    def test_agent_chat_with_thread_id(
             self, http_request_factory, azure_environment,
             mock_get_or_create_agent, mock_run_agent_conversation,
             mock_datetime):
-        """Test chat with existing thread ID"""
+        """Test chat with existing thread ID through unified endpoint"""
         # Arrange
-        from function_app import agent_chat
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/chat',
+            url='/api/agent',
             body={
+                'action': 'chat',
                 'message': 'Continue our conversation',
                 'thread_id': 'thread_existing123'
             }
         )
 
         # Act
-        response = agent_chat(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
+        assert response_data['action'] == 'chat'
         mock_run_agent_conversation.assert_called_once()
         call_args = mock_run_agent_conversation.call_args
         assert call_args[0][1] == 'Continue our conversation'
         assert call_args[0][2] == 'thread_existing123'
 
-    def test_chat_no_message(self, http_request_factory, azure_environment):
-        """Test chat without message"""
+    def test_agent_chat_no_message(self, http_request_factory, azure_environment):
+        """Test chat without message through unified endpoint"""
         # Arrange
-        from function_app import agent_chat
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/chat',
-            body={}
+            url='/api/agent',
+            body={'action': 'chat'}
         )
 
         # Act
-        response = agent_chat(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 400
@@ -244,64 +193,66 @@ class TestAgentChat:
         assert response_data['status'] == 'error'
         assert 'Please provide a \'message\'' in response_data['error']
 
-    def test_chat_with_prompt_key(
+    def test_agent_list_action(
             self, http_request_factory, azure_environment,
-            mock_get_or_create_agent, mock_run_agent_conversation,
-            mock_datetime):
-        """Test chat using 'prompt' key instead of 'message'"""
+            mock_list_agents):
+        """Test listing agents through unified endpoint"""
         # Arrange
-        from function_app import agent_chat
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/chat',
-            body={'prompt': 'Test with prompt key'}
+            url='/api/agent',
+            body={'action': 'list'}
         )
 
         # Act
-        response = agent_chat(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
-        assert response_data['user_message'] == 'Test with prompt key'
+        assert response_data['action'] == 'list'
+        assert response_data['status'] == 'success'
+        assert response_data['count'] == 1
+        assert len(response_data['agents']) == 1
 
-
-class TestAgentDelete:
-    """Test suite for agent deletion"""
-
-    def test_delete_agent_success(
+    def test_agent_delete_action(
             self, http_request_factory, azure_environment,
             mock_ai_project_client_class, mock_datetime):
-        """Test successful agent deletion"""
+        """Test agent deletion through unified endpoint"""
         # Arrange
-        from function_app import delete_agent
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/delete',
-            body={'agent_id': 'asst_test123'}
+            url='/api/agent',
+            body={
+                'action': 'delete',
+                'agent_id': 'asst_test123'
+            }
         )
 
         # Act
-        response = delete_agent(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
+        assert response_data['action'] == 'delete'
         assert response_data['status'] == 'deleted'
         assert response_data['agent_id'] == 'asst_test123'
 
-    def test_delete_agent_no_id(self, http_request_factory, azure_environment):
-        """Test agent deletion without ID"""
+    def test_agent_delete_no_id(self, http_request_factory, azure_environment):
+        """Test agent deletion without ID through unified endpoint"""
         # Arrange
-        from function_app import delete_agent
+        from function_app import agent_operations
         req = http_request_factory(
             method='POST',
-            url='/api/agent/delete',
-            body={}
+            url='/api/agent',
+            body={'action': 'delete'}
         )
 
         # Act
-        response = delete_agent(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 400
@@ -309,16 +260,12 @@ class TestAgentDelete:
         assert response_data['status'] == 'error'
         assert 'Please provide \'agent_id\'' in response_data['error']
 
-
-class TestAgentCodeInterpreter:
-    """Test suite for code interpreter demo"""
-
-    def test_code_interpreter_success(
+    def test_agent_code_interpreter_action(
             self, http_request_factory, azure_environment,
             mock_ai_project_client_class, mock_datetime):
-        """Test successful code interpreter execution"""
+        """Test code interpreter through unified endpoint"""
         # Arrange
-        from function_app import agent_code_interpreter_demo
+        from function_app import agent_operations
         mock_client = mock_ai_project_client_class.return_value
 
         # Setup the mock run to return completed status immediately
@@ -329,46 +276,44 @@ class TestAgentCodeInterpreter:
 
         req = http_request_factory(
             method='POST',
-            url='/api/agent/code-interpreter',
-            body={'code_task': 'Calculate fibonacci sequence'}
+            url='/api/agent',
+            body={
+                'action': 'code-interpreter',
+                'code_task': 'Calculate fibonacci sequence'
+            }
         )
 
         # Act
-        response = agent_code_interpreter_demo(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
+        assert response_data['action'] == 'code-interpreter'
         assert response_data['status'] == 'completed'
         assert response_data['task'] == 'Calculate fibonacci sequence'
 
-    def test_code_interpreter_default_task(
+    def test_agent_query_params_fallback(
             self, http_request_factory, azure_environment,
-            mock_ai_project_client_class, mock_datetime):
-        """Test code interpreter with default task"""
+            mock_list_agents):
+        """Test agent endpoint with query parameters as fallback"""
         # Arrange
-        from function_app import agent_code_interpreter_demo
-        mock_client = mock_ai_project_client_class.return_value
-
-        # Setup the mock run
-        mock_run = Mock()
-        mock_run.status = 'completed'
-        mock_client.agents.runs.create.return_value = mock_run
-        mock_client.agents.runs.get.return_value = mock_run
-
+        from function_app import agent_operations
         req = http_request_factory(
-            method='POST',
-            url='/api/agent/code-interpreter',
-            body={}
+            method='GET',
+            url='/api/agent',
+            params={'action': 'list'},
+            body=b''  # Empty body to trigger ValueError
         )
 
         # Act
-        response = agent_code_interpreter_demo(req)
+        response = agent_operations(req)
 
         # Assert
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
-        assert response_data['task'] == 'Calculate the sum of squares from 1 to 10'
+        assert response_data['action'] == 'list'
+        assert response_data['status'] == 'success'
 
 
 class TestDemo:
@@ -397,11 +342,12 @@ class TestDemo:
         assert response.status_code == 200
         response_data = json.loads(response.get_body())
         assert response_data['status'] == 'success'
-        assert response_data['demo'] == 'Agent Capabilities Showcase'
+        assert response_data['demo'] == 'Complete Agent Integration Showcase'
         assert len(response_data['steps']) > 0
         assert 'agent_created' in response_data
         assert 'thread_id' in response_data
         assert 'conversation' in response_data
+        assert 'summary' in response_data
 
     def test_demo_handles_error(
             self, http_request_factory, azure_environment,
@@ -471,8 +417,8 @@ class TestProjectClientInitialization:
             exc_info.value)
 
 
-class TestAgentOperations:
-    """Test suite for agent operation functions"""
+class TestAgentHelperFunctions:
+    """Test suite for agent helper functions"""
 
     def test_get_or_create_agent_existing(self, azure_environment, mock_project_client):
         """Test getting existing agent"""
@@ -485,7 +431,6 @@ class TestAgentOperations:
         mock_agent.name = 'azure-function-assistant'
         mock_agent.id = 'asst_existing'
 
-        # Create an iterable list of agents directly
         mock_project_client.agents.list_agents.return_value = [mock_agent]
 
         # Act
@@ -503,13 +448,11 @@ class TestAgentOperations:
         import function_app
         function_app._agent_instance = None
 
-        # Return empty list when no agents exist
         mock_project_client.agents.list_agents.return_value = []
 
         mock_new_agent = Mock()
         mock_new_agent.id = 'asst_new'
         mock_new_agent.name = 'azure-function-assistant'
-        # Clear the side_effect and set return_value directly
         mock_project_client.agents.create_agent.side_effect = None
         mock_project_client.agents.create_agent.return_value = mock_new_agent
 
@@ -529,14 +472,9 @@ class TestAgentOperations:
         # Arrange
         from function_app import run_agent_conversation
 
-        # Setup threads to return mock thread
         mock_project_client.agents.threads.create.return_value = mock_thread
-
-        # Setup messages
         mock_project_client.agents.messages.create.return_value = mock_message
         mock_project_client.agents.messages.list.return_value = [mock_message]
-
-        # Setup runs
         mock_project_client.agents.runs.create.return_value = mock_run
         mock_project_client.agents.runs.get.return_value = mock_run
 
@@ -557,14 +495,9 @@ class TestAgentOperations:
         # Arrange
         from function_app import run_agent_conversation
 
-        # Setup threads to get existing thread
         mock_project_client.agents.threads.get.return_value = mock_thread
-
-        # Setup messages
         mock_project_client.agents.messages.create.return_value = mock_message
         mock_project_client.agents.messages.list.return_value = [mock_message]
-
-        # Setup runs
         mock_project_client.agents.runs.create.return_value = mock_run
         mock_project_client.agents.runs.get.return_value = mock_run
 

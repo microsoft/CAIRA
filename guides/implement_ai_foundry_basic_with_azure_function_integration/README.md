@@ -248,6 +248,8 @@ curl $(terraform output -raw function_app_url)/api/health | jq .
 
 ## Function Endpoints
 
+The implementation provides three streamlined endpoints for all agent operations:
+
 ### 1. Health Check (`/api/health`)
 
 - **Method**: GET
@@ -255,15 +257,27 @@ curl $(terraform output -raw function_app_url)/api/health | jq .
 - **Purpose**: Verifies Function App and AI Foundry connectivity
 - **Response**: JSON with configuration and connection status
 
-### 2. Create Agent (`/api/agent/create`)
+### 2. Agent Operations (`/api/agent`)
 
 - **Method**: POST
 - **Auth**: Anonymous
-- **Purpose**: Create a new AI agent with specified capabilities
+- **Purpose**: Unified endpoint for all agent operations
 - **Request Body**:
 
   ```json
   {
+    "action": "create|chat|list|delete|code-interpreter",
+    // Additional parameters based on action
+  }
+  ```
+
+**Available Actions:**
+
+- **create**: Create a new AI agent
+
+  ```json
+  {
+    "action": "create",
     "name": "assistant-name",
     "instructions": "You are a helpful assistant",
     "model": "gpt-4",
@@ -272,45 +286,48 @@ curl $(terraform output -raw function_app_url)/api/health | jq .
   }
   ```
 
-### 3. Chat with Agent (`/api/agent/chat`)
-
-- **Method**: POST
-- **Auth**: Anonymous
-- **Purpose**: Have conversations with AI agents
-- **Request Body**:
+- **chat**: Have conversations with AI agents
 
   ```json
   {
+    "action": "chat",
     "message": "Your message here",
     "thread_id": "optional-thread-id"
   }
   ```
 
-### 4. List Agents (`/api/agent/list`)
-
-- **Method**: GET
-- **Auth**: Anonymous
-- **Purpose**: List all agents in the AI Foundry project
-- **Response**: JSON array of available agents
-
-### 5. Delete Agent (`/api/agent/delete`)
-
-- **Method**: POST
-- **Auth**: Anonymous
-- **Purpose**: Delete an agent by ID
-- **Request Body**:
+- **list**: List all agents in the project
 
   ```json
   {
+    "action": "list"
+  }
+  ```
+
+- **delete**: Delete an agent by ID
+
+  ```json
+  {
+    "action": "delete",
     "agent_id": "agent-id-to-delete"
   }
   ```
 
-### 6. Demo (`/api/demo`)
+- **code-interpreter**: Demonstrate code interpreter capability
+
+  ```json
+  {
+    "action": "code-interpreter",
+    "code_task": "Calculate fibonacci sequence up to n=10"
+  }
+  ```
+
+### 3. Demo (`/api/demo`)
 
 - **Method**: GET
 - **Auth**: Anonymous
-- **Purpose**: Demonstrates agent capabilities including conversation and code interpreter
+- **Purpose**: One-click validation of the entire integration
+- **Response**: Demonstrates agent creation, conversation, code interpreter, and cleanup
 
 ## Testing the Deployed Functions
 
@@ -323,9 +340,10 @@ curl "$FUNCTION_URL/api/health" | jq .
 ### Create an Agent
 
 ```bash
-curl -X POST "$FUNCTION_URL/api/agent/create" \
+curl -X POST "$FUNCTION_URL/api/agent" \
   -H "Content-Type: application/json" \
   -d '{
+    "action": "create",
     "name": "my-assistant",
     "instructions": "You are a helpful AI assistant",
     "enable_code_interpreter": true
@@ -335,9 +353,48 @@ curl -X POST "$FUNCTION_URL/api/agent/create" \
 ### Chat with Agent
 
 ```bash
-curl -X POST "$FUNCTION_URL/api/agent/chat" \
+curl -X POST "$FUNCTION_URL/api/agent" \
   -H "Content-Type: application/json" \
-  -d '{"message": "What is Azure Functions?"}' | jq .
+  -d '{
+    "action": "chat",
+    "message": "What is Azure Functions?"
+  }' | jq .
+```
+
+### List All Agents
+
+```bash
+curl -X POST "$FUNCTION_URL/api/agent" \
+  -H "Content-Type: application/json" \
+  -d '{"action": "list"}' | jq .
+```
+
+### Delete an Agent
+
+```bash
+curl -X POST "$FUNCTION_URL/api/agent" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "delete",
+    "agent_id": "asst_xxxxx"
+  }' | jq .
+```
+
+### Run Code Interpreter Demo
+
+```bash
+curl -X POST "$FUNCTION_URL/api/agent" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "code-interpreter",
+    "code_task": "Calculate the sum of squares from 1 to 10"
+  }' | jq .
+```
+
+### Run Complete Demo
+
+```bash
+curl "$FUNCTION_URL/api/demo" | jq .
 ```
 
 ## Local Development
@@ -375,10 +432,24 @@ func start
 # Test health
 curl http://localhost:7071/api/health | jq .
 
-# Create and chat with agent
-curl -X POST http://localhost:7071/api/agent/chat \
+# Create agent
+curl -X POST http://localhost:7071/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello from local development"}' | jq .
+  -d '{
+    "action": "create",
+    "name": "local-assistant"
+  }' | jq .
+
+# Chat with agent
+curl -X POST http://localhost:7071/api/agent \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "chat",
+    "message": "Hello from local development"
+  }' | jq .
+
+# Run complete demo
+curl http://localhost:7071/api/demo | jq .
 ```
 
 ## Troubleshooting
@@ -463,7 +534,7 @@ The implementation includes both Python unit tests and Terraform integration tes
 ```bash
 # Python tests
 cd function-app
-pytest
+pytest tests
 
 # Terraform tests
 cd terraform
