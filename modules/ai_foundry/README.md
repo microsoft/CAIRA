@@ -53,7 +53,7 @@ sequenceDiagram
     Agent-->>User: Return Response
 ```
 
-### Knowledge Retrieval (RAG) Pattern
+### Knowledge Retrieval (RAG) Flow
 
 ```mermaid
 sequenceDiagram
@@ -68,8 +68,6 @@ sequenceDiagram
     Models-->>Agent: Grounded Response
     Agent->>CosmosDB: Store Enhanced Thread
 ```
-
-### Azure Resource Architecture
 
 ## Usage
 
