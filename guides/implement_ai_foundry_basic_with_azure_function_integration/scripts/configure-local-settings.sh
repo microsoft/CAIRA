@@ -11,13 +11,13 @@ cd ../terraform
 
 # Check if terraform state exists
 if [ ! -f "terraform.tfstate" ]; then
-    echo "Error: Terraform state not found in $(pwd)"
-    echo "Please ensure the Azure Functions layer has been deployed first."
-    echo ""
-    echo "To deploy:"
-    echo "  terraform init"
-    echo "  terraform apply"
-    exit 1
+  echo "Error: Terraform state not found in $(pwd)"
+  echo "Please ensure the Azure Functions layer has been deployed first."
+  echo ""
+  echo "To deploy:"
+  echo "  terraform init"
+  echo "  terraform apply"
+  exit 1
 fi
 
 echo "Fetching configuration from functions layer..."
@@ -36,9 +36,9 @@ AI_FOUNDRY_PROJECT_ID=$(terraform state show var.foundry_ai_foundry_project_id |
 
 # Get AI Foundry endpoint using Azure CLI
 AI_FOUNDRY_ENDPOINT=$(az cognitiveservices account show \
-    --name "$AI_FOUNDRY_NAME" \
-    --resource-group "$RESOURCE_GROUP" \
-    --query "properties.endpoint" -o tsv)
+  --name "$AI_FOUNDRY_NAME" \
+  --resource-group "$RESOURCE_GROUP" \
+  --query "properties.endpoint" -o tsv)
 
 # Get subscription ID from Azure CLI
 AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
