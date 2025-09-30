@@ -21,11 +21,15 @@ This Terraform configuration deploys a baseline Azure AI Foundry environment des
 
 ## Overview
 
-The Basic AI Foundry configuration creates a minimal but complete AI development environment suitable for:
+This Basic AI Foundry configuration creates a minimal but complete AI development environment suitable for:
 
 - **Generative AI POC Development**: Building custom copilots, chatbots, and AI-powered applications
 - **Model Experimentation**: Testing and fine-tuning AI models in a controlled environment
 - **Learning and Training**: Educational environments for teams new to Azure AI services
+
+WARNING: For ease of experimentation, this reference architecture uses public endpoints with minimal network restrictions, making it insecure by design. Adversaries frequently target non-production environments with public endpoints to find pathways into production. For this reason, it is **suboptimal for any production, staging, or long-term development environments**.
+
+For these scenarios, we recommend you use the [Standard Private reference architecture](../foundry_standard_private/README.md).
 
 ## Architecture
 
