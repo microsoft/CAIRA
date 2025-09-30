@@ -1,0 +1,7 @@
+project: foundry_standard_private
+kind: added
+body: Improved tests for foundry standard private configuration
+time: 2025-09-30T08:24:03.230014346-07:00
+custom:
+    Author: BSamodien
+    Issue: "126"
