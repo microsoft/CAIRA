@@ -210,7 +210,6 @@ Teams using CAIRA as a foundation for production systems should implement additi
 1. **Compliance and Governance**:
    - Enable Azure Policy for automated compliance checking
    - Implement resource tagging strategies for cost and security governance
-   - Use Azure Blueprints for consistent environment deployment
    - Enable Azure Security Center recommendations and secure score monitoring
 
 1. **Data Protection**:
