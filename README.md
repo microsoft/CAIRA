@@ -36,6 +36,10 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 Microsoft encourages customers to review its Responsible AI Standard when developing AI-enabled systems to ensure ethical, safe, and inclusive AI practices. Learn more at [Responsible AI](https://www.microsoft.com/ai/responsible-ai).
 
+## Security Posture
+
+CAIRA reference architectures are designed to balance ease of deployment with security best practices. While the baseline configurations implement reasonable security controls, **production deployments will require additional security hardening**. For detailed information about security decisions, implementation patterns, and production recommendations, see our [Security Posture Documentation](./docs/security_posture.md).
+
 ## Data Collection
 
 The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft's privacy statement. Our privacy statement is located at <https://go.microsoft.com/fwlink/?LinkID=824704>. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
