@@ -9,6 +9,7 @@
 # EFFICIENCY NOTE: This uses a single apply operation to minimize cost and time
 
 provider "azurerm" {
+  storage_use_azuread = true
   features {}
 }
 

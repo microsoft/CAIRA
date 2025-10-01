@@ -10,6 +10,7 @@
 # host resources (Cosmos DB, Storage, AI Search) for plan validation.
 
 provider "azurerm" {
+  storage_use_azuread = true
   features {}
 }
 
