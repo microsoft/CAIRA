@@ -1,0 +1,10 @@
+pytest==8.3.3
+pytest-cov==5.0.0
+pytest-mock==3.14.0
+pytest-asyncio==0.24.0
+azure-functions==1.21.3
+azure-identity>=1.19.0
+azure-core>=1.31.0
+azure-ai-projects>=1.0.0b11
+azure-ai-inference>=1.0.0b4
+requests==2.32.3
