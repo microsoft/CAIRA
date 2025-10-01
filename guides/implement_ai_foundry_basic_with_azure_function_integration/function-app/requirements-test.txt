@@ -7,4 +7,4 @@ azure-identity>=1.19.0
 azure-core>=1.31.0
 azure-ai-projects>=1.0.0b11
 azure-ai-inference>=1.0.0b4
-requests==2.32.3
+requests==2.32.4
