@@ -1,0 +1,42 @@
+graph TB
+    subgraph "AI Foundry Basic (from CAIRA)"
+        AIF[AI Foundry Account<br/>Cognitive Services]
+        AIP[AI Foundry Project]
+        AI[Application Insights]
+        LAW[Log Analytics]
+
+        AIF --> AIP
+        AIP --> AI
+        AI --> LAW
+    end
+
+    subgraph "Function App Extension"
+        FA[Function App<br/>Python 3.11<br/>OpenAI SDK]
+        ASP[App Service Plan<br/>B1 SKU]
+        SA[Storage Account]
+
+        ASP --> FA
+        SA --> FA
+    end
+
+    subgraph "Model Deployments (Azure AI Studio)"
+        MD1[GPT-4.1<br/>Chat Completion]
+        MD2[o4-mini<br/>Fast Inference]
+        MD3[text-embedding-3-large<br/>Embeddings]
+
+        AIP --> MD1
+        AIP --> MD2
+        AIP --> MD3
+    end
+
+    FA -->|Managed Identity<br/>RBAC| AIP
+    FA -->|Telemetry| AI
+
+    User[User] -->|HTTPS<br/>Anonymous Auth| FA
+    FA -->|Chat API| MD1
+    FA -->|Fast Chat| MD2
+    FA -->|Embeddings| MD3
+
+    style AIF fill:#f9f,stroke:#333,stroke-width:2px
+    style FA fill:#bbf,stroke:#333,stroke-width:2px
+    style MD1 fill:#bfb,stroke:#333,stroke-width:2px
