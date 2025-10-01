@@ -151,6 +151,7 @@ Recommended Environment Configuration
 - Evaluate AI Search replica distribution for availability requirements
 - Consider customer-managed encryption keys for AI Foundry sensitive data
 - Evaluate private endpoint configuration for AI services based on architecture requirements
+- Don't use public endpoint reference architectures for long running scenarios.
 
 #### Operational Excellence
 
