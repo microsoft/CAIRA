@@ -27,4 +27,6 @@ provider "azurerm" {
       purge_soft_delete_on_destroy = true
     }
   }
+  # Partner attribution set only when telemetry is enabled
+  partner_id = var.enable_telemetry ? "acce1e78-a722-49bd-b11e-954c5cd58ffc" : null
 }

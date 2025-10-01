@@ -1,0 +1,7 @@
+project: foundry_basic
+kind: added
+body: Added partner_id attribution to azurerm with support for telemetry opt-out
+time: 2025-09-23T18:17:43.590547798Z
+custom:
+    Author: mattdot
+    Issue: "100"
