@@ -192,6 +192,10 @@ task project:changelog -- <ISSUE_NUMBER>
 
 ## 6. Commit Guidelines
 
+### Signing Commits
+
+All commits must be signed to verify the author's identity. Follow the [GitHub Docs: Managing commit signature verification](https://docs.github.com/en/authentication/managing-commit-signature-verification/) for instructions.
+
 ### Commit Message Format
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/) specification:

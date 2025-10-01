@@ -28,6 +28,10 @@ The Standard configuration is suited for:
 - **Teams standardizing on shared platform services** (Search, Cosmos DB, Storage) across projects
 - **Environments that need stronger identity-first and RBAC-based access controls**
 
+**WARNING**: This reference architecture uses public endpoints. Adversaries frequently target  public endpoints, even if non-production systems, to find pathways into production. For this reason, it is **suboptimal for any production, staging, or other long-running environments**.
+
+For these scenarios, we recommend you use the [foundry_standard_private](../foundry_standard_private/README.md) reference architecture. For a full set of other security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
