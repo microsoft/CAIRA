@@ -43,7 +43,7 @@ jobs:
         run: task project:install:changie
 
       - name: 🔎 Find comment
-        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: fc
         if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
         with:
@@ -111,7 +111,7 @@ jobs:
     steps:
       - name: 🔎 Find comment
         if: github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
-        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e # v3.1.0
+        uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4.0.0
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
