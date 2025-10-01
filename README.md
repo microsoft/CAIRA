@@ -46,9 +46,11 @@ The software may collect information about you and your use of the software and 
 
 - Azure Verified Modules (AVM) collect telemetry on deployments. This is documented [on the AVM website](https://azure.github.io/Azure-Verified-Modules/help-support/telemetry/).
 
+The partner_id configuration in `reference_architectures/*/terraform.tf` enables telemetry that helps us justify ongoing investment in maintaining and improving this repository. Keeping this enabled supports the project and future feature development. When enabled, the partner_id is appended to the User-Agent on requests made by the configured terraform providers.
+
 ### Opting Out
 
-To opt out of AVM telemetry, set the variable `enable_telemetry` to `false`.
+To opt out of AVM and partner_id telemetry, set the variable `enable_telemetry` to `false`.
 
 ## Trademarks
 

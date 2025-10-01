@@ -1,21 +1,51 @@
-# Support
+# Support Statement
 
-## How to File Issues and Get Help
+This open source project is provided "as-is" without official formal support from Microsoft. That said, the maintainer team strives to provide best effort responses along the timelines provided below.
 
-This project is provided "as-is" without any official support from Microsoft. If you encounter any issues or have feature requests, you can file them through GitHub Issues. Please follow these steps:
+## Scope
 
-1. **Search Existing Issues:** Before creating a new issue, please check the existing issues in the repository to see if your problem or request has already been reported. This helps avoid duplicates and can save time.
+This SLO applies to [Issues](https://github.com/microsoft/CAIRA/issues) raised in the public [GitHub repository](https://github.com/microsoft/caira).
 
-1. **File a New Issue:** If you do not find an existing issue that matches your problem, feel free to open a new one. Clearly describe the problem or feature request, providing as much detail as possible, including steps to reproduce the issue, if applicable.
+### Response Times
 
-    * Go to the [Issues](https://github.com/microsoft/CAIRA/issues) section of this repository.
-    * Click on the "New Issue" button.
-    * Select the appropriate issue template (if available) and fill out the required details.
+| Issue Type                        | Triage Response Time |
+|-----------------------------------|----------------------|
+| Critical security vulnerabilities | 2 days               |
+| Bugs affecting core functionality | 5 days               |
+| Feature requests and enhancements | 14 days              |
+| General questions                 | 14 days              |
 
-Please note that while we welcome your issues and feedback, there is no guaranteed timeline for addressing these issues. The maintainers of this repository will review and prioritize issues as time permits.
+### Definitions
 
-## Microsoft Support Policy
+- Response means initial acknowledgment, labeling, or request for clarification - not necessarily a resolution
+- Days are to be interpreted as business days from **Monday-Friday**, excluding major holidays
+- Times are calculated from issue creation to first maintainer response
 
-Support for this project is limited to the resources listed above. There is no official support provided through Microsoft Customer Service & Support (CSS) for this project. If you require formal support or service-level agreements (SLAs), you may need to explore other supported Azure solutions or engage with Microsoft Consulting Services.
+### What We Provide
 
-For questions and further engagement with the community, we encourage you to participate in the discussions on GitHub. Community members and maintainers may offer assistance on a voluntary basis.
+- Public issue tracking and discussion
+- Documentation and self-service resources
+- Regular monthly release cycles. Out-of-band releases may occur when necessary, such as in response to a breaking change or a security-related fix.
+- Security patches for critical vulnerabilities in supported versions (up to last published version).
+
+### What We Don't Provide
+
+- Guaranteed resolution timelines
+- 24/7 support
+- Phone or video support
+- Custom development or consulting
+- Support for end-of-life versions
+- Private/priority support queues
+
+## How to streamline the response process
+
+1. **Search Existing Issues:** Before creating a new issue, please verify that the existing issues in the repository do not already reflect the issue you are facing or the feature that you are requesting. This helps avoid duplicates and can save time.
+1. **File a New Issue:** If you do not find an existing issue that matches what you are experiencing, feel free to open a new one by:
+   1. Going to the [Issues](https://github.com/microsoft/CAIRA/issues) section of this repository.
+   1. And click on [New Issue](https://github.com/microsoft/CAIRA/issues/new/choose).
+1. **Use the correct issue template**  and clearly describe the issue or feature request, providing as much detail as possible, including steps to reproduce the issue, if applicable. Be sure to call out actual vs expected behavior in your report.
+
+## Escalation Path
+
+1. GitHub [Issues](https://github.com/microsoft/CAIRA/issues) for bugs and feature requests
+1. Security vulnerabilities: [cmaint@microsoft.com](mailto:cmaint@microsoft.com) (private disclosure)

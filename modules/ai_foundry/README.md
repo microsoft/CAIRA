@@ -32,6 +32,43 @@ This module provisions:
 
 Designed to be used directly or with the `common_models` module to supply model deployment specs.
 
+### Agent Conversation Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as Agent Capability Host
+    participant Models as Model Deployments
+    participant CosmosDB as Cosmos DB
+    participant AISearch as AI Search
+    participant AzStorage as Azure Storage
+
+    User->>Agent: Send Message
+    Agent->>CosmosDB: Load Thread Context
+    Agent->>AISearch: Retrieve Knowledge
+    Agent->>Models: Generate Response
+    Models-->>Agent: AI Response
+    Agent->>AzStorage: Store Files (if any)
+    Agent->>CosmosDB: Save Thread Update
+    Agent-->>User: Return Response
+```
+
+### Knowledge Retrieval (RAG) Flow
+
+```mermaid
+sequenceDiagram
+    participant Agent as Agent Capability Host
+    participant Models as Model Deployments
+    participant CosmosDB as Cosmos DB
+    participant AISearch as AI Search
+
+    Agent->>AISearch: Query Vector Database
+    AISearch-->>Agent: Relevant Documents
+    Agent->>Models: Prompt + Context
+    Models-->>Agent: Grounded Response
+    Agent->>CosmosDB: Store Enhanced Thread
+```
+
 ## Usage
 
 ### Private networking (VNet injection)
