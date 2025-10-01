@@ -38,6 +38,11 @@ output "ai_foundry_project_identity_principal_id" {
   value       = module.ai_foundry.ai_foundry_project_identity_principal_id
 }
 
+output "ai_foundry_endpoint" {
+  description = "The endpoint URL of the AI Foundry account."
+  value       = module.ai_foundry.ai_foundry_endpoint
+}
+
 output "agent_capability_host_connections" {
   description = "The connections used for the agent capability host."
   value       = module.capability_host_resources.connections

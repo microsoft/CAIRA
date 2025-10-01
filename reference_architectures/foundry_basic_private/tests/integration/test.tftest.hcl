@@ -22,7 +22,7 @@ run "testint_foundry_basic_private_comprehensive" {
   command = apply
 
   variables {
-    location             = "eastus2" # Match the setup module location
+    location             = "swedencentral"
     foundry_subnet_id    = run.setup.connection.id
     project_name         = "integration-test-private-project"
     project_display_name = "Integration Test Private Project"
@@ -49,7 +49,7 @@ run "testint_foundry_basic_private_comprehensive" {
   }
 
   assert {
-    condition     = azurerm_resource_group.this[0].location == "eastus2"
+    condition     = azurerm_resource_group.this[0].location == "swedencentral"
     error_message = "Resource group location should match the specified location"
   }
 
@@ -281,7 +281,7 @@ run "testint_foundry_basic_private_comprehensive" {
 
   # Verify configured variables are properly applied
   assert {
-    condition     = var.location == "eastus2"
+    condition     = var.location == "swedencentral"
     error_message = "Location variable should be properly applied"
   }
 

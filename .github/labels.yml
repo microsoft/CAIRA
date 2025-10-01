@@ -41,9 +41,6 @@
 - name: kind/refactor
   description: Refactor or resolve tech debt
   color: F9C24D
-- name: kind/capability
-  description: Work item for user story requirements, what must be true for the user
-  color: F9C24D
 
 - name: state/stale
   description: Stale/inactive work
@@ -58,16 +55,9 @@
   description: Skip changelog entry
   color: CD42E6
 
-- name: aspect/caira-v2
-  description: CAIRA 2.0
-  color: AF25CE
-- name: aspect/bugbash-v1.5
-  description: Bug Bash v1.5
-  color: AF25CE
-- name: aspect/qol
-  description: Quality of Life Improvements
-  color: AF25CE
-
 - name: good first issue
   description: Good for newcomers
   color: D4C5F9
+- name: help wanted
+  description: Help wanted
+  color: 008672
