@@ -72,12 +72,28 @@ or follow the steps to use an existing one.
 
 If you already have an SSH key, you can skip the generation step. Just ensure you know the location of the private and public key files (commonly `~/.ssh/id_ed25519` and `~/.ssh/id_ed25519.pub`).
 
+_Option 1 (Copy existing key files)_
+
 > You may need to copy the existing key files from your host machine to the development environment.
 
 Run the following command to add an existing SSH private key to the SSH agent:
 
 ```shell
 ssh-add ~/.ssh/id_ed25519
+```
+
+_Option 2 (Use the contents of the public key)_
+
+Get the contents of your existing public key file:
+
+```shell
+cat ~/.ssh/id_ed25519.pub
+```
+
+Configure _git_ to use the existing public key for signing:
+
+```shell
+git config --global user.signingkey "key::ssh-ed25519 AAAA... your_email@example.com"
 ```
 
 </details>
@@ -96,9 +112,14 @@ Give it a name (for example: `My Laptop`) and paste the key.
 
 Click `Add SSH key`.
 
+<details>
+<summary>Configure SSO for Microsoft employees</summary>
+
 Click `Configure SSO` and authorize the key for the CAIRA organization.
 
 ![Authorize SSH Key](https://github.com/user-attachments/assets/19158da7-83df-43ca-b232-4c199fb681c7)
+
+</details>
 
 ### Configure Git to Use SSH Signing
 
@@ -228,6 +249,13 @@ If you see "_Unverified_" instead of "_Verified_":
 
   ```shell
   git config user.email
+  ```
+
+- Verify that commits are being signed:
+
+  ```shell
+  git log --show-signature -1
+  ```
 
 ## References
 
