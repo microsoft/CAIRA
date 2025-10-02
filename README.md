@@ -22,6 +22,12 @@ Want to jump right into CAIRA? Here are the details on getting started!
 1. Explore the configuration and customize as needed. Installation steps can be found in the nested README.md file.
 1. Happy AI-ing!
 
+### New to CAIRA, Terraform or AI Foundry?
+
+Try the 🤖 [CAIRA Assistant chat mode](./docs/chat_modes.md) for guided deployment assistance! After cloning the repo and starting the devcontainer, simply select "caira-assistant" chatmode in copilot and start chatting.
+
+![Caira Assistant](./docs/images/caira_assistant.gif)
+
 ## Contributing
 
 This project welcomes contributions and suggestions. For detailed information, refer to the [Contributing Guide](CONTRIBUTING.md).
