@@ -7,10 +7,6 @@
 #
 # EFFICIENCY NOTE: This uses a single apply operation to minimize cost and time
 
-provider "azurerm" {
-  features {}
-}
-
 run "testint_foundry_basic_comprehensive" {
   command = apply
 

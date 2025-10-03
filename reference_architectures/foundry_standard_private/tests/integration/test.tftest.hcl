@@ -8,11 +8,6 @@
 #
 # EFFICIENCY NOTE: This uses a single apply operation to minimize cost and time
 
-provider "azurerm" {
-  storage_use_azuread = true
-  features {}
-}
-
 # Setup the networking infrastructure and capability host resources needed for testing
 run "setup" {
   module {
