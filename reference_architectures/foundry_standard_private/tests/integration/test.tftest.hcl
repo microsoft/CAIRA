@@ -142,10 +142,10 @@ run "testint_foundry_standard_private_comprehensive" {
     error_message = "There should be at least one AI Model Deployment"
   }
 
-  # Verify specific number of model deployments (gpt-4, o4-mini, text-embedding-3-large)
+  # Verify specific number of model deployments
   assert {
     condition     = length(module.ai_foundry.ai_foundry_model_deployments_ids) == 3
-    error_message = "Should have exactly 3 model deployments (gpt-4, o4-mini, text-embedding-3-large)"
+    error_message = "Should have exactly 3 model deployments"
   }
 
   # Validate all model deployment resource IDs
