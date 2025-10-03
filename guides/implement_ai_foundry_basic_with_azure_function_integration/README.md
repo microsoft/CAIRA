@@ -188,6 +188,7 @@ provider "azurerm" {
 **Create `variables.tf`**: Define inputs from foundry_basic.
 
 ```hcl
+# Foundry Basic Outputs (Required)
 variable "foundry_resource_group_name" {
   type        = string
   description = "Resource group from foundry_basic"
@@ -203,6 +204,27 @@ variable "foundry_ai_foundry_id" {
   description = "Full resource ID for RBAC assignments"
 }
 
+variable "foundry_ai_foundry_project_id" {
+  type        = string
+  description = "AI Foundry Project resource ID"
+}
+
+variable "foundry_ai_foundry_project_name" {
+  type        = string
+  description = "AI Foundry Project name"
+}
+
+variable "foundry_application_insights_name" {
+  type        = string
+  description = "Application Insights instance name"
+}
+
+variable "foundry_log_analytics_workspace_id" {
+  type        = string
+  description = "Log Analytics workspace resource ID"
+}
+
+# Function-specific Configuration
 variable "project_name" {
   type    = string
   default = "ai-integration"
@@ -219,7 +241,7 @@ variable "tags" {
 }
 ```
 
-**Why separate variables**: This creates a clean interface between the foundry_basic foundation and your function layer, making the solution modular and reusable.
+**Why these variables**: All foundry_basic outputs need corresponding input variables in the function layer. This creates a clean interface between the foundation and function layers, making the solution modular and reusable.
 
 #### Step 2: Connect to Foundry Basic
 
@@ -233,6 +255,11 @@ data "azurerm_resource_group" "this" {
 
 data "azurerm_cognitive_account" "ai_foundry" {
   name                = var.foundry_ai_foundry_name
+  resource_group_name = var.foundry_resource_group_name
+}
+
+data "azurerm_application_insights" "this" {
+  name                = var.foundry_application_insights_name
   resource_group_name = var.foundry_resource_group_name
 }
 
@@ -261,9 +288,9 @@ locals {
 }
 ```
 
-**Why data sources**: These let Terraform discover and reference your existing AI Foundry resources without managing them directly.
+**Why data sources**: These let Terraform discover and reference your existing AI Foundry resources without managing them directly. The data sources retrieve information about resources created by foundry_basic.
 
-**Why a separate resource group**: This keeps function resources isolated, making it easier to manage, update, or delete them independently.
+**Why a separate resource group**: This keeps function resources isolated, making it easier to manage, update, or delete them independently from the AI Foundry foundation.
 
 #### Step 3: Create the Function Infrastructure
 
@@ -336,11 +363,13 @@ resource "azurerm_linux_function_app" "main" {
   }
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"     = "python"
-    "AI_FOUNDRY_ENDPOINT"          = local.ai_foundry_endpoint
-    "AI_FOUNDRY_PROJECT_NAME"      = var.foundry_ai_foundry_project_name
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.function.name
-    "AzureWebJobsStorage__credential"  = "managedidentity"
+    "FUNCTIONS_WORKER_RUNTIME"              = "python"
+    "AI_FOUNDRY_ENDPOINT"                   = local.ai_foundry_endpoint
+    "AI_FOUNDRY_PROJECT_NAME"               = var.foundry_ai_foundry_project_name
+    "AI_FOUNDRY_PROJECT_ID"                 = var.foundry_ai_foundry_project_id
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string
+    "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function.name
+    "AzureWebJobsStorage__credential"       = "managedidentity"
   }
 }
 ```
@@ -351,6 +380,8 @@ resource "azurerm_linux_function_app" "main" {
 - `AzureWebJobsStorage__credential = "managedidentity"`: Explicitly tells Function runtime to use MI
 - `identity { type = "SystemAssigned" }`: Azure creates and manages the identity
 - `python_version = "3.11"`: Matches our development environment
+- `APPLICATIONINSIGHTS_CONNECTION_STRING`: Connects telemetry to Application Insights
+- `AI_FOUNDRY_PROJECT_ID`: Full resource ID for the AI Foundry project
 
 Add RBAC roles for AI Foundry:
 
@@ -893,15 +924,15 @@ Now that we've built all the pieces, let's see how they work together:
 #### Connection Flow
 
 1. **User Request** → HTTP request to Function endpoint
-1. **Function Runtime** → Loads Python code and environment variables
-1. **DefaultAzureCredential** → Gets token using managed identity
-1. **AI Projects SDK** → Authenticates with AI Foundry using token
-1. **Agent Execution** → Processes request using AI model
-1. **Response** → Returns JSON result to user
+2. **Function Runtime** → Loads Python code and environment variables
+3. **DefaultAzureCredential** → Gets token using managed identity
+4. **AI Projects SDK** → Authenticates with AI Foundry using token
+5. **Agent Execution** → Processes request using AI model
+6. **Response** → Returns JSON result to user
 
 #### Data Flow Example: Chat Request
 
-```txt
+```
 User sends POST to /api/agent/chat
     ↓
 Function receives request with {"message": "Hello"}
@@ -923,7 +954,7 @@ User receives response and can continue conversation
 
 #### Security Flow: Managed Identity
 
-```txt
+```
 Function App starts
     ↓
 Azure assigns managed identity (automatic)
@@ -945,7 +976,7 @@ AI Foundry validates token and processes request
 
 #### Monitoring Flow
 
-```txt
+```
 Function executes
     ↓
 Logs written to console
