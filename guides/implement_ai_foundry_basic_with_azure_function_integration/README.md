@@ -893,15 +893,15 @@ Now that we've built all the pieces, let's see how they work together:
 #### Connection Flow
 
 1. **User Request** → HTTP request to Function endpoint
-2. **Function Runtime** → Loads Python code and environment variables
-3. **DefaultAzureCredential** → Gets token using managed identity
-4. **AI Projects SDK** → Authenticates with AI Foundry using token
-5. **Agent Execution** → Processes request using AI model
-6. **Response** → Returns JSON result to user
+1. **Function Runtime** → Loads Python code and environment variables
+1. **DefaultAzureCredential** → Gets token using managed identity
+1. **AI Projects SDK** → Authenticates with AI Foundry using token
+1. **Agent Execution** → Processes request using AI model
+1. **Response** → Returns JSON result to user
 
 #### Data Flow Example: Chat Request
 
-```
+```txt
 User sends POST to /api/agent/chat
     ↓
 Function receives request with {"message": "Hello"}
@@ -923,7 +923,7 @@ User receives response and can continue conversation
 
 #### Security Flow: Managed Identity
 
-```
+```txt
 Function App starts
     ↓
 Azure assigns managed identity (automatic)
@@ -945,7 +945,7 @@ AI Foundry validates token and processes request
 
 #### Monitoring Flow
 
-```
+```txt
 Function executes
     ↓
 Logs written to console
