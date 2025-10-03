@@ -16,6 +16,1014 @@ This guide demonstrates how to use the CAIRA `foundry_basic` reference architect
 - **Application Insights**: Monitoring and diagnostics (via foundry_basic module)
 - **Log Analytics**: Centralized logging (via foundry_basic module)
 
+## Understanding What We're Building
+
+### The End State
+
+By the end of this guide, you'll have a complete serverless AI agent solution consisting of:
+
+**Foundation Layer (foundry_basic)**:
+
+- An Azure AI Foundry account hosting your AI capabilities
+- An AI Foundry Project workspace for organizing agents
+- Application Insights for monitoring and telemetry
+- Log Analytics workspace for centralized logging
+- All connected via managed identities and RBAC roles
+
+**Function Layer (what we're building)**:
+
+- An Azure Function App running Python 3.11
+- System-assigned managed identity for secure, keyless authentication
+- Storage account for function runtime (also using managed identity)
+- App Service Plan hosting the function
+- Complete RBAC role assignments for AI Foundry access
+- RESTful HTTP endpoints for AI agent operations
+
+**Integration Points**:
+
+- Function App → AI Foundry: Managed identity with Cognitive Services User role
+- Function App → Storage: Managed identity with Storage Blob Data Owner role
+- Function App → App Insights: Connection string-based telemetry
+- All traffic secured with HTTPS and TLS 1.2 minimum
+
+### Why This Architecture?
+
+**Serverless Benefits**: Azure Functions provide automatic scaling, pay-per-execution pricing, and minimal infrastructure management.
+
+**Security by Design**: Managed identities eliminate the need for storing credentials, following Azure's security best practices.
+
+**Separation of Concerns**: The foundry_basic layer handles AI infrastructure, while the function layer focuses on application logic and API endpoints.
+
+**Production Ready**: All components include monitoring, logging, and security configurations suitable for production workloads.
+
+## Building the Solution Step by Step
+
+This section walks you through building the solution from the ground up, explaining each component and why it's needed.
+
+### Part 1: Understanding the Terraform Infrastructure
+
+Before deploying anything, let's understand what the Terraform code creates and why each piece is necessary.
+
+#### Core Resource: The Function App
+
+The centerpiece of our solution is the Azure Function App. Here's what makes it work:
+
+**1. Storage Account** (`function.tf` lines 5-35):
+
+```hcl
+resource "azurerm_storage_account" "function" {
+  name                     = replace(module.naming.storage_account.name_unique, "-", "")
+  account_tier             = "Standard"
+  shared_access_key_enabled = false  # Security: Use managed identity instead
+  ...
+}
+```
+
+**Why it's needed**: Function Apps require storage for runtime data, state management, and queue triggers. We disable shared access keys and use managed identity for secure access.
+
+**2. App Service Plan** (`function.tf` lines 37-51):
+
+```hcl
+resource "azurerm_service_plan" "function" {
+  os_type  = "Linux"
+  sku_name = var.function_sku_size  # Default: B1
+}
+```
+
+**Why it's needed**: This provides the compute resources for your function. The B1 SKU offers a good balance of cost and performance for learning and development.
+
+**3. Linux Function App** (`function.tf` lines 53-103):
+
+```hcl
+resource "azurerm_linux_function_app" "main" {
+  storage_uses_managed_identity = true  # No storage keys!
+
+  identity {
+    type = "SystemAssigned"  # Creates managed identity automatically
+  }
+
+  app_settings = {
+    "AI_FOUNDRY_ENDPOINT" = local.ai_foundry_endpoint
+    "AzureWebJobsStorage__credential" = "managedidentity"
+  }
+}
+```
+
+**Why these settings matter**:
+
+- `storage_uses_managed_identity`: Eliminates the need for storage connection strings
+- `SystemAssigned` identity: Azure creates and manages the identity lifecycle
+- `app_settings`: Configure the function to find and authenticate with AI Foundry
+
+#### Security Layer: RBAC Role Assignments
+
+**AI Foundry Access** (`function.tf` lines 105-113):
+
+```hcl
+resource "azurerm_role_assignment" "function_ai_foundry_user" {
+  scope                = var.foundry_ai_foundry_id
+  role_definition_name = "Cognitive Services User"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+```
+
+**Why this matters**: This grants your function app permission to call AI Foundry APIs. Without this role assignment, all API calls would fail with authorization errors.
+
+#### Observability Layer: Monitoring
+
+**Diagnostic Settings** (`function.tf` lines 115-131):
+
+```hcl
+resource "azurerm_monitor_diagnostic_setting" "function" {
+  target_resource_id         = azurerm_linux_function_app.main.id
+  log_analytics_workspace_id = var.foundry_log_analytics_workspace_id
+
+  enabled_log {
+    category = "FunctionAppLogs"
+  }
+}
+```
+
+**Why this matters**: Sends all function logs to Log Analytics, enabling troubleshooting and monitoring through Azure Monitor.
+
+### Part 2: Building the Terraform Infrastructure
+
+Now that you understand the components, let's build them step by step.
+
+#### Step 1: Set Up Your Terraform Files
+
+Create a new directory for your function layer:
+
+```bash
+mkdir -p my-function-layer
+cd my-function-layer
+```
+
+**Create `providers.tf`**: This configures Terraform and Azure provider settings.
+
+```hcl
+terraform {
+  required_version = ">= 1.13, < 2.0"
+
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.40"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+  storage_use_azuread = true  # Enable managed identity for storage
+}
+```
+
+**Why these settings**: The provider configuration enables managed identity authentication for storage accounts, which is crucial for our keyless security model.
+
+**Create `variables.tf`**: Define inputs from foundry_basic.
+
+```hcl
+variable "foundry_resource_group_name" {
+  type        = string
+  description = "Resource group from foundry_basic"
+}
+
+variable "foundry_ai_foundry_name" {
+  type        = string
+  description = "AI Foundry account name"
+}
+
+variable "foundry_ai_foundry_id" {
+  type        = string
+  description = "Full resource ID for RBAC assignments"
+}
+
+variable "project_name" {
+  type    = string
+  default = "ai-integration"
+}
+
+variable "function_sku_size" {
+  type    = string
+  default = "B1"
+}
+
+variable "tags" {
+  type    = map(string)
+  default = {}
+}
+```
+
+**Why separate variables**: This creates a clean interface between the foundry_basic foundation and your function layer, making the solution modular and reusable.
+
+#### Step 2: Connect to Foundry Basic
+
+**Create `main.tf`**: This connects to your existing AI Foundry deployment.
+
+```hcl
+# Reference existing foundry_basic resources
+data "azurerm_resource_group" "this" {
+  name = var.foundry_resource_group_name
+}
+
+data "azurerm_cognitive_account" "ai_foundry" {
+  name                = var.foundry_ai_foundry_name
+  resource_group_name = var.foundry_resource_group_name
+}
+
+# Use Azure naming module for consistent names
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.2"
+  suffix  = [var.project_name]
+}
+
+# Create separate resource group for function resources
+resource "azurerm_resource_group" "function" {
+  name     = "${module.naming.resource_group.name_unique}-func"
+  location = data.azurerm_resource_group.this.location
+
+  tags = merge(var.tags, {
+    Purpose = "Function App Resources"
+    Parent  = data.azurerm_resource_group.this.name
+  })
+}
+
+locals {
+  resource_group_name = azurerm_resource_group.function.name
+  location            = azurerm_resource_group.function.location
+  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
+}
+```
+
+**Why data sources**: These let Terraform discover and reference your existing AI Foundry resources without managing them directly.
+
+**Why a separate resource group**: This keeps function resources isolated, making it easier to manage, update, or delete them independently.
+
+#### Step 3: Create the Function Infrastructure
+
+**Create `function.tf`**: Build the complete function infrastructure.
+
+Start with storage (keyless design):
+
+```hcl
+resource "azurerm_storage_account" "function" {
+  name                        = replace(module.naming.storage_account.name_unique, "-", "")
+  resource_group_name         = local.resource_group_name
+  location                    = local.location
+  account_tier                = "Standard"
+  account_replication_type    = "LRS"
+  shared_access_key_enabled   = false  # Critical: No keys!
+  min_tls_version             = "TLS1_2"
+  https_traffic_only_enabled  = true
+
+  network_rules {
+    default_action = "Allow"
+    bypass         = ["AzureServices"]
+  }
+}
+```
+
+**Security decision explained**: By setting `shared_access_key_enabled = false`, we force all access to use managed identities. This eliminates the risk of key leakage.
+
+Add the App Service Plan:
+
+```hcl
+resource "azurerm_service_plan" "function" {
+  name                = module.naming.app_service_plan.name_unique
+  resource_group_name = local.resource_group_name
+  location            = local.location
+  os_type             = "Linux"
+  sku_name            = var.function_sku_size
+}
+```
+
+**SKU choice**: B1 provides dedicated compute with 1.75 GB RAM and 1 vCPU, suitable for moderate workloads. For production, consider Premium plans for better performance.
+
+Create the Function App with managed identity:
+
+```hcl
+resource "azurerm_linux_function_app" "main" {
+  name                = module.naming.function_app.name_unique
+  resource_group_name = local.resource_group_name
+  location            = local.location
+  service_plan_id     = azurerm_service_plan.function.id
+
+  # Managed identity for storage (no connection string!)
+  storage_account_name          = azurerm_storage_account.function.name
+  storage_uses_managed_identity = true
+
+  functions_extension_version = "~4"
+
+  site_config {
+    always_on                = false
+    ftps_state               = "Disabled"
+    http2_enabled            = true
+    minimum_tls_version      = "1.2"
+
+    application_stack {
+      python_version = "3.11"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME"     = "python"
+    "AI_FOUNDRY_ENDPOINT"          = local.ai_foundry_endpoint
+    "AI_FOUNDRY_PROJECT_NAME"      = var.foundry_ai_foundry_project_name
+    "AzureWebJobsStorage__accountName" = azurerm_storage_account.function.name
+    "AzureWebJobsStorage__credential"  = "managedidentity"
+  }
+}
+```
+
+**Configuration breakdown**:
+
+- `storage_uses_managed_identity = true`: Function runtime uses managed identity for storage
+- `AzureWebJobsStorage__credential = "managedidentity"`: Explicitly tells Function runtime to use MI
+- `identity { type = "SystemAssigned" }`: Azure creates and manages the identity
+- `python_version = "3.11"`: Matches our development environment
+
+Add RBAC roles for AI Foundry:
+
+```hcl
+resource "azurerm_role_assignment" "function_ai_foundry_user" {
+  scope                = var.foundry_ai_foundry_id
+  role_definition_name = "Cognitive Services User"
+  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+}
+```
+
+**Role explanation**: "Cognitive Services User" allows calling AI Foundry APIs but doesn't grant management permissions. This follows least-privilege principles.
+
+Add monitoring:
+
+```hcl
+resource "azurerm_monitor_diagnostic_setting" "function" {
+  name                       = "${module.naming.function_app.name_unique}-diagnostics"
+  target_resource_id         = azurerm_linux_function_app.main.id
+  log_analytics_workspace_id = var.foundry_log_analytics_workspace_id
+
+  enabled_log {
+    category = "FunctionAppLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+```
+
+**Monitoring benefit**: Every function execution, error, and metric flows into Log Analytics, enabling Azure Monitor queries and alerting.
+
+#### Step 4: Add Outputs
+
+**Create `outputs.tf`**: Expose important values for testing and integration.
+
+```hcl
+output "function_app_name" {
+  description = "Name of the deployed Function App"
+  value       = azurerm_linux_function_app.main.name
+}
+
+output "function_app_url" {
+  description = "Base URL for function endpoints"
+  value       = "https://${azurerm_linux_function_app.main.default_hostname}"
+}
+
+output "resource_group_name" {
+  description = "Resource group containing function resources"
+  value       = azurerm_resource_group.function.name
+}
+```
+
+### Part 3: Understanding the Function App Code
+
+Now let's understand the Python function code that provides AI agent capabilities.
+
+#### Core Architecture: Azure AI Projects SDK
+
+The function app uses the **Azure AI Projects SDK** which provides:
+
+**Agent Management**: Create, list, and delete AI agents with various capabilities (code interpreter, file search)
+
+**Conversation Threading**: Maintain conversation context across multiple user interactions
+
+**Managed Identity Authentication**: Seamless authentication using DefaultAzureCredential
+
+#### Key Code Components
+
+**1. Project Client Initialization** (`function_app.py` lines 17-58):
+
+```python
+def get_project_client() -> AIProjectClient:
+    """Initialize Azure AI Project Client"""
+    global _project_client
+
+    if _project_client:
+        return _project_client  # Reuse existing client
+
+    credential = DefaultAzureCredential()
+    endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")
+    project_name = os.getenv("AI_FOUNDRY_PROJECT_NAME")
+
+    # Transform endpoint to AI Foundry format
+    if "cognitiveservices.azure.com" in endpoint:
+        account_name = endpoint.split("//")[1].split(".")[0]
+        project_endpoint = f"https://{account_name}.services.ai.azure.com/api/projects/{project_name}"
+
+    _project_client = AIProjectClient(
+        endpoint=project_endpoint,
+        credential=credential
+    )
+
+    return _project_client
+```
+
+**Why this design**:
+
+- **Singleton pattern**: Creates the client once and reuses it across function invocations for better performance
+- **DefaultAzureCredential**: Automatically uses managed identity in Azure, developer credentials locally
+- **Endpoint transformation**: Converts Cognitive Services endpoint to AI Foundry project endpoint format
+
+**2. Agent Creation** (`function_app.py` lines 60-117):
+
+```python
+def get_or_create_agent() -> Any:
+    """Get existing agent or create a new one"""
+    global _agent_instance
+
+    if _agent_instance:
+        return _agent_instance
+
+    project_client = get_project_client()
+    agents_client = project_client.agents
+
+    # Try to find existing agent
+    agent_name = "azure-function-assistant"
+    agents = agents_client.list_agents()
+    for agent in agents:
+        if agent.name == agent_name:
+            _agent_instance = agent
+            return agent
+
+    # Create new agent with tools
+    code_interpreter_tool = {"type": "code_interpreter"}
+    file_search_tool = {"type": "file_search"}
+
+    _agent_instance = agents_client.create_agent(
+        model=os.getenv("MODEL_DEPLOYMENT_NAME", "gpt-4"),
+        name=agent_name,
+        instructions="""You are an intelligent AI assistant...""",
+        tools=[code_interpreter_tool, file_search_tool]
+    )
+
+    return _agent_instance
+```
+
+**Why this approach**:
+
+- **Reuse existing agents**: Avoids creating duplicate agents on each function invocation
+- **Tool configuration**: Code interpreter enables Python execution, file search enables document analysis
+- **Default instructions**: Provides baseline behavior; can be customized per use case
+
+**3. Running Conversations** (`function_app.py` lines 119-187):
+
+```python
+def run_agent_conversation(agent: Any, user_message: str, thread_id: Optional[str] = None) -> Dict:
+    """Run a conversation with the agent"""
+    project_client = get_project_client()
+    agents_client = project_client.agents
+
+    # Create or retrieve thread for conversation context
+    if thread_id:
+        thread = agents_client.threads.get(thread_id)
+    else:
+        thread = agents_client.threads.create()
+
+    # Add user message to thread
+    message = agents_client.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=user_message
+    )
+
+    # Run the agent
+    run = agents_client.runs.create(
+        thread_id=thread.id,
+        agent_id=agent.id
+    )
+
+    # Wait for completion
+    while run.status in ["queued", "in_progress", "requires_action"]:
+        run = agents_client.runs.get(thread_id=thread.id, run_id=run.id)
+
+    # Extract assistant response
+    messages = agents_client.messages.list(thread_id=thread.id)
+    for msg in messages:
+        if msg.role == "assistant":
+            if hasattr(msg, 'content') and msg.content:
+                if isinstance(msg.content, list):
+                    assistant_response = msg.content[0].text.value
+
+    return {
+        "response": assistant_response,
+        "thread_id": thread.id,
+        "run_id": run.id,
+        "status": run.status,
+        "usage": {...}  # Token usage metrics
+    }
+```
+
+**Why threads matter**:
+
+- **Context retention**: Thread IDs allow continuing conversations with full context
+- **Multi-turn conversations**: Users can reference previous messages naturally
+- **Session management**: Each user can have their own thread for isolated conversations
+
+**4. HTTP Endpoints** (`function_app.py` lines 237+):
+
+The function app uses a unified endpoint design with action-based routing:
+
+```python
+@app.route(route="agent", auth_level=func.AuthLevel.ANONYMOUS)
+def agent_operations(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Unified agent operations endpoint.
+
+    Actions:
+    - create: Create a new agent
+    - chat: Chat with an agent
+    - list: List all agents
+    - delete: Delete an agent
+    - code-interpreter: Demonstrate code interpreter capability
+    """
+    try:
+        req_body = req.get_json()
+        action = req_body.get("action")
+
+        if not action:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "Please provide an 'action' parameter",
+                    "available_actions": ["create", "chat", "list", "delete", "code-interpreter"]
+                }),
+                status_code=400
+            )
+
+        # Route to appropriate handler
+        if action == "create":
+            return handle_create_agent(req_body)
+        elif action == "chat":
+            return handle_chat(req_body, req.params)
+        elif action == "list":
+            return handle_list_agents()
+        elif action == "delete":
+            return handle_delete_agent(req_body, req.params)
+        elif action == "code-interpreter":
+            return handle_code_interpreter(req_body)
+```
+
+**Why this design**:
+
+- **Single endpoint**: Simplifies API surface and makes it easier to secure
+- **Action-based routing**: Clear separation of concerns while maintaining single entry point
+- **Extensible**: Easy to add new actions without creating new endpoints
+- **Consistent error handling**: Centralized validation and error responses
+
+### Part 4: Building the Function App Code
+
+Now let's build the function app step by step.
+
+#### Step 1: Set Up the Function Project
+
+Create the function app directory structure:
+
+```bash
+mkdir function-app
+cd function-app
+```
+
+Initialize with Azure Functions Core Tools:
+
+```bash
+func init . --python
+```
+
+This creates:
+
+- `host.json`: Function app configuration
+- `local.settings.json`: Local development settings
+- `requirements.txt`: Python dependencies
+- `.funcignore`: Files to exclude from deployment
+
+#### Step 2: Define Dependencies
+
+Edit `requirements.txt` to include Azure AI SDK:
+
+```txt
+azure-functions
+azure-identity
+azure-ai-projects>=1.0.0b11
+azure-ai-inference>=1.0.0b4
+azure-core
+requests
+```
+
+**Dependency explanation**:
+
+- `azure-functions`: Core Functions framework
+- `azure-identity`: Managed identity authentication
+- `azure-ai-projects`: AI Foundry agents SDK
+- `azure-ai-inference`: Additional AI inference capabilities
+- `azure-core`: Azure SDK foundation
+- `requests`: HTTP client for API calls
+
+#### Step 3: Configure the Function App
+
+Edit `host.json` for Function runtime configuration:
+
+```json
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  }
+}
+```
+
+**Configuration details**:
+
+- `version: 2.0`: Latest Functions runtime
+- `samplingSettings`: Reduces telemetry costs while maintaining visibility
+- `extensionBundle`: Includes all function bindings without explicit installation
+
+#### Step 4: Build the Core Function Logic
+
+Create `function_app.py` with the complete implementation:
+
+**Import section**:
+
+```python
+import os
+import json
+import logging
+import azure.functions as func
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
+from typing import Optional, Dict, Any
+from datetime import datetime, timezone
+
+app = func.FunctionApp()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+```
+
+**Client initialization** (as shown in Part 3):
+
+```python
+_project_client = None
+
+def get_project_client() -> AIProjectClient:
+    # Implementation from Part 3
+    ...
+```
+
+**Agent management** (as shown in Part 3):
+
+```python
+_agent_instance = None
+
+def get_or_create_agent() -> Any:
+    # Implementation from Part 3
+    ...
+```
+
+**Conversation handling** (as shown in Part 3):
+
+```python
+def run_agent_conversation(agent, user_message, thread_id=None):
+    # Implementation from Part 3
+    ...
+```
+
+**HTTP endpoint - Health Check**:
+
+```python
+@app.route(route="health", auth_level=func.AuthLevel.ANONYMOUS)
+def health_check(req: func.HttpRequest) -> func.HttpResponse:
+    """Verify function and AI Foundry connectivity"""
+    health_status = {
+        "status": "healthy",
+        "function_app": "running",
+        "configuration": {
+            "ai_foundry_endpoint": os.getenv("AI_FOUNDRY_ENDPOINT"),
+            "project_name": os.getenv("AI_FOUNDRY_PROJECT_NAME")
+        }
+    }
+
+    try:
+        project_client = get_project_client()
+        health_status["ai_foundry"]["client_initialized"] = True
+
+        # Test listing agents
+        agents = list_agents()
+        health_status["ai_foundry"]["agent_count"] = len(agents)
+
+        # Verify authentication
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://cognitiveservices.azure.com/.default")
+        health_status["ai_foundry"]["authentication"] = "Success"
+
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["error"] = str(e)
+
+    return func.HttpResponse(
+        json.dumps(health_status, indent=2),
+        mimetype="application/json"
+    )
+```
+
+**Why health checks**: Provides immediate visibility into deployment status, configuration, and connectivity issues.
+
+**HTTP endpoint - Unified Agent Operations**:
+
+The current design uses a single endpoint with action-based routing for all agent operations:
+
+```python
+@app.route(route="agent", auth_level=func.AuthLevel.ANONYMOUS)
+def agent_operations(req: func.HttpRequest) -> func.HttpResponse:
+    """
+    Unified agent operations endpoint.
+    Routes to different handlers based on 'action' parameter.
+    """
+    logger.info("Agent operation requested")
+
+    try:
+        req_body = req.get_json()
+        action = req_body.get("action")
+
+        if not action:
+            return func.HttpResponse(
+                json.dumps({
+                    "error": "Please provide an 'action' parameter",
+                    "available_actions": ["create", "chat", "list", "delete", "code-interpreter"]
+                }),
+                status_code=400
+            )
+
+        # Route to appropriate handler
+        if action == "create":
+            return handle_create_agent(req_body)
+        elif action == "chat":
+            return handle_chat(req_body, req.params)
+        elif action == "list":
+            return handle_list_agents()
+        elif action == "delete":
+            return handle_delete_agent(req_body, req.params)
+        elif action == "code-interpreter":
+            return handle_code_interpreter(req_body)
+        else:
+            return func.HttpResponse(
+                json.dumps({"error": f"Unknown action: {action}"}),
+                status_code=400
+            )
+
+    except Exception as e:
+        logger.error(f"Error in agent operations: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500
+        )
+```
+
+**Handler functions**: Each action has a dedicated handler function:
+
+```python
+def handle_chat(req_body: dict, params: dict) -> func.HttpResponse:
+    """Handle chat with agent"""
+    message = req_body.get("message") or req_body.get("prompt")
+    thread_id = req_body.get("thread_id")
+
+    if not message:
+        return func.HttpResponse(
+            json.dumps({"error": "Please provide a 'message'"}),
+            status_code=400
+        )
+
+    agent = get_or_create_agent()
+    result = run_agent_conversation(agent, message, thread_id)
+
+    return func.HttpResponse(
+        json.dumps({
+            "action": "chat",
+            "user_message": message,
+            **result,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }, indent=2),
+        mimetype="application/json",
+        status_code=200
+    )
+```
+
+**Why this unified design**:
+
+- **Single API endpoint**: Easier to secure and manage
+- **Clear action routing**: Separation of concerns with dedicated handlers
+- **Consistent error handling**: Centralized validation at the main endpoint
+- **Extensible**: Easy to add new actions without creating new routes
+- **Self-documenting**: Error messages list available actions
+
+**HTTP endpoint - Demo**:
+
+```python
+@app.route(route="demo", auth_level=func.AuthLevel.ANONYMOUS)
+def demo_agent_capabilities(req: func.HttpRequest) -> func.HttpResponse:
+    """One-click demonstration of the entire integration"""
+    # Creates agent, runs conversation, demonstrates code interpreter, cleans up
+    # See full implementation in function_app.py
+```
+
+#### Step 5: Local Development Configuration
+
+Create `local.settings.json` for local testing:
+
+```json
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AI_FOUNDRY_ENDPOINT": "https://your-foundry.cognitiveservices.azure.com/",
+    "AI_FOUNDRY_PROJECT_NAME": "your-project-name",
+    "AI_FOUNDRY_PROJECT_ID": "/subscriptions/.../projects/...",
+    "AZURE_SUBSCRIPTION_ID": "your-subscription-id"
+  }
+}
+```
+
+**Local development notes**:
+
+- Uses Azure Storage Emulator or real storage account
+- Authenticates using Azure CLI credentials (`az login`)
+- Same code runs locally and in Azure without changes
+
+### Part 5: Understanding How It All Connects
+
+Now that we've built all the pieces, let's see how they work together:
+
+#### Connection Flow
+
+1. **User Request** → HTTP request to Function endpoint
+2. **Function Runtime** → Loads Python code and environment variables
+3. **DefaultAzureCredential** → Gets token using managed identity
+4. **AI Projects SDK** → Authenticates with AI Foundry using token
+5. **Agent Execution** → Processes request using AI model
+6. **Response** → Returns JSON result to user
+
+#### Data Flow Example: Chat Request
+
+```
+User sends POST to /api/agent/chat
+    ↓
+Function receives request with {"message": "Hello"}
+    ↓
+get_or_create_agent() checks for existing agent
+    ↓
+run_agent_conversation() creates thread
+    ↓
+AI Projects SDK sends message to agent
+    ↓
+Agent processes using GPT-4 model
+    ↓
+Function extracts response from thread
+    ↓
+Returns JSON with response and thread_id
+    ↓
+User receives response and can continue conversation
+```
+
+#### Security Flow: Managed Identity
+
+```
+Function App starts
+    ↓
+Azure assigns managed identity (automatic)
+    ↓
+Terraform grants "Cognitive Services User" role
+    ↓
+Function requests token from Azure AD
+    ↓
+Azure AD validates identity and role
+    ↓
+Azure AD returns access token
+    ↓
+Function uses token to call AI Foundry
+    ↓
+AI Foundry validates token and processes request
+```
+
+**Key insight**: No credentials stored anywhere. Azure handles all authentication through its identity platform.
+
+#### Monitoring Flow
+
+```
+Function executes
+    ↓
+Logs written to console
+    ↓
+Diagnostic settings capture logs
+    ↓
+Logs sent to Log Analytics workspace
+    ↓
+Application Insights processes telemetry
+    ↓
+Azure Monitor enables queries and alerts
+```
+
+### Part 6: Testing Your Build
+
+After building everything, verify each component:
+
+**1. Terraform Plan**:
+
+```bash
+terraform init
+terraform plan
+```
+
+Verify: No errors, expected resource count
+
+**2. Terraform Apply**:
+
+```bash
+terraform apply
+```
+
+Verify: All resources created, outputs displayed
+
+**3. Function Deployment**:
+
+```bash
+func azure functionapp publish <function-app-name> --python --build remote
+```
+
+Verify: Deployment successful, URLs displayed
+
+**4. Health Check**:
+
+```bash
+curl https://<function-app>.azurewebsites.net/api/health | jq .
+```
+
+Verify: Status "healthy", client initialized, authentication successful
+
+**5. Agent Creation**:
+
+```bash
+curl -X POST https://<function-app>.azurewebsites.net/api/agent/create \
+  -H "Content-Type: application/json" \
+  -d '{"name": "test-agent"}' | jq .
+```
+
+Verify: Agent created with ID, name, model
+
+**6. Chat Test**:
+
+```bash
+curl -X POST https://<function-app>.azurewebsites.net/api/agent/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Hello"}' | jq .
+```
+
+Verify: Response received, thread_id provided, usage metrics included
+
+**7. Demo Run**:
+
+```bash
+curl https://<function-app>.azurewebsites.net/api/demo | jq .
+```
+
+Verify: Complete workflow executes, agent created and deleted, conversation captured
+
 ## Project Structure
 
 The implementation consists of:
