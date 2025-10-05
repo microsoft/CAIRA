@@ -28,7 +28,7 @@ Try the 🤖 [CAIRA Assistant chat mode](./docs/chat_modes.md) for guided deploy
 
 ![Caira Assistant](./docs/images/caira_assistant.gif)
 
-CAIRA assistant will walk you through the entire deployment experience of all four reference architectures, validate any necessary prerequisite resources and even help verify resources post-deployment.
+The CAIRA assistant will walk you through the entire deployment experience of all four reference architectures, validate any necessary prerequisite resources, and even help verify resources post-deployment.
 
 ![Caira Assistant](./docs/images/caira_assistant_long.gif)
 
