@@ -7,10 +7,6 @@
 #
 # EFFICIENCY NOTE: This uses a single apply operation to minimize cost and time
 
-provider "azurerm" {
-  features {}
-}
-
 # Setup the networking infrastructure needed for private connectivity
 run "setup" {
   module {
