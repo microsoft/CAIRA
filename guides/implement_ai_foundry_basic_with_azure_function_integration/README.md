@@ -431,7 +431,7 @@ The function app provides three endpoints for AI agent operations:
 Verifies function and AI Foundry connectivity.
 
 ```bash
-curl https://<function-app>.azurewebsites.net/api/health | jq .
+curl https://${FUNCTION_APP_NAME}.azurewebsites.net/api/health | jq .
 ```
 
 ### 2. Agent Operations - `POST /api/agent`
