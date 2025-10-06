@@ -54,7 +54,9 @@ By the end of this guide, you'll have a complete serverless AI agent solution co
 
 **Separation of Concerns**: The foundry_basic layer handles AI infrastructure, while the function layer focuses on application logic and API endpoints.
 
-**Production Ready**: All components include monitoring, logging, and security configurations suitable for production workloads.
+**Educational Simplifications**: For learning purposes, this guide uses anonymous function endpoints. Production deployments should implement proper authentication (function keys, Azure AD, API Management) and follow Azure security best practices.
+
+**Monitoring and Logging**: All components include Application Insights integration, diagnostic settings, and centralized logging.
 
 ## Building the Solution Step by Step
 
