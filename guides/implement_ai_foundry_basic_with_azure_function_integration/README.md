@@ -648,7 +648,8 @@ find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
 - [Azure AI Foundry Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)
 - [Azure AI Projects SDK](https://learn.microsoft.com/en-us/python/api/overview/azure/ai-projects-readme?view=azure-python)
-- [Azure Functions Python Developer Guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python)- [CAIRA Reference Architectures](../../reference_architectures/)
+- [Azure Functions Python Developer Guide](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python)
+- [CAIRA Reference Architectures](../../reference_architectures/)
 - [foundry_basic module](../../reference_architectures/foundry_basic)
 
 ## Contributing
