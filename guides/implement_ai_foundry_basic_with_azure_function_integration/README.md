@@ -408,7 +408,7 @@ terraform apply
 ```bash
 cd ../function-app
 FUNCTION_APP_NAME=$(cd ../terraform && terraform output -raw function_app_name)
-func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
+func azure functionapp publish "$FUNCTION_APP_NAME" --python --build remote
 ```
 
 The `--build remote` flag builds dependencies in Azure's Python 3.11 environment.
