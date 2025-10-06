@@ -1036,9 +1036,9 @@ Verify: Status "healthy", client initialized, authentication successful
 **5. Agent Creation**:
 
 ```bash
-curl -X POST https://<function-app>.azurewebsites.net/api/agent/create \
+curl -X POST https://<function-app>.azurewebsites.net/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"name": "test-agent"}' | jq .
+  -d '{"action": "create", "name": "test-agent"}' | jq .
 ```
 
 Verify: Agent created with ID, name, model
@@ -1046,9 +1046,9 @@ Verify: Agent created with ID, name, model
 **6. Chat Test**:
 
 ```bash
-curl -X POST https://<function-app>.azurewebsites.net/api/agent/chat \
+curl -X POST https://<function-app>.azurewebsites.net/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello"}' | jq .
+  -d '{"action": "chat", "message": "Hello"}' | jq .
 ```
 
 Verify: Response received, thread_id provided, usage metrics included
