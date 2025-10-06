@@ -491,7 +491,7 @@ cd terraform
 terraform test
 ```
 
-The integration tests create a complete environment, test it, and clean up automatically. See [`terraform/integration.tftest.hcl`](terraform/integration.tftest.hcl) for details.
+The integration tests create a complete environment, test it, and clean up automatically. See [`terraform/tests/integration.tftest.hcl`](terraform/tests/integration.tftest.hcl) for details.
 
 ## Local Development
 
