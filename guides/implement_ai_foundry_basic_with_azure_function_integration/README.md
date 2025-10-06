@@ -1,4 +1,4 @@
-# AI Foundry Basic with Azure Function Integration - Implementation Guide
+# AI Foundry Basic with Azure Function Integration
 
 > **Educational Guide**: This implementation guide is designed for learning and experimentation. Some security features (like function authentication) are simplified for educational clarity. Production deployments should follow Azure security best practices.
 
@@ -809,8 +809,14 @@ def agent_operations(req: func.HttpRequest) -> func.HttpResponse:
     logger.info("Agent operation requested")
 
     try:
-        req_body = req.get_json()
-        action = req_body.get("action")
+        # Parse request body with error handling
+        try:
+            req_body = req.get_json()
+            action = req_body.get("action")
+        except ValueError:
+            # Fallback to query parameters if JSON parsing fails
+            action = req.params.get("action")
+            req_body = {}
 
         if not action:
             return func.HttpResponse(
