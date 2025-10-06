@@ -39,6 +39,6 @@ print_message "$GREEN" "Function App: $FUNCTION_APP_NAME"
 # Deploy function code
 print_message "$YELLOW" "Deploying function code..."
 cd ../function-app
-func azure functionapp publish $FUNCTION_APP_NAME --python --build remote
+func azure functionapp publish "$FUNCTION_APP_NAME" --python --build remote
 
 print_message "$GREEN" "Function deployment complete!"
