@@ -36,6 +36,11 @@ run "setup_foundry_basic" {
   }
 
   assert {
+    condition     = output.ai_foundry_endpoint != null
+    error_message = "foundry_basic AI Foundry endpoint should be created"
+  }
+
+  assert {
     condition     = output.ai_foundry_project_id != null
     error_message = "foundry_basic AI Foundry project should be created"
   }
@@ -50,6 +55,7 @@ run "test_function_deployment" {
     foundry_resource_group_name     = run.setup_foundry_basic.resource_group_name
     foundry_ai_foundry_name         = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id           = run.setup_foundry_basic.ai_foundry_id
+    foundry_ai_foundry_endpoint     = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id   = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name = run.setup_foundry_basic.ai_foundry_project_name
     # Extract Application Insights name from its ID (last segment after /)
@@ -106,6 +112,7 @@ run "test_connectivity" {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
     foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
+    foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
@@ -116,18 +123,8 @@ run "test_connectivity" {
 
   # Test connectivity and configuration
   assert {
-    condition     = data.azurerm_cognitive_account.ai_foundry.endpoint != null
-    error_message = "Should be able to retrieve AI Foundry endpoint"
-  }
-
-  assert {
     condition     = data.azurerm_application_insights.this.connection_string != null
     error_message = "Should be able to retrieve Application Insights connection"
-  }
-
-  assert {
-    condition     = local.ai_foundry_endpoint == data.azurerm_cognitive_account.ai_foundry.endpoint
-    error_message = "AI Foundry endpoint should be configured correctly"
   }
 
   assert {
@@ -142,7 +139,7 @@ run "test_connectivity" {
 
   # Test app settings are properly configured - fixed key name
   assert {
-    condition     = azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_ENDPOINT"] == local.ai_foundry_endpoint
+    condition     = azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_ENDPOINT"] == var.foundry_ai_foundry_endpoint
     error_message = "Function App should have AI Foundry endpoint configured"
   }
 
@@ -160,6 +157,7 @@ run "test_role_assignments" {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
     foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
+    foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
@@ -195,6 +193,7 @@ run "test_security" {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
     foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
+    foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
     foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_name  = regex("[^/]+$", run.setup_foundry_basic.application_insights_id)
