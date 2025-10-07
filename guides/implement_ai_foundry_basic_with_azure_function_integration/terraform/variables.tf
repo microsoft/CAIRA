@@ -10,11 +10,6 @@ variable "foundry_resource_group_name" {
   description = "The name of the resource group from foundry_basic deployment"
 }
 
-variable "foundry_ai_foundry_name" {
-  type        = string
-  description = "The name of the AI Foundry account from foundry_basic deployment"
-}
-
 variable "foundry_ai_foundry_id" {
   type        = string
   description = "The resource ID of the AI Foundry account from foundry_basic deployment"
