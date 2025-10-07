@@ -7,6 +7,7 @@
 foundry_resource_group_name        = "rg-basic-xxxxx"
 foundry_ai_foundry_name            = "cog-basic-xxxxx"
 foundry_ai_foundry_id              = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/..."
+foundry_ai_foundry_endpoint        = "https://cog-basic-xxxxx.cognitiveservices.azure.com/"
 foundry_ai_foundry_project_id      = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/.../projects/..."
 foundry_ai_foundry_project_name    = "default-project"
 foundry_application_insights_name  = "appi-basic-xxxxx"

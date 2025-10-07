@@ -20,6 +20,11 @@ variable "foundry_ai_foundry_id" {
   description = "The resource ID of the AI Foundry account from foundry_basic deployment"
 }
 
+variable "foundry_ai_foundry_endpoint" {
+  type        = string
+  description = "The endpoint URL of the AI Foundry account from foundry_basic deployment"
+}
+
 # tflint-ignore: terraform_unused_declarations
 variable "foundry_ai_foundry_project_id" {
   type        = string

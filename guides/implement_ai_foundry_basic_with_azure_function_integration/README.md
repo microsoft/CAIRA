@@ -83,7 +83,7 @@ identity {
   type = "SystemAssigned"  # Azure creates and manages the identity
 }
 app_settings = {
-  "AI_FOUNDRY_ENDPOINT"      = local.ai_foundry_endpoint       # From foundry_basic
+  "AI_FOUNDRY_ENDPOINT"      = var.foundry_ai_foundry_endpoint
   "AI_FOUNDRY_PROJECT_NAME"  = var.foundry_ai_foundry_project_name
   "AI_FOUNDRY_PROJECT_ID"    = var.foundry_ai_foundry_project_id
 }
@@ -107,21 +107,6 @@ See complete infrastructure code: [`terraform/function.tf`](terraform/function.t
 ### Part 2: Connecting Function Layer to foundry_basic
 
 Your function layer receives foundry_basic outputs as input variables. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
-
-**Critical pattern** - Data sources discover existing resources:
-
-```hcl
-# Reference the AI Foundry that foundry_basic created
-data "azurerm_cognitive_account" "ai_foundry" {
-  name                = var.foundry_ai_foundry_name  # From foundry_basic output
-  resource_group_name = var.foundry_resource_group_name
-}
-
-# Use its endpoint in your function configuration
-locals {
-  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
-}
-```
 
 See complete setup: [`terraform/main.tf`](terraform/main.tf)
 
@@ -364,6 +349,7 @@ terraform apply
 # Capture outputs for the function layer
 RG_NAME=$(terraform output -raw resource_group_name)
 AI_FOUNDRY_NAME=$(terraform output -raw ai_foundry_name)
+AI_FOUNDRY_ENDPOINT=$(terraform output -raw ai_foundry_endpoint)
 AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
 AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
 AI_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
@@ -382,6 +368,7 @@ cat > terraform.tfvars <<EOF
 foundry_resource_group_name        = "$RG_NAME"
 foundry_ai_foundry_name            = "$AI_FOUNDRY_NAME"
 foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
+foundry_ai_foundry_endpoint        = "$AI_FOUNDRY_ENDPOINT"
 foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
 foundry_ai_foundry_project_name    = "$AI_PROJECT_NAME"
 foundry_application_insights_name  = "$APPINSIGHTS_NAME"

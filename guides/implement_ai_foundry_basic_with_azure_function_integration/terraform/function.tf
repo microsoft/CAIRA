@@ -82,7 +82,7 @@ resource "azurerm_linux_function_app" "main" {
   # Application settings
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"              = "python"
-    "AI_FOUNDRY_ENDPOINT"                   = local.ai_foundry_endpoint
+    "AI_FOUNDRY_ENDPOINT"                   = var.foundry_ai_foundry_endpoint
     "AI_FOUNDRY_PROJECT_NAME"               = var.foundry_ai_foundry_project_name
     "AI_FOUNDRY_PROJECT_ID"                 = var.foundry_ai_foundry_project_id
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string

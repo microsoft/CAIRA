@@ -12,12 +12,6 @@ data "azurerm_resource_group" "this" {
   name = var.foundry_resource_group_name
 }
 
-# Data source to reference the existing AI Foundry account
-data "azurerm_cognitive_account" "ai_foundry" {
-  name                = var.foundry_ai_foundry_name
-  resource_group_name = var.foundry_resource_group_name
-}
-
 # Data source to reference the existing Application Insights
 data "azurerm_application_insights" "this" {
   name                = var.foundry_application_insights_name
@@ -54,6 +48,5 @@ locals {
   resource_group_name = azurerm_resource_group.function.name
   location            = azurerm_resource_group.function.location
 
-  function_app_name   = module.naming.function_app.name_unique
-  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
+  function_app_name = module.naming.function_app.name_unique
 }
