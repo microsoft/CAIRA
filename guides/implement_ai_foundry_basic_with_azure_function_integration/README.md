@@ -47,12 +47,6 @@ This guide demonstrates a clean separation of concerns:
 **Key Integration Point:**
 
 ```hcl
-# In your function layer terraform - reference existing AI Foundry
-data "azurerm_cognitive_account" "ai_foundry" {
-  name                = var.foundry_ai_foundry_name  # From foundry_basic output
-  resource_group_name = var.foundry_resource_group_name
-}
-
 # Grant function access using managed identity
 resource "azurerm_role_assignment" "function_ai_foundry_user" {
   scope                = var.foundry_ai_foundry_id  # From foundry_basic output
@@ -354,8 +348,8 @@ AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
 AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
 AI_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
 APPINSIGHTS_ID=$(terraform output -raw application_insights_id)
+APPINSIGHTS_NAME=$(basename "$APPINSIGHTS_ID")
 LOG_WORKSPACE_ID=$(terraform output -raw log_analytics_workspace_id)
-APPINSIGHTS_NAME=${APPINSIGHTS_ID##*/}
 ```
 
 ### Step 2: Configure and Deploy Function Layer
@@ -373,8 +367,8 @@ foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
 foundry_ai_foundry_project_name    = "$AI_PROJECT_NAME"
 foundry_application_insights_name  = "$APPINSIGHTS_NAME"
 foundry_log_analytics_workspace_id = "$LOG_WORKSPACE_ID"
-project_name      = "ai-integration"
-function_sku_size = "B1"
+project_name                       = "ai-integration"
+function_sku_size                  = "B1"
 EOF
 
 # Deploy infrastructure
