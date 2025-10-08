@@ -1,7 +1,5 @@
 # CAIRA
 
-**NOTE**: ⚠️ This project is under active development, is considered **pre-release software**, and may change without notice.
-
 CAIRA (Composable AI Reference Architecture) is an infrastructure-as-code baseline that can accelerate the deployment of secure, observable AI-related environments in Azure. CAIRA is not a turnkey solution but an accelerator designed to reduce the setup time of different AI environments. It enables engineering teams to spin up AI environments which are observable and secure by design.
 
 ## Baseline Configurations
