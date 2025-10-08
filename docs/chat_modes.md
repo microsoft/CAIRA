@@ -19,7 +19,7 @@ keywords:
 
 ## 🧠 CAIRA's AI Assistant System
 
-CAIRA includes a number of [chat modes](https://code.visualstudio.com/docs/copilot/customization/custom-chat-modes) that make working with Azure AI infrastructure as simple as having a conversation.
+CAIRA includes a number of [chat modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes#_custom-chat-modes) that make working with Azure AI infrastructure as simple as having a conversation.
 
 ## Available AI Assistants (Chat modes)
 
