@@ -4,3 +4,9 @@ misconfigurations:
   # Offending values are hardcoded within core module variable `connectivty`. Until networking is removed, these must be ignored.
   - id: AVD-AZU-0050 # Security group rule allows unrestricted ingress to SSH port from any IP address.
   - id: AVD-AZU-0047 # Security group rule allows unrestricted ingress from any IP address.
+  - id: AVD-AZU-0012
+    path: modules/new_resources_agent_capability_host_connections/main.tf
+    reason: "Used for simplified public access environment"
+  - id: AVD-AZU-0012
+    path: guides/implement_ai_foundry_basic_with_azure_function_integration/terraform/function.tf
+    reason: "Tutorial storage account intentionally left open for simplicity"

@@ -49,13 +49,13 @@ This guide demonstrates a clean separation of concerns:
 ```hcl
 # In your function layer terraform - reference existing AI Foundry
 data "azurerm_cognitive_account" "ai_foundry" {
-  name                = var.foundry_ai_foundry_name  # From foundry_basic output
+  name                = var.foundry_ai_foundry_name # From foundry_basic output
   resource_group_name = var.foundry_resource_group_name
 }
 
 # Grant function access using managed identity
 resource "azurerm_role_assignment" "function_ai_foundry_user" {
-  scope                = var.foundry_ai_foundry_id  # From foundry_basic output
+  scope                = var.foundry_ai_foundry_id # From foundry_basic output
   role_definition_name = "Cognitive Services User"
   principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
 }
@@ -78,14 +78,14 @@ The function layer terraform creates three key resources that connect to your AI
 
 ```hcl
 # Critical settings for CAIRA integration:
-storage_uses_managed_identity = true  # Keyless storage access
+storage_uses_managed_identity = true # Keyless storage access
 identity {
-  type = "SystemAssigned"  # Azure creates and manages the identity
+  type = "SystemAssigned" # Azure creates and manages the identity
 }
 app_settings = {
-  "AI_FOUNDRY_ENDPOINT"      = local.ai_foundry_endpoint       # From foundry_basic
-  "AI_FOUNDRY_PROJECT_NAME"  = var.foundry_ai_foundry_project_name
-  "AI_FOUNDRY_PROJECT_ID"    = var.foundry_ai_foundry_project_id
+  "AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint # From foundry_basic
+  "AI_FOUNDRY_PROJECT_NAME" = var.foundry_ai_foundry_project_name
+  "AI_FOUNDRY_PROJECT_ID"   = var.foundry_ai_foundry_project_id
 }
 ```
 
@@ -94,8 +94,8 @@ app_settings = {
 ```hcl
 # This is what connects your function to AI Foundry - no keys needed!
 resource "azurerm_role_assignment" "function_ai_foundry_user" {
-  scope                = var.foundry_ai_foundry_id  # AI Foundry resource ID
-  role_definition_name = "Cognitive Services User"   # Minimal permissions needed
+  scope                = var.foundry_ai_foundry_id # AI Foundry resource ID
+  role_definition_name = "Cognitive Services User" # Minimal permissions needed
   principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
 }
 ```
@@ -113,7 +113,7 @@ Your function layer receives foundry_basic outputs as input variables. See [`ter
 ```hcl
 # Reference the AI Foundry that foundry_basic created
 data "azurerm_cognitive_account" "ai_foundry" {
-  name                = var.foundry_ai_foundry_name  # From foundry_basic output
+  name                = var.foundry_ai_foundry_name # From foundry_basic output
   resource_group_name = var.foundry_resource_group_name
 }
 
