@@ -64,7 +64,7 @@ To opt out of AVM and partner_id telemetry, set the variable `enable_telemetry` 
 
 ## Disclaimer
 
-This repo is provided as a sample starting point, and such, should be validated before any usage in production. This solution also utilizes AI, which occasionally makes mistakes and misunderstands intent. Please validate all outputs before usage.
+This repo is provided as a sample starting point, and as such, should be validated before any usage in production. This solution also utilizes AI, which occasionally makes mistakes and misunderstands intent. Please validate all outputs before usage.
 
 ## Trademarks
 
