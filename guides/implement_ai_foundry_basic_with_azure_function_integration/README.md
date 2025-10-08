@@ -360,7 +360,6 @@ cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terra
 # Create terraform.tfvars with the captured values
 cat > terraform.tfvars <<EOF
 foundry_resource_group_name        = "$RG_NAME"
-foundry_ai_foundry_name            = "$AI_FOUNDRY_NAME"
 foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
 foundry_ai_foundry_endpoint        = "$AI_FOUNDRY_ENDPOINT"
 foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"

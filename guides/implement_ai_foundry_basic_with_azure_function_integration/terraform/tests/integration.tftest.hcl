@@ -53,7 +53,6 @@ run "test_function_deployment" {
   variables {
     # Use outputs from the setup_foundry_basic run
     foundry_resource_group_name     = run.setup_foundry_basic.resource_group_name
-    foundry_ai_foundry_name         = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id           = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_endpoint     = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id   = run.setup_foundry_basic.ai_foundry_project_id
@@ -110,7 +109,6 @@ run "test_connectivity" {
 
   variables {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
-    foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
@@ -155,7 +153,6 @@ run "test_role_assignments" {
 
   variables {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
-    foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
@@ -191,7 +188,6 @@ run "test_security" {
 
   variables {
     foundry_resource_group_name        = run.setup_foundry_basic.resource_group_name
-    foundry_ai_foundry_name            = run.setup_foundry_basic.ai_foundry_name
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_endpoint        = run.setup_foundry_basic.ai_foundry_endpoint
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id

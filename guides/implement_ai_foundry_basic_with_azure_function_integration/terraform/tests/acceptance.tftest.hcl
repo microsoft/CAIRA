@@ -26,7 +26,6 @@ run "testacc_prerequisites" {
   # These variables represent outputs from foundry_basic deployment
   variables {
     foundry_resource_group_name        = "rg-basic-test123"
-    foundry_ai_foundry_name            = "cog-basic-test123"
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_endpoint        = "https://cog-basic-test123.cognitiveservices.azure.com/"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
@@ -58,7 +57,6 @@ run "testacc_function_app_configuration" {
 
   variables {
     foundry_resource_group_name        = "rg-basic-test123"
-    foundry_ai_foundry_name            = "cog-basic-test123"
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_endpoint        = "https://cog-basic-test123.cognitiveservices.azure.com/"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
@@ -120,7 +118,6 @@ run "testacc_role_assignments" {
 
   variables {
     foundry_resource_group_name        = "rg-basic-test123"
-    foundry_ai_foundry_name            = "cog-basic-test123"
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_endpoint        = "https://cog-basic-test123.cognitiveservices.azure.com/"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
@@ -143,7 +140,6 @@ run "testacc_naming_conventions" {
 
   variables {
     foundry_resource_group_name        = "rg-basic-test123"
-    foundry_ai_foundry_name            = "cog-basic-test123"
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_endpoint        = "https://cog-basic-test123.cognitiveservices.azure.com/"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
@@ -195,7 +191,6 @@ run "testacc_security_configuration" {
 
   variables {
     foundry_resource_group_name        = "rg-basic-test123"
-    foundry_ai_foundry_name            = "cog-basic-test123"
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_endpoint        = "https://cog-basic-test123.cognitiveservices.azure.com/"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test"
