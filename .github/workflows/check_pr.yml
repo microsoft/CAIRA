@@ -23,9 +23,13 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
 
 jobs:
+  check-should-run:
+    uses: ./.github/workflows/_allow_workflow_run.yml
+
   check_pr:
     name: Check PR
     runs-on: ubuntu-24.04
+    if: needs.check-should-run.outputs.should_run == 'true'
     steps:
       - name: 🩺 Debug
         uses: raven-actions/debug@9dbdeb7eea607a7d73411895c65987e71d59a466 # v1.2.0
