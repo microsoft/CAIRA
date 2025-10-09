@@ -2,6 +2,20 @@
 
 This directory contains specialized AI chatmode configurations designed to enhance your experience when working with the CAIRA (Composable AI Reference Architecture) project. Each chatmode provides tailored guidance and assistance for specific types of tasks.
 
+## AI Usage Disclaimer
+
+**Important Notice**: AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
+AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
+
+_Copilot is powered by AI, so mistakes are possible. Review output carefully before use._
+
+**When using these chatmodes, you must**:
+
+- Review and test all AI-generated code, configurations, and recommendations
+- Verify decisions against official documentation and best practices
+- Follow your organization's security and compliance requirements
+- Be cautious when sharing sensitive information in AI conversations
+
 ## Available Chatmodes
 
 ### 1. CAIRA Assistant (`caira-assistant.chatmode.md`)
@@ -104,17 +118,6 @@ This directory contains specialized AI chatmode configurations designed to enhan
 - Research capabilities across codebases and documentation
 - Mandatory testing cycles to ensure prompt quality
 
-## AI Usage Disclaimer
-
-**Important Notice**: AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
-
-**When using these chatmodes, you must**:
-
-- Review and test all AI-generated code, configurations, and recommendations
-- Verify decisions against official documentation and best practices
-- Follow your organization's security and compliance requirements
-- Be cautious when sharing sensitive information in AI conversations
-
 ---
 
-*For technical issues with chatmodes or to contribute improvements, please refer to the project's contributing guidelines and create appropriate issues or pull requests.*
+_For technical issues with chatmodes or to contribute improvements, please refer to the project's [contributing guidelines](./../../CONTRIBUTING.md) and create appropriate issues or pull requests._
