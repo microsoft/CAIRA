@@ -1,6 +1,5 @@
 #!/bin/bash
 # configure-local-settings.sh - Configure local settings for AI Foundry integration
-# Gets all values from the functions layer deployment
 
 set -e
 
@@ -20,28 +19,40 @@ if [ ! -f "terraform.tfstate" ]; then
   exit 1
 fi
 
-echo "Fetching configuration from functions layer..."
+echo "Parsing configuration from terraform state..."
 
 # Get values from terraform outputs
 FUNCTION_APP_NAME=$(terraform output -raw function_app_name)
 FUNCTION_APP_URL=$(terraform output -raw function_app_url)
 
-# Get the foundry values from terraform state (these are from data sources)
-AI_FOUNDRY_NAME=$(terraform state show data.azurerm_cognitive_account.ai_foundry | grep "^\s*name\s*=" | head -1 | awk -F'"' '{print $2}')
-RESOURCE_GROUP=$(terraform state show data.azurerm_resource_group.this | grep "^\s*name\s*=" | head -1 | awk -F'"' '{print $2}')
+# Parse terraform state to extract internal values
+# These are not outputs but internal state values we need for local development
 
-# Get project name and ID from terraform variables/state
-AI_FOUNDRY_PROJECT_NAME=$(terraform state show var.foundry_ai_foundry_project_name | grep "^\s*value\s*=" | awk -F'"' '{print $2}')
-AI_FOUNDRY_PROJECT_ID=$(terraform state show var.foundry_ai_foundry_project_id | grep "^\s*value\s*=" | awk -F'"' '{print $2}')
+# Get parsed resource group name from locals (used in data sources)
+RESOURCE_GROUP=$(terraform show -json | jq -r '
+  .values.root_module.resources[] |
+  select(.type == "azurerm_resource_group" and .name == "function") |
+  .values.name
+')
 
-# Get AI Foundry endpoint using Azure CLI
-AI_FOUNDRY_ENDPOINT=$(az cognitiveservices account show \
-  --name "$AI_FOUNDRY_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --query "properties.endpoint" -o tsv)
+# Get AI Foundry endpoint from data source
+AI_FOUNDRY_ENDPOINT=$(terraform show -json | jq -r '
+  .values.root_module.resources[] |
+  select(.type == "azurerm_cognitive_account" and .mode == "data") |
+  .values.endpoint
+')
 
-# Get subscription ID from Azure CLI
-AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+# Get AI Foundry project name from input variable
+AI_FOUNDRY_PROJECT_ID=$(terraform show -json | jq -r '.values.root_module.variables.foundry_ai_foundry_project_id.value')
+
+# Parse project name from project ID (last segment after final /)
+AI_FOUNDRY_PROJECT_NAME="${AI_FOUNDRY_PROJECT_ID##*/}"
+
+# Get subscription ID from input variable (foundry_ai_foundry_id)
+AI_FOUNDRY_ID=$(terraform show -json | jq -r '.values.root_module.variables.foundry_ai_foundry_id.value')
+
+# Parse subscription ID from AI Foundry resource ID (3rd segment)
+AZURE_SUBSCRIPTION_ID=$(echo "$AI_FOUNDRY_ID" | cut -d'/' -f3)
 
 # Navigate to function-app directory
 cd ../function-app
@@ -77,10 +88,10 @@ echo ""
 echo "Configuration Summary:"
 echo "----------------------"
 echo "Resource Group: $RESOURCE_GROUP"
-echo "AI Foundry Name: $AI_FOUNDRY_NAME"
 echo "AI Foundry Endpoint: $AI_FOUNDRY_ENDPOINT"
 echo "AI Foundry Project: $AI_FOUNDRY_PROJECT_NAME"
 echo "AI Foundry Project ID: $AI_FOUNDRY_PROJECT_ID"
+echo "Subscription ID: $AZURE_SUBSCRIPTION_ID"
 echo "Function App Name: $FUNCTION_APP_NAME"
 echo "Function App URL: $FUNCTION_APP_URL"
 echo ""

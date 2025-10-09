@@ -7,15 +7,56 @@
 # Prerequisites: any accessible foundry instance
 ############################################################
 
-# Data sources for existing foundry_basic resources
+locals {
+  # Parse AI Foundry resource ID
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}
+  ai_foundry_id_parts         = split("/", var.foundry_ai_foundry_id)
+  foundry_resource_group_name = local.ai_foundry_id_parts[4]
+  ai_foundry_name             = local.ai_foundry_id_parts[8]
+
+  # Parse AI Foundry Project ID to extract project name
+  # Format varies, but typically ends with /projects/{name}
+  project_id_parts        = split("/", var.foundry_ai_foundry_project_id)
+  ai_foundry_project_name = element(local.project_id_parts, length(local.project_id_parts) - 1)
+
+  # Validation flags
+  is_valid_ai_foundry_id = (
+    length(local.ai_foundry_id_parts) == 9 &&
+    local.ai_foundry_id_parts[6] == "Microsoft.CognitiveServices" &&
+    local.ai_foundry_id_parts[7] == "accounts"
+  )
+
+  # Discover Application Insights name using naming convention
+  # foundry_basic uses the pattern: appi-{base_name}-{unique_suffix}
+  # where base_name comes from resource group: rg-{base_name}-{unique_suffix}
+  application_insights_name = "appi-${replace(local.foundry_resource_group_name, "rg-", "")}"
+}
+
+# Validation check
+resource "terraform_data" "validate_inputs" {
+  lifecycle {
+    precondition {
+      condition     = local.is_valid_ai_foundry_id
+      error_message = "foundry_ai_foundry_id must be a valid Azure Cognitive Services resource ID with format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}"
+    }
+  }
+}
+
+# Data source for existing foundry_basic resource group
 data "azurerm_resource_group" "this" {
-  name = var.foundry_resource_group_name
+  name = local.foundry_resource_group_name
+}
+
+# Data source to reference the existing AI Foundry account and get endpoint
+data "azurerm_cognitive_account" "ai_foundry" {
+  name                = local.ai_foundry_name
+  resource_group_name = local.foundry_resource_group_name
 }
 
 # Data source to reference the existing Application Insights
 data "azurerm_application_insights" "this" {
-  name                = var.foundry_application_insights_name
-  resource_group_name = var.foundry_resource_group_name
+  name                = local.application_insights_name
+  resource_group_name = local.foundry_resource_group_name
 }
 
 # Naming module
@@ -38,15 +79,18 @@ resource "azurerm_resource_group" "function" {
       Parent  = data.azurerm_resource_group.this.name
     }
   )
+
+  depends_on = [terraform_data.validate_inputs]
 }
 
 # Local values
 locals {
   base_name = var.project_name
 
-  # Use the separate resource group
-  resource_group_name = azurerm_resource_group.function.name
-  location            = azurerm_resource_group.function.location
+  # Use the separate resource group for functions
+  function_resource_group_name = azurerm_resource_group.function.name
+  location                     = azurerm_resource_group.function.location
 
-  function_app_name = module.naming.function_app.name_unique
+  function_app_name   = module.naming.function_app.name_unique
+  ai_foundry_endpoint = data.azurerm_cognitive_account.ai_foundry.endpoint
 }
