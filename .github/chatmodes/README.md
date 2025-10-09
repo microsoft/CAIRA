@@ -10,7 +10,7 @@ This directory contains specialized AI chatmode configurations designed to enhan
 
 **Intended Use**:
 
-- Learning the CAIRA modular infrastructure-as-code baseline
+- Learning the CAIRA modular Infrastructure as Code baseline
 - Deploying secure, observable AI environments on Azure
 - Making informed architecture decisions
 - Getting help with deployment, development, and troubleshooting
