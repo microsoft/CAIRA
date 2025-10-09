@@ -101,7 +101,7 @@ Ensure appropriate human oversight for your system. The person responsible for t
 
 ## Learn more about responsible AI
 
-[Microsoft AI principles](https://www.microsoft.com/en-us/ai/responsible-ai)
+[Microsoft AI principles](https://www.microsoft.com/ai/responsible-ai)
 
 [Microsoft responsible AI resources](https://www.microsoft.com/en-us/ai/responsible-ai-resources)
 
