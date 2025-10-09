@@ -23,9 +23,14 @@ env:
   PR_NUMBER: ${{ github.event.pull_request.number }}
 
 jobs:
+  check-should-run:
+    uses: ./.github/workflows/_allow_workflow_run.yml
+
   check_pr:
+    needs: check-should-run
     name: Check PR
     runs-on: ubuntu-24.04
+    if: needs.check-should-run.outputs.should_run == 'true'
     steps:
       - name: 🩺 Debug
         uses: raven-actions/debug@9dbdeb7eea607a7d73411895c65987e71d59a466 # v1.2.0
@@ -33,6 +38,7 @@ jobs:
       - name: ⤵️ Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: 🚧 Setup Node
