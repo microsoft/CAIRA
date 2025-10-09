@@ -104,7 +104,7 @@ Ensure appropriate human oversight for your system. The person responsible for t
 
 [Microsoft responsible AI resources](https://www.microsoft.com/en-us/ai/responsible-ai-resources)
 
-[Microsoft Azure Learning courses on responsible AI](https://docs.microsoft.com/en-us/learn/paths/responsible-ai-business-principles/)
+[Microsoft Azure Learning courses on responsible AI](https://learn.microsoft.com/ai)
 
 ## Learn more about CAIRA (Composable AI Reference Architecture)
 
