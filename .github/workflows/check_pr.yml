@@ -27,6 +27,7 @@ jobs:
     uses: ./.github/workflows/_allow_workflow_run.yml
 
   check_pr:
+    needs: check-should-run
     name: Check PR
     runs-on: ubuntu-24.04
     if: needs.check-should-run.outputs.should_run == 'true'
