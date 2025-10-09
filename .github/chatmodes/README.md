@@ -108,7 +108,7 @@ This directory contains specialized AI chatmode configurations designed to enhan
 
 **Important Notice**: AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
 
-**Key Responsibilities**:
+**When using these chatmodes, you must**:
 
 - Review and test all AI-generated code, configurations, and recommendations
 - Verify decisions against official documentation and best practices
