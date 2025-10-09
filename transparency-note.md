@@ -34,7 +34,7 @@ An integrated AI chat mode enhances the user experience. This chat mode draws fr
 
 #### Intended uses
 
-CAIRA can be used in multiple scenarios. The system’s intended uses include:
+CAIRA can be used in multiple scenarios. The system's intended uses include:
 
 * **Experimentation:** A development team needing to quickly experiment with Azure AI Foundry can use CAIRA's basic reference architecture to spin up a lightweight, reliable environment for proofs-of-concept and testing.
 * **Enterprise Starting Point:** A team can use CAIRA's standard or private reference architectures as a secure, compliant, and robust starting point for building a production-grade AI platform, customizing it to their specific enterprise requirements.
