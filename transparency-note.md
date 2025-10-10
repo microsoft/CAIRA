@@ -14,19 +14,19 @@ CAIRA (Composable AI Reference Architecture) provides a modular, composable foun
 
 ### Key terms
 
-| Term | Definition |
-| --- | --- |
-| **CAIRA** | Composable AI Reference Architecture. A collection of Infrastructure as Code (IaC) templates and guidance to accelerate the deployment of AI environments on Azure. |
-| **Infrastructure as Code (IaC)** | The management of infrastructure (networks, virtual machines, load balancers, and connection topology) in a descriptive model, using the same versioning as DevOps team uses for source code. CAIRA uses Terraform for its IaC. |
-| **Azure AI Foundry** | A service that provides a comprehensive and collaborative environment for building, training, and deploying machine learning models and AI applications on Azure. |
-| **Reference Architecture (RA)** | A collection of templates, patterns, and best practices that serve as a starting point for designing and deploying a solution. CAIRA provides several reference architectures (e.g., `foundry_basic`, `foundry_standard_private`). |
-| **CAIRA chat mode** | An AI guide integrated into the development environment that assists with deploying CAIRA, making architecture decisions, and troubleshooting. |
+| Term                             | Definition                                                                                                                                                                                                                         |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **CAIRA**                        | Composable AI Reference Architecture. A collection of Infrastructure as Code (IaC) templates and guidance to accelerate the deployment of AI environments on Azure.                                                                |
+| **Infrastructure as Code (IaC)** | The management of infrastructure (networks, virtual machines, load balancers, and connection topology) in a descriptive model, using the same versioning as DevOps team uses for source code. CAIRA uses Terraform for its IaC.    |
+| **Azure AI Foundry**             | A service that provides a comprehensive and collaborative environment for building, training, and deploying machine learning models and AI applications on Azure.                                                                  |
+| **Reference Architecture (RA)**  | A collection of templates, patterns, and best practices that serve as a starting point for designing and deploying a solution. CAIRA provides several reference architectures (e.g., `foundry_basic`, `foundry_standard_private`). |
+| **CAIRA chat mode**              | An AI guide integrated into the development environment that assists with deploying CAIRA, making architecture decisions, and troubleshooting.                                                                                     |
 
 ## Capabilities
 
 ### System behavior
 
-CAIRA's core functionality is providing pre-built, tested, and modular Infrastructure as Code for deploying complex AI environments on Azure. It simplifies the process of setting up services like Azure AI Foundry, networking, and other dependant resources. The system's behavior is deterministic based on the chosen reference architecture and user-provided configuration.
+CAIRA's core functionality is providing pre-built, tested, and modular Infrastructure as Code for deploying complex AI environments on Azure. It simplifies the process of setting up services like Azure AI Foundry, networking, and other dependent resources. The system's behavior is deterministic based on the chosen reference architecture and user-provided configuration.
 
 An integrated AI chat mode enhances the user experience. This chat mode draws from the repository's documentation and best practices to provide step-by-step guidance, explain architectural choices based on the Azure Well-Architected Framework, and help troubleshoot deployment issues. This is not a free-form conversational AI; its purpose is scoped to assisting with the discovery, deployment, and maintenance of the CAIRA templates.
 
