@@ -28,12 +28,8 @@ FUNCTION_APP_URL=$(terraform output -raw function_app_url)
 # Parse terraform state to extract internal values
 # These are not outputs but internal state values we need for local development
 
-# Get parsed resource group name from locals (used in data sources)
-RESOURCE_GROUP=$(terraform show -json | jq -r '
-  .values.root_module.resources[] |
-  select(.type == "azurerm_resource_group" and .name == "function") |
-  .values.name
-')
+# Get parsed Foundry resource group name from locals (used in data sources)
+RESOURCE_GROUP=$(terraform show -json | jq -r '.values.root_module.locals.foundry_resource_group_name')
 
 # Get AI Foundry endpoint from data source
 AI_FOUNDRY_ENDPOINT=$(terraform show -json | jq -r '
