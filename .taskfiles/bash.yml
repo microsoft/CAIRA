@@ -55,15 +55,23 @@ tasks:
   lint:
     desc: Lint Bash files
     vars:
+      SHELL_FILES:
+        sh: |
+          {{if eq OS "windows"}}
+            {{.PWSH}} 'shfmt --find . | Where-Object { $_ -notmatch "\\(.git|node_modules|\\.terraform|\\.venv|\\.dev)\\" }'
+          {{else}}
+            shfmt --find . | grep -v -E '\./\.git/|\./node_modules/|/\.terraform/|\.terraform/|\./\.venv/|\./\.dev/'
+          {{end}}
       ITEMS:
         sh: |
           {{if eq OS "windows"}}
             {{.PWSH}} 'Get-ChildItem -Path . -Filter "*.sh" -Recurse | Where-Object { $_.FullName -notmatch "\\(.git|node_modules|.terraform|.venv|.dev)\\" } | ForEach-Object { $_.FullName | Resolve-Path -Relative }'
           {{else}}
-            find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "*/.venv/*" -not -path "*/.dev/*" -not -path "./.terraform/*"
+            find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "*/.venv/*" -not -path "*/.dev/*" -not -path "*/.terraform/*" -not -path ".terraform/*"
           {{end}}
     cmds:
-      - shfmt -w -i 2 -ci -bn --list .
+      - for: { var: SHELL_FILES }
+        cmd: shfmt -w -i 2 -ci -bn "{{osClean .ITEM}}"
       - for: { var: ITEMS }
         cmd: shellcheck "{{osClean .ITEM}}"
     dir: "{{.ROOT_DIR}}"

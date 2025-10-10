@@ -1,0 +1,14 @@
+# Prettier ignore file
+# Ignore .terraform directories
+**/.terraform/
+.terraform/
+
+# Ignore other common directories
+node_modules/
+.git/
+.venv/
+.dev/
+
+# Ignore generated files
+*.min.js
+*.min.css

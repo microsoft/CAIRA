@@ -79,6 +79,11 @@ tasks:
       - task: tf:lint
       - task: yml:lint
 
+  test:
+    desc: Run all tests
+    cmds:
+      - task: tf:test
+
   docs:
     desc: Generate documentation
     # deps:

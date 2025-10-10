@@ -54,7 +54,7 @@ task lint
 ## Detailed Guides
 
 | Topic                    | Guide                                                                   |
-|--------------------------|-------------------------------------------------------------------------|
+| ------------------------ | ----------------------------------------------------------------------- |
 | **Contribution Types**   | [Contribution Types Guide](docs/contributing/types_of_contributions.md) |
 | **Development Workflow** | [Developer Workflow Process](docs/contributing/development_workflow.md) |
 | **Pull Request Process** | [Pull Request Guide](docs/contributing/pull_request_guide.md)           |

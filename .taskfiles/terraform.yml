@@ -137,7 +137,7 @@ tasks:
       - terraform fmt -recursive
       - tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
       - tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-      - terrafmt fmt . --pattern "*.md" --fix-finish-lines --quiet
+      - find . -type f -name "*.md" -not -path "*/.terraform/*" | while read -r file; do terrafmt fmt "$file" --fix-finish-lines --quiet; done
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
@@ -254,6 +254,19 @@ tasks:
           pushd "{{osClean .ITEM}}"
           task tf:test:int
           popd
+    dir: "{{.ROOT_DIR}}"
+
+  # * Run All Tests
+  test:
+    desc: Run all terraform tests (unit, integration, acceptance) on all modules
+    cmds:
+      - echo "🧪 Running Unit Tests..."
+      - task: test:unit:all
+      - echo "🔗 Running Integration Tests..."
+      - task: test:int:all
+      - echo "✅ Running Acceptance Tests..."
+      - task: test:acc:all
+      - echo "🎉 All tests completed!"
     dir: "{{.ROOT_DIR}}"
 
   get:modules:
