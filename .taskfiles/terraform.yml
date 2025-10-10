@@ -134,10 +134,17 @@ tasks:
   lint:
     desc: Run Terraform linters
     cmds:
-      - terraform fmt -recursive
-      - tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
-      - tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-      - find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
+      - cmd: |
+          terraform fmt -recursive
+          tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
+          tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
+        platforms: [linux, darwin, windows]
+      - cmd: |
+          find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH}} 'Get-ChildItem -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\.terraform\\' } | ForEach-Object { terrafmt fmt $_.FullName --fix-finish-lines --quiet}'
+        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
