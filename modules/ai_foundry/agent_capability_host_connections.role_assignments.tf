@@ -1,6 +1,6 @@
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 
 # Required role assignments for the resources to be used as Agent connections
 

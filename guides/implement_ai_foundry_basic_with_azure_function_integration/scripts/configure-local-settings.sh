@@ -1,7 +1,7 @@
 #!/bin/bash
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 
 # configure-local-settings.sh - Configure local settings for AI Foundry integration
 # Gets all values from the functions layer deployment

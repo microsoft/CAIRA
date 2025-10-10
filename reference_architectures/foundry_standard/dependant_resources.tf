@@ -1,6 +1,6 @@
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 
 # This file contains the dependent resources for the Foundry Standard configuration.
 # While, these resources are created using sensitive defaults, they should be either

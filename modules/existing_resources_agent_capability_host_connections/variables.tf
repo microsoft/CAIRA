@@ -1,6 +1,6 @@
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 
 variable "location" {
   description = "The Azure region where resources will be created."

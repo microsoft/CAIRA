@@ -1,6 +1,6 @@
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
-# ---------------------------------------------------------
+# ---------------------------------------------------------------------
 
 output "connections" {
   description = "Connections for AI Foundry agents derived from newly created resources."
