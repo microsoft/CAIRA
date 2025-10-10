@@ -137,7 +137,7 @@ tasks:
       - terraform fmt -recursive
       - tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
       - tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-      - find . -type f -name "*.md" -not -path "*/.terraform/*" | while read -r file; do terrafmt fmt "$file" --fix-finish-lines --quiet; done
+      - find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
