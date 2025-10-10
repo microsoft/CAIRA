@@ -26,6 +26,9 @@ locals {
     local.ai_foundry_id_parts[7] == "accounts"
   )
 
+  # Validate resource group naming convention for Application Insights discovery
+  is_valid_rg_naming = can(regex("^rg-", local.foundry_resource_group_name))
+
   # Discover Application Insights name using naming convention
   # foundry_basic uses the pattern: appi-{base_name}-{unique_suffix}
   # where base_name comes from resource group: rg-{base_name}-{unique_suffix}
@@ -38,6 +41,11 @@ resource "terraform_data" "validate_inputs" {
     precondition {
       condition     = local.is_valid_ai_foundry_id
       error_message = "foundry_ai_foundry_id must be a valid Azure Cognitive Services resource ID with format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}"
+    }
+
+    precondition {
+      condition     = local.is_valid_rg_naming
+      error_message = "Resource group name must start with 'rg-' for Application Insights discovery to work. Found: ${local.foundry_resource_group_name}. This naming convention is required by foundry_basic."
     }
   }
 }
