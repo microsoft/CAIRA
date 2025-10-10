@@ -62,6 +62,10 @@ The partner_id configuration in `reference_architectures/*/terraform.tf` enables
 
 To opt out of AVM and partner_id telemetry, set the variable `enable_telemetry` to `false`.
 
+## Disclaimer
+
+This repo is provided as a sample starting point, and as such, should be validated before any usage in production. This solution also utilizes AI, which occasionally makes mistakes and misunderstands intent. Please validate all outputs before usage.
+
 ## Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
