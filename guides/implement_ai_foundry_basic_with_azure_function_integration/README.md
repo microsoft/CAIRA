@@ -9,6 +9,7 @@ This guide shows you how to use CAIRA's `foundry_basic` reference architecture w
 **What You'll Learn:**
 
 - How to consume foundry_basic outputs in your function layer
+- Automatic resource discovery through ID parsing
 - Managed identity patterns for keyless authentication with AI Foundry
 - Agent lifecycle management through serverless endpoints
 - Monitoring integration with Application Insights
@@ -42,17 +43,32 @@ This guide demonstrates a clean separation of concerns:
 
 1. **Foundation Layer** (foundry_basic): Manages AI Foundry infrastructure
 1. **Function Layer** (this guide): Consumes foundry_basic outputs and provides application endpoints
-1. **Integration Layer**: Terraform data sources and managed identity RBAC
+1. **Integration Layer**: Terraform data sources with automatic resource discovery
 
 **Key Integration Point:**
 
 ```hcl
-# Grant function access using managed identity
-resource "azurerm_role_assignment" "function_ai_foundry_user" {
-  scope                = var.foundry_ai_foundry_id # From foundry_basic output
-  role_definition_name = "Cognitive Services User"
-  principal_id         = azurerm_linux_function_app.main.identity[0].principal_id
+variable "foundry_ai_foundry_id" {
+  type        = string
+  description = "The resource ID of the AI Foundry account from foundry_basic deployment"
 }
+
+variable "foundry_ai_foundry_project_id" {
+  type        = string
+  description = "The resource ID of the AI Foundry Project from foundry_basic deployment"
+}
+
+variable "foundry_log_analytics_workspace_id" {
+  type        = string
+  description = "The resource ID of the Log Analytics workspace from foundry_basic deployment"
+}
+
+# Everything else is automatically discovered!
+# - Resource group name (parsed from AI Foundry ID)
+# - AI Foundry account name (parsed from AI Foundry ID)
+# - AI Foundry project name (parsed from project ID)
+# - AI Foundry endpoint (data source lookup)
+# - Application Insights (naming convention discovery)
 ```
 
 See the complete implementation in [`terraform/main.tf`](terraform/main.tf) and [`terraform/function.tf`](terraform/function.tf).
@@ -77,8 +93,8 @@ identity {
   type = "SystemAssigned" # Azure creates and manages the identity
 }
 app_settings = {
-  "AI_FOUNDRY_ENDPOINT"     = var.foundry_ai_foundry_endpoint
-  "AI_FOUNDRY_PROJECT_NAME" = var.foundry_ai_foundry_project_name
+  "AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint      # Discovered via data source
+  "AI_FOUNDRY_PROJECT_NAME" = local.ai_foundry_project_name  # Parsed from project ID
   "AI_FOUNDRY_PROJECT_ID"   = var.foundry_ai_foundry_project_id
 }
 ```
@@ -98,9 +114,36 @@ resource "azurerm_role_assignment" "function_ai_foundry_user" {
 
 See complete infrastructure code: [`terraform/function.tf`](terraform/function.tf)
 
-### Part 2: Connecting Function Layer to foundry_basic
+### Part 2: Automatic Resource Discovery
 
-Your function layer receives foundry_basic outputs as input variables. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
+Your function layer automatically discovers resources from just 3 resource IDs. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
+
+**How it works:**
+
+```hcl
+# 1. Parse AI Foundry resource ID to extract names
+locals {
+  ai_foundry_id_parts         = split("/", var.foundry_ai_foundry_id)
+  foundry_resource_group_name = local.ai_foundry_id_parts[4]  # Extract RG name
+  ai_foundry_name             = local.ai_foundry_id_parts[8]  # Extract account name
+}
+
+# 2. Use parsed names in data sources to discover resources
+data "azurerm_cognitive_account" "ai_foundry" {
+  name                = local.ai_foundry_name
+  resource_group_name = local.foundry_resource_group_name
+}
+
+# 3. Discover Application Insights using naming convention
+locals {
+  application_insights_name = "appi-${replace(local.foundry_resource_group_name, "rg-", "")}"
+}
+
+data "azurerm_application_insights" "this" {
+  name                = local.application_insights_name
+  resource_group_name = local.foundry_resource_group_name
+}
+```
 
 See complete setup: [`terraform/main.tf`](terraform/main.tf)
 
@@ -179,7 +222,7 @@ This validates the entire integration: agent creation, conversation, code interp
 **Connection flow:**
 
 1. User sends HTTPS request to function endpoint
-1. Function runtime loads environment variables (AI Foundry endpoint from terraform)
+1. Function runtime loads environment variables (AI Foundry endpoint discovered from data source)
 1. DefaultAzureCredential requests token using managed identity
 1. Azure AD validates the identity and returns access token
 1. AI Projects SDK calls AI Foundry with the token
@@ -205,17 +248,27 @@ cd scripts
 ./configure-local-settings.sh
 ```
 
+The script automatically parses terraform state to extract all needed configuration values.
+
 See local setup details: [`scripts/configure-local-settings.sh`](scripts/configure-local-settings.sh)
 
 ## Key CAIRA Integration Patterns
 
-### 1. Consuming foundry_basic Outputs
+### 1. Configuration with Automatic Discovery
 
-Your function layer receives everything it needs from foundry_basic as terraform variables:
+Your function layer receives only 3 resource IDs from foundry_basic:
 
-- AI Foundry endpoint and project details
-- Application Insights connection
-- Log Analytics workspace for diagnostic logs
+- AI Foundry resource ID (contains resource group and account name)
+- AI Foundry project resource ID (contains project name)
+- Log Analytics workspace resource ID
+
+Everything else is automatically discovered:
+
+- ✅ Resource group name → Parsed from AI Foundry ID
+- ✅ AI Foundry account name → Parsed from AI Foundry ID
+- ✅ AI Foundry project name → Parsed from project ID
+- ✅ AI Foundry endpoint → Retrieved via data source
+- ✅ Application Insights → Discovered using naming convention
 
 See the complete variable interface: [`terraform/variables.tf`](terraform/variables.tf)
 
@@ -341,14 +394,8 @@ terraform init
 terraform apply
 
 # Capture outputs for the function layer
-RG_NAME=$(terraform output -raw resource_group_name)
-AI_FOUNDRY_NAME=$(terraform output -raw ai_foundry_name)
-AI_FOUNDRY_ENDPOINT=$(terraform output -raw ai_foundry_endpoint)
 AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
 AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
-AI_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
-APPINSIGHTS_ID=$(terraform output -raw application_insights_id)
-APPINSIGHTS_NAME=$(basename "$APPINSIGHTS_ID")
 LOG_WORKSPACE_ID=$(terraform output -raw log_analytics_workspace_id)
 ```
 
@@ -359,12 +406,8 @@ cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terra
 
 # Create terraform.tfvars with the captured values
 cat > terraform.tfvars <<EOF
-foundry_resource_group_name        = "$RG_NAME"
 foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
-foundry_ai_foundry_endpoint        = "$AI_FOUNDRY_ENDPOINT"
 foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
-foundry_ai_foundry_project_name    = "$AI_PROJECT_NAME"
-foundry_application_insights_name  = "$APPINSIGHTS_NAME"
 foundry_log_analytics_workspace_id = "$LOG_WORKSPACE_ID"
 project_name                       = "ai-integration"
 function_sku_size                  = "B1"
@@ -381,7 +424,7 @@ terraform apply
 - RBAC role granting AI Foundry access
 - Storage account for function runtime
 - Application Insights integration
-- All configuration wired automatically
+- All configuration wired automatically through resource discovery
 
 ### Step 3: Deploy Function Code
 
@@ -531,6 +574,12 @@ curl -X POST http://localhost:7071/api/agent \
 
 - Solution: `az login` and `az account set --subscription <your-subscription-id>`
 
+**Application Insights not found error**
+
+- Cause: Naming convention mismatch between foundry_basic and function layer
+- Solution: Verify Application Insights name matches pattern: `appi-{base_name}-{suffix}`
+- Check: `az resource list --resource-group <foundry-rg> --resource-type Microsoft.Insights/components`
+
 ### Debugging Commands
 
 ```bash
@@ -545,6 +594,13 @@ az functionapp identity show --name $FUNCTION_APP_NAME --resource-group $RESOURC
 
 # Check deployed functions
 az functionapp function list --name $FUNCTION_APP_NAME --resource-group $RESOURCE_GROUP --output table
+
+# Verify parsed values from terraform
+cd terraform
+terraform console
+> local.foundry_resource_group_name
+> local.ai_foundry_name
+> local.ai_foundry_project_name
 ```
 
 ## Monitoring
