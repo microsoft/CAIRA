@@ -63,12 +63,6 @@ variable "foundry_log_analytics_workspace_id" {
   description = "The resource ID of the Log Analytics workspace from foundry_basic deployment"
 }
 
-# Everything else is automatically discovered!
-# - Resource group name (parsed from AI Foundry ID)
-# - AI Foundry account name (parsed from AI Foundry ID)
-# - AI Foundry project name (parsed from project ID)
-# - AI Foundry endpoint (data source lookup)
-# - Application Insights (naming convention discovery)
 ```
 
 See the complete implementation in [`terraform/main.tf`](terraform/main.tf) and [`terraform/function.tf`](terraform/function.tf).
@@ -158,7 +152,7 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.projects import AIProjectClient
 
 def get_project_client() -> AIProjectClient:
-    credential = DefaultAzureCredential()  # Automatically uses managed identity!
+    credential = DefaultAzureCredential()  # Automatically uses managed identity
     endpoint = os.getenv("AI_FOUNDRY_ENDPOINT")  # From terraform config
 
     # Transform to AI Foundry project endpoint format
@@ -264,11 +258,11 @@ Your function layer receives only 3 resource IDs from foundry_basic:
 
 Everything else is automatically discovered:
 
-- ✅ Resource group name → Parsed from AI Foundry ID
-- ✅ AI Foundry account name → Parsed from AI Foundry ID
-- ✅ AI Foundry project name → Parsed from project ID
-- ✅ AI Foundry endpoint → Retrieved via data source
-- ✅ Application Insights → Discovered using naming convention
+- Resource group name → Parsed from AI Foundry ID
+- AI Foundry account name → Parsed from AI Foundry ID
+- AI Foundry project name → Parsed from project ID
+- AI Foundry endpoint → Retrieved via data source
+- Application Insights → Discovered using naming convention
 
 See the complete variable interface: [`terraform/variables.tf`](terraform/variables.tf)
 
