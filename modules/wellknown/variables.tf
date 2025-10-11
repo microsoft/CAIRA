@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 variable "base_name" {
   type        = string
   description = "Semantic base name used for generating unique resource names."

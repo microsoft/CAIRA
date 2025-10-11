@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # Dependent resources for Foundry Standard Private
 # Uses an existing capability host (Cosmos DB, Storage, AI Search) and existing subnet.
 

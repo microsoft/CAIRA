@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 output "ai_foundry_id" {
   description = "The resource ID of the AI Foundry account."
   value       = azapi_resource.ai_foundry.id

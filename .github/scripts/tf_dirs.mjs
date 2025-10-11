@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+// ---------------------------------------------------------------------
+
 // @ts-check
 
 import path from 'path';
