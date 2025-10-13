@@ -180,6 +180,11 @@ task md:lint
 
 # Run tests
 task test
+
+# Run specific test
+task test:int:all
+task test:acc:all
+task test:unit:all
 ```
 
 ## 5. Changelog

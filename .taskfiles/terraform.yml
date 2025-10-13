@@ -134,10 +134,17 @@ tasks:
   lint:
     desc: Run Terraform linters
     cmds:
-      - terraform fmt -recursive
-      - tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
-      - tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-      - terrafmt fmt . --pattern "*.md" --fix-finish-lines --quiet
+      - cmd: |
+          terraform fmt -recursive
+          tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
+          tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
+        platforms: [linux, darwin, windows]
+      - cmd: |
+          find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
+        platforms: [linux, darwin]
+      - cmd: |
+          {{.PWSH}} 'Get-ChildItem -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\.terraform\\' } | ForEach-Object { terrafmt fmt $_.FullName --fix-finish-lines --quiet}'
+        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
@@ -254,6 +261,19 @@ tasks:
           pushd "{{osClean .ITEM}}"
           task tf:test:int
           popd
+    dir: "{{.ROOT_DIR}}"
+
+  # * Run All Tests
+  test:
+    desc: Run all terraform tests (unit, integration, acceptance) on all modules
+    cmds:
+      - echo "🧪 Running Unit Tests..."
+      - task: test:unit:all
+      - echo "🔗 Running Integration Tests..."
+      - task: test:int:all
+      - echo "✅ Running Acceptance Tests..."
+      - task: test:acc:all
+      - echo "🎉 All tests completed!"
     dir: "{{.ROOT_DIR}}"
 
   get:modules:
