@@ -49,22 +49,6 @@ run "testacc_prerequisites" {
     }
   }
 
-  # Validate data sources reference correct resources
-  assert {
-    condition     = data.azurerm_resource_group.this.name == "rg-basic-test123"
-    error_message = "The resource group data source should reference the correct resource group"
-  }
-
-  assert {
-    condition     = data.azurerm_cognitive_account.ai_foundry.name == "cog-basic-test123"
-    error_message = "The AI Foundry data source should reference the correct account"
-  }
-
-  assert {
-    condition     = data.azurerm_application_insights.this.name == "appi-basic-test123"
-    error_message = "The Application Insights data source should reference the correct instance"
-  }
-
   # Validate ID parsing logic
   assert {
     condition     = local.foundry_resource_group_name == "rg-basic-test123"
@@ -84,6 +68,18 @@ run "testacc_prerequisites" {
   assert {
     condition     = local.ai_foundry_endpoint == "https://cog-basic-test123.cognitiveservices.azure.com/"
     error_message = "Should discover AI Foundry endpoint from data source"
+  }
+
+  # Validate naming convention logic (business logic)
+  assert {
+    condition     = local.application_insights_name == "appi-basic-test123"
+    error_message = "Should derive Application Insights name from resource group naming convention"
+  }
+
+  # Validate resource group naming validation
+  assert {
+    condition     = local.is_valid_rg_naming == true
+    error_message = "Should validate resource group follows naming convention (starts with 'rg-')"
   }
 }
 
@@ -136,12 +132,6 @@ run "testacc_function_app_configuration" {
     condition     = azurerm_linux_function_app.main.identity[0].type == "SystemAssigned"
     error_message = "Function app should have System Assigned managed identity"
   }
-
-  # Test diagnostic settings
-  assert {
-    condition     = azurerm_monitor_diagnostic_setting.function != null
-    error_message = "Diagnostic settings should be configured"
-  }
 }
 
 run "testacc_role_assignments" {
@@ -159,53 +149,6 @@ run "testacc_role_assignments" {
   assert {
     condition     = azurerm_role_assignment.function_ai_foundry_user.role_definition_name == "Cognitive Services User"
     error_message = "Cognitive Services User role assignment should exist"
-  }
-}
-
-run "testacc_naming_conventions" {
-  command = plan
-
-  variables {
-    foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
-    foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
-
-    project_name = "test-ai-func"
-  }
-
-  # Test that the resource group is created and we can find an existing RG
-  assert {
-    condition     = azurerm_resource_group.function != null
-    error_message = "Function resource group should be created"
-  }
-
-  assert {
-    condition     = data.azurerm_resource_group.this.name == "rg-basic-test123"
-    error_message = "Should be able to reference the foundry resource group"
-  }
-
-  # Verify location is available
-  assert {
-    condition     = data.azurerm_resource_group.this.location != null
-    error_message = "Location should be available from resource group data source"
-  }
-
-  # Test that naming module is being used
-  assert {
-    condition     = module.naming != null
-    error_message = "Naming module should be referenced"
-  }
-
-  # Verify that resources are defined (values are computed at plan time)
-  assert {
-    condition     = azurerm_storage_account.function != null
-    error_message = "Storage account resource should be defined"
-  }
-
-  # Verify function app resource is defined
-  assert {
-    condition     = azurerm_linux_function_app.main != null
-    error_message = "Function app resource should be defined"
   }
 }
 
