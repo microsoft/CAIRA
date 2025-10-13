@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+#
 # Validate-MarkdownFrontmatter.ps1
 #
 # Purpose: Validates frontmatter consistency across markdown files in the repository

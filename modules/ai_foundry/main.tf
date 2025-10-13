@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # AI Foundry Resource Configuration
 
 resource "azapi_resource" "ai_foundry" {

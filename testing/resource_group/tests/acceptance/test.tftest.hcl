@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 run "testacc_resource_group" {
   command = plan
 

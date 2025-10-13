@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+#
 # validate-markdown-frontmatter.sh
 #
 # Purpose: Validates frontmatter consistency across markdown files in the repository

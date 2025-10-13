@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # Integration tests for Azure Functions Integration Layer with AI Foundry Basic
 # Self-contained integration tests that create all required resources
 # No external setup needed - creates foundry_basic, tests functions, then cleans up

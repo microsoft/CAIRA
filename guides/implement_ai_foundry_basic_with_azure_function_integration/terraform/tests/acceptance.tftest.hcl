@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # Acceptance tests for Azure Functions Integration Layer
 
 # Mock provider configuration for testing

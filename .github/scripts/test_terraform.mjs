@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+// ---------------------------------------------------------------------
+
 // This script handles fork PR approval logic for the Terraform Test workflow
 //
 // IMPORTANT: This script runs under different GitHub event contexts:

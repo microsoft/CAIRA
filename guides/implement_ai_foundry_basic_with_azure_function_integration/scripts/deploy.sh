@@ -1,4 +1,8 @@
 #!/bin/bash
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # deploy.sh - Single deployment script for AI Foundry with Functions
 set -e
 

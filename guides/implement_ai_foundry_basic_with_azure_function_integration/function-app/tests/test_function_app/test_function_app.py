@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # Unit tests for Azure Functions with AI Foundry integration using Azure AI Projects SDK
 
 import json
