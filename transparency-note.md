@@ -79,7 +79,7 @@ The AI chat mode's performance is measured by its ability to correctly interpret
 
 ### Evaluation methods
 
-CAIRA's reference architectures and modules are evaluated based on patterns and best practices developed in real-world enterprise work. The system is validated through test deployments for each defined intended use case (Experimentation, Enterprise). The evaluation focuses on ensuring the deployed infrastructure is secure, reliable, observable, and aligns with the principles of the Azure Well-Architected Framework.
+CAIRA's reference architectures and modules are evaluated based on patterns and best practices developed in real-world enterprise work. The system is validated through test deployments for each defined intended use case (experimentation, enterprise). The evaluation focuses on ensuring the deployed infrastructure is secure, reliable, observable, and aligns with the principles of the Azure Well-Architected Framework.
 
 ### Evaluation results
 

@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 output "ai_foundry_id" {
   description = "The resource ID of the AI Foundry account."
   value       = module.ai_foundry.ai_foundry_id

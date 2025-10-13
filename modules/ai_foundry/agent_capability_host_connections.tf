@@ -1,3 +1,7 @@
+# ---------------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. Licensed under the MIT license.
+# ---------------------------------------------------------------------
+
 # Connection to Application Insights
 resource "azapi_resource" "appinsights_connection" {
   count = var.application_insights != null ? 1 : 0
