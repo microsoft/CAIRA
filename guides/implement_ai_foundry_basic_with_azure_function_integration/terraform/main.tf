@@ -18,6 +18,12 @@ locals {
   foundry_resource_group_name = local.ai_foundry_id_parts[4]
   ai_foundry_name             = local.ai_foundry_id_parts[8]
 
+  # Parse Application Insights resource ID
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Insights/components/{name}
+  app_insights_id_parts       = split("/", var.foundry_application_insights_id)
+  app_insights_resource_group = local.app_insights_id_parts[4]
+  app_insights_name           = local.app_insights_id_parts[8]
+
   # Parse AI Foundry Project ID to extract project name
   # Format varies, but typically ends with /projects/{name}
   project_id_parts        = split("/", var.foundry_ai_foundry_project_id)
@@ -30,13 +36,11 @@ locals {
     local.ai_foundry_id_parts[7] == "accounts"
   )
 
-  # Validate resource group naming convention for Application Insights discovery
-  is_valid_rg_naming = can(regex("^rg-", local.foundry_resource_group_name))
-
-  # Discover Application Insights name using naming convention
-  # foundry_basic uses the pattern: appi-{base_name}-{unique_suffix}
-  # where base_name comes from resource group: rg-{base_name}-{unique_suffix}
-  application_insights_name = "appi-${replace(local.foundry_resource_group_name, "rg-", "")}"
+  is_valid_app_insights_id = (
+    length(local.app_insights_id_parts) == 9 &&
+    lower(local.app_insights_id_parts[6]) == "microsoft.insights" &&
+    local.app_insights_id_parts[7] == "components"
+  )
 }
 
 # Validation check
@@ -48,8 +52,8 @@ resource "terraform_data" "validate_inputs" {
     }
 
     precondition {
-      condition     = local.is_valid_rg_naming
-      error_message = "Resource group name must start with 'rg-' for Application Insights discovery to work. Found: ${local.foundry_resource_group_name}. This naming convention is required by foundry_basic."
+      condition     = local.is_valid_app_insights_id
+      error_message = "foundry_application_insights_id must be a valid Application Insights resource ID with format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Insights/components/{name}"
     }
   }
 }
@@ -67,8 +71,8 @@ data "azurerm_cognitive_account" "ai_foundry" {
 
 # Data source to reference the existing Application Insights
 data "azurerm_application_insights" "this" {
-  name                = local.application_insights_name
-  resource_group_name = local.foundry_resource_group_name
+  name                = local.app_insights_name
+  resource_group_name = local.app_insights_resource_group
 }
 
 # Naming module

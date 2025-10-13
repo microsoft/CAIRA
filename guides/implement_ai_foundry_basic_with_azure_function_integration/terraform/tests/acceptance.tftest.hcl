@@ -39,6 +39,7 @@ run "testacc_prerequisites" {
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name      = "test-ai-func"
@@ -70,16 +71,15 @@ run "testacc_prerequisites" {
     error_message = "Should discover AI Foundry endpoint from data source"
   }
 
-  # Validate naming convention logic (business logic)
+  # Validate Application Insights parsing
   assert {
-    condition     = local.application_insights_name == "appi-basic-test123"
-    error_message = "Should derive Application Insights name from resource group naming convention"
+    condition     = local.app_insights_name == "appi-basic-test123"
+    error_message = "Should correctly parse Application Insights name from resource ID"
   }
 
-  # Validate resource group naming validation
   assert {
-    condition     = local.is_valid_rg_naming == true
-    error_message = "Should validate resource group follows naming convention (starts with 'rg-')"
+    condition     = local.app_insights_resource_group == "rg-basic-test123"
+    error_message = "Should correctly parse resource group from Application Insights ID"
   }
 }
 
@@ -89,6 +89,7 @@ run "testacc_function_app_configuration" {
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name      = "test-ai-func"
@@ -140,6 +141,7 @@ run "testacc_role_assignments" {
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name = "test-ai-func"
@@ -158,6 +160,7 @@ run "testacc_security_configuration" {
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
     foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
     project_name = "test-ai-func"

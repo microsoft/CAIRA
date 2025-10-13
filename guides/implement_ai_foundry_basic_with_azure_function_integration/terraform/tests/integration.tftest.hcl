@@ -48,6 +48,11 @@ run "setup_foundry_basic" {
     condition     = output.ai_foundry_project_id != null
     error_message = "foundry_basic AI Foundry project should be created"
   }
+
+  assert {
+    condition     = output.application_insights_id != null
+    error_message = "foundry_basic Application Insights should be created"
+  }
 }
 
 # Step 2: Test function deployment using foundry_basic outputs
@@ -58,6 +63,7 @@ run "test_function_deployment" {
     # Use outputs from the setup_foundry_basic run
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     # Function-specific configuration
@@ -116,6 +122,11 @@ run "test_function_deployment" {
     condition     = local.ai_foundry_endpoint == run.setup_foundry_basic.ai_foundry_endpoint
     error_message = "Discovered AI Foundry endpoint should match foundry_basic output"
   }
+
+  assert {
+    condition     = local.app_insights_name == run.setup_foundry_basic.application_insights_name
+    error_message = "Parsed Application Insights name should match foundry_basic output"
+  }
 }
 
 # Step 3: Test connectivity between function and foundry resources
@@ -125,6 +136,7 @@ run "test_connectivity" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
@@ -180,6 +192,7 @@ run "test_role_assignments" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
@@ -211,6 +224,7 @@ run "test_security" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
     project_name = "inttest"
