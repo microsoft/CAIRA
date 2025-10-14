@@ -12,36 +12,35 @@
 ############################################################
 
 locals {
-  # Parse AI Foundry resource ID
-  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}
-  ai_foundry_id_parts         = split("/", var.foundry_ai_foundry_id)
-  foundry_resource_group_name = local.ai_foundry_id_parts[4]
-  ai_foundry_name             = local.ai_foundry_id_parts[8]
+  # Parse resource IDs using provider function
+  ai_foundry_parsed   = provider::azurerm::parse_resource_id(var.foundry_ai_foundry_id)
+  app_insights_parsed = provider::azurerm::parse_resource_id(var.foundry_application_insights_id)
 
-  # Parse Application Insights resource ID
-  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Insights/components/{name}
-  app_insights_id_parts       = split("/", var.foundry_application_insights_id)
-  app_insights_resource_group = local.app_insights_id_parts[4]
-  app_insights_name           = local.app_insights_id_parts[8]
+  # Extract components - the function returns a map with parts of the ID
+  # Access using the actual keys returned by the function
+  foundry_resource_group_name = local.ai_foundry_parsed["resource_group_name"]
+  ai_foundry_name             = local.ai_foundry_parsed["resource_name"]
+
+  app_insights_resource_group = local.app_insights_parsed["resource_group_name"]
+  app_insights_name           = local.app_insights_parsed["resource_name"]
 
   # Parse AI Foundry Project ID to extract project name
-  # Format varies, but typically ends with /projects/{name}
   project_id_parts        = split("/", var.foundry_ai_foundry_project_id)
   ai_foundry_project_name = element(local.project_id_parts, length(local.project_id_parts) - 1)
 
-  # Validation flags
+  # Validation using the parsed objects
   is_valid_ai_foundry_id = (
-    length(local.ai_foundry_id_parts) == 9 &&
-    local.ai_foundry_id_parts[6] == "Microsoft.CognitiveServices" &&
-    local.ai_foundry_id_parts[7] == "accounts"
+    can(local.ai_foundry_parsed["resource_group_name"]) &&
+    can(local.ai_foundry_parsed["resource_name"])
   )
 
   is_valid_app_insights_id = (
-    length(local.app_insights_id_parts) == 9 &&
-    lower(local.app_insights_id_parts[6]) == "microsoft.insights" &&
-    local.app_insights_id_parts[7] == "components"
+    can(local.app_insights_parsed["resource_group_name"]) &&
+    can(local.app_insights_parsed["resource_name"])
   )
 }
+
+
 
 # Validation check
 resource "terraform_data" "validate_inputs" {

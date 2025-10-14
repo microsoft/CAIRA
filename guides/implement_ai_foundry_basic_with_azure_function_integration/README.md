@@ -119,24 +119,26 @@ Your function layer automatically discovers resources from just 4 resource IDs. 
 **How it works:**
 
 ```hcl
-# 1. Parse AI Foundry resource ID to extract names
+# 1. Parse resource IDs using the AzureRM provider function
+# The function returns a map with all components of the resource ID
 locals {
-  ai_foundry_id_parts         = split("/", var.foundry_ai_foundry_id)
-  foundry_resource_group_name = local.ai_foundry_id_parts[4] # Extract RG name
-  ai_foundry_name             = local.ai_foundry_id_parts[8] # Extract account name
+  ai_foundry_parsed   = provider::azurerm::parse_resource_id(var.foundry_ai_foundry_id)
+  app_insights_parsed = provider::azurerm::parse_resource_id(var.foundry_application_insights_id)
 }
 
-# 2. Use parsed names in data sources to discover resources
+# 2. Extract components using map keys
+locals {
+  foundry_resource_group_name = local.ai_foundry_parsed["resource_group_name"]
+  ai_foundry_name             = local.ai_foundry_parsed["resource_name"]
+
+  app_insights_resource_group = local.app_insights_parsed["resource_group_name"]
+  app_insights_name           = local.app_insights_parsed["resource_name"]
+}
+
+# 3. Use parsed names in data sources to discover resources
 data "azurerm_cognitive_account" "ai_foundry" {
   name                = local.ai_foundry_name
   resource_group_name = local.foundry_resource_group_name
-}
-
-# 3. Parse Application Insights resource ID
-locals {
-  app_insights_id_parts       = split("/", var.foundry_application_insights_id)
-  app_insights_resource_group = local.app_insights_id_parts[4]
-  app_insights_name           = local.app_insights_id_parts[8]
 }
 
 data "azurerm_application_insights" "this" {

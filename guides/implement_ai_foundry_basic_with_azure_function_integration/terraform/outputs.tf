@@ -47,5 +47,5 @@ output "foundry_resource_group_name" {
 
 output "subscription_id" {
   description = "The Azure subscription ID (for local development)"
-  value       = local.ai_foundry_id_parts[2]
+  value       = local.ai_foundry_parsed["subscription_id"]
 }
