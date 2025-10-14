@@ -192,3 +192,53 @@ run "testacc_security_configuration" {
     error_message = "Function app should use minimum TLS 1.2"
   }
 }
+
+run "testacc_outputs_for_local_dev" {
+  command = plan
+
+  variables {
+    foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
+    foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
+
+    project_name = "test-ai-func"
+  }
+
+  # Verify all outputs needed for local development exist
+  assert {
+    condition     = output.ai_foundry_endpoint != null && output.ai_foundry_endpoint != ""
+    error_message = "Should output AI Foundry endpoint for local development"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_name != null && output.ai_foundry_project_name != ""
+    error_message = "Should output AI Foundry project name for local development"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_id != null && output.ai_foundry_project_id != ""
+    error_message = "Should output AI Foundry project ID for local development"
+  }
+
+  assert {
+    condition     = output.foundry_resource_group_name != null && output.foundry_resource_group_name != ""
+    error_message = "Should output foundry resource group name for local development"
+  }
+
+  assert {
+    condition     = output.subscription_id != null && output.subscription_id != ""
+    error_message = "Should output subscription ID for local development"
+  }
+
+  # Verify outputs match expected values
+  assert {
+    condition     = output.foundry_resource_group_name == "rg-basic-test123"
+    error_message = "Foundry resource group output should match parsed value"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_name == "default-project"
+    error_message = "Project name output should match parsed value"
+  }
+}

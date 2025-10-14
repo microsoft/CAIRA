@@ -58,11 +58,15 @@ variable "foundry_ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project from foundry_basic deployment"
 }
 
+variable "foundry_application_insights_id" {
+  type        = string
+  description = "The resource ID of the Application Insights instance from foundry_basic deployment"
+}
+
 variable "foundry_log_analytics_workspace_id" {
   type        = string
   description = "The resource ID of the Log Analytics workspace from foundry_basic deployment"
 }
-
 ```
 
 See the complete implementation in [`terraform/main.tf`](terraform/main.tf) and [`terraform/function.tf`](terraform/function.tf).
@@ -87,8 +91,8 @@ identity {
   type = "SystemAssigned" # Azure creates and manages the identity
 }
 app_settings = {
-  "AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint      # Discovered via data source
-  "AI_FOUNDRY_PROJECT_NAME" = local.ai_foundry_project_name  # Parsed from project ID
+  "AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint     # Discovered via data source
+  "AI_FOUNDRY_PROJECT_NAME" = local.ai_foundry_project_name # Parsed from project ID
   "AI_FOUNDRY_PROJECT_ID"   = var.foundry_ai_foundry_project_id
 }
 ```
@@ -110,7 +114,7 @@ See complete infrastructure code: [`terraform/function.tf`](terraform/function.t
 
 ### Part 2: Automatic Resource Discovery
 
-Your function layer automatically discovers resources from just 3 resource IDs. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
+Your function layer automatically discovers resources from just 4 resource IDs. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
 
 **How it works:**
 
@@ -118,8 +122,8 @@ Your function layer automatically discovers resources from just 3 resource IDs. 
 # 1. Parse AI Foundry resource ID to extract names
 locals {
   ai_foundry_id_parts         = split("/", var.foundry_ai_foundry_id)
-  foundry_resource_group_name = local.ai_foundry_id_parts[4]  # Extract RG name
-  ai_foundry_name             = local.ai_foundry_id_parts[8]  # Extract account name
+  foundry_resource_group_name = local.ai_foundry_id_parts[4] # Extract RG name
+  ai_foundry_name             = local.ai_foundry_id_parts[8] # Extract account name
 }
 
 # 2. Use parsed names in data sources to discover resources
@@ -128,14 +132,16 @@ data "azurerm_cognitive_account" "ai_foundry" {
   resource_group_name = local.foundry_resource_group_name
 }
 
-# 3. Discover Application Insights using naming convention
+# 3. Parse Application Insights resource ID
 locals {
-  application_insights_name = "appi-${replace(local.foundry_resource_group_name, "rg-", "")}"
+  app_insights_id_parts       = split("/", var.foundry_application_insights_id)
+  app_insights_resource_group = local.app_insights_id_parts[4]
+  app_insights_name           = local.app_insights_id_parts[8]
 }
 
 data "azurerm_application_insights" "this" {
-  name                = local.application_insights_name
-  resource_group_name = local.foundry_resource_group_name
+  name                = local.app_insights_name
+  resource_group_name = local.app_insights_resource_group
 }
 ```
 
@@ -200,7 +206,7 @@ curl -X POST https://<function-app>.azurewebsites.net/api/agent \
 # Chat
 curl -X POST https://<function-app>.azurewebsites.net/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"action": "chat", "message": "Hello"}' | jq .
+  -d '{"action": "chat", "message": "Hello"}' | j.
 ```
 
 **3. Run the complete demo:**
@@ -242,7 +248,7 @@ cd scripts
 ./configure-local-settings.sh
 ```
 
-The script automatically parses terraform state to extract all needed configuration values.
+The script uses terraform outputs to extract all needed configuration values.
 
 See local setup details: [`scripts/configure-local-settings.sh`](scripts/configure-local-settings.sh)
 
@@ -250,10 +256,11 @@ See local setup details: [`scripts/configure-local-settings.sh`](scripts/configu
 
 ### 1. Configuration with Automatic Discovery
 
-Your function layer receives only 3 resource IDs from foundry_basic:
+Your function layer receives only 4 resource IDs from foundry_basic:
 
 - AI Foundry resource ID (contains resource group and account name)
 - AI Foundry project resource ID (contains project name)
+- Application Insights resource ID
 - Log Analytics workspace resource ID
 
 Everything else is automatically discovered:
@@ -262,7 +269,7 @@ Everything else is automatically discovered:
 - AI Foundry account name → Parsed from AI Foundry ID
 - AI Foundry project name → Parsed from project ID
 - AI Foundry endpoint → Retrieved via data source
-- Application Insights → Discovered using naming convention
+- Application Insights name → Parsed from Application Insights ID
 
 See the complete variable interface: [`terraform/variables.tf`](terraform/variables.tf)
 
@@ -390,6 +397,7 @@ terraform apply
 # Capture outputs for the function layer
 AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
 AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
+APP_INSIGHTS_ID=$(terraform output -raw application_insights_id)
 LOG_WORKSPACE_ID=$(terraform output -raw log_analytics_workspace_id)
 ```
 
@@ -402,6 +410,7 @@ cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terra
 cat > terraform.tfvars <<EOF
 foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
 foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
+foundry_application_insights_id    = "$APP_INSIGHTS_ID"
 foundry_log_analytics_workspace_id = "$LOG_WORKSPACE_ID"
 project_name                       = "ai-integration"
 function_sku_size                  = "B1"
@@ -567,12 +576,6 @@ curl -X POST http://localhost:7071/api/agent \
 **Local development authentication issues**
 
 - Solution: `az login` and `az account set --subscription <your-subscription-id>`
-
-**Application Insights not found error**
-
-- Cause: Naming convention mismatch between foundry_basic and function layer
-- Solution: Verify Application Insights name matches pattern: `appi-{base_name}-{suffix}`
-- Check: `az resource list --resource-group <foundry-rg> --resource-type Microsoft.Insights/components`
 
 ### Debugging Commands
 

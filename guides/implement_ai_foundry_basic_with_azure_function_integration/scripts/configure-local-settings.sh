@@ -23,36 +23,16 @@ if [ ! -f "terraform.tfstate" ]; then
   exit 1
 fi
 
-echo "Parsing configuration from terraform state..."
+echo "Extracting configuration from terraform outputs..."
 
-# Get values from terraform outputs
+# Get all values from terraform outputs
 FUNCTION_APP_NAME=$(terraform output -raw function_app_name)
 FUNCTION_APP_URL=$(terraform output -raw function_app_url)
-
-# Parse terraform state to extract internal values
-# These are not outputs but internal state values we need for local development
-
-# Get parsed Foundry resource group name from locals (used in data sources)
-RESOURCE_GROUP=$(terraform show -json | jq -r '.values.root_module.locals.foundry_resource_group_name')
-
-# Get AI Foundry endpoint from data source
-AI_FOUNDRY_ENDPOINT=$(terraform show -json | jq -r '
-  .values.root_module.resources[] |
-  select(.type == "azurerm_cognitive_account" and .mode == "data") |
-  .values.endpoint
-')
-
-# Get AI Foundry project name from input variable
-AI_FOUNDRY_PROJECT_ID=$(terraform show -json | jq -r '.values.root_module.variables.foundry_ai_foundry_project_id.value')
-
-# Parse project name from project ID (last segment after final /)
-AI_FOUNDRY_PROJECT_NAME="${AI_FOUNDRY_PROJECT_ID##*/}"
-
-# Get subscription ID from input variable (foundry_ai_foundry_id)
-AI_FOUNDRY_ID=$(terraform show -json | jq -r '.values.root_module.variables.foundry_ai_foundry_id.value')
-
-# Parse subscription ID from AI Foundry resource ID (3rd segment)
-AZURE_SUBSCRIPTION_ID=$(echo "$AI_FOUNDRY_ID" | cut -d'/' -f3)
+RESOURCE_GROUP=$(terraform output -raw foundry_resource_group_name)
+AI_FOUNDRY_ENDPOINT=$(terraform output -raw ai_foundry_endpoint)
+AI_FOUNDRY_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
+AI_FOUNDRY_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
+AZURE_SUBSCRIPTION_ID=$(terraform output -raw subscription_id)
 
 # Navigate to function-app directory
 cd ../function-app

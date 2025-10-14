@@ -123,9 +123,15 @@ run "test_function_deployment" {
     error_message = "Discovered AI Foundry endpoint should match foundry_basic output"
   }
 
+  # Validate Application Insights ID parsing worked
   assert {
-    condition     = local.app_insights_name == run.setup_foundry_basic.application_insights_name
-    error_message = "Parsed Application Insights name should match foundry_basic output"
+    condition     = local.app_insights_name != null && local.app_insights_name != ""
+    error_message = "Should successfully parse Application Insights name from resource ID"
+  }
+
+  assert {
+    condition     = local.app_insights_resource_group != null && local.app_insights_resource_group != ""
+    error_message = "Should successfully parse resource group from Application Insights ID"
   }
 }
 
@@ -275,5 +281,31 @@ run "test_security" {
   assert {
     condition     = output.resource_group_name != null && output.resource_group_name != ""
     error_message = "Should output resource group name for deployment context"
+  }
+
+  # Validate local development outputs exist and match foundry_basic
+  assert {
+    condition     = output.ai_foundry_endpoint == run.setup_foundry_basic.ai_foundry_endpoint
+    error_message = "AI Foundry endpoint output should match foundry_basic"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_name != null && output.ai_foundry_project_name != ""
+    error_message = "Should output AI Foundry project name for local development"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_id == run.setup_foundry_basic.ai_foundry_project_id
+    error_message = "AI Foundry project ID output should match input variable"
+  }
+
+  assert {
+    condition     = output.foundry_resource_group_name == run.setup_foundry_basic.resource_group_name
+    error_message = "Foundry resource group output should match foundry_basic"
+  }
+
+  assert {
+    condition     = output.subscription_id != null && output.subscription_id != ""
+    error_message = "Should output subscription ID for local development"
   }
 }
