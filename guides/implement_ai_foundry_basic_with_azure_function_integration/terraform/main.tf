@@ -12,35 +12,36 @@
 ############################################################
 
 locals {
-  # Parse resource IDs using provider function
-  ai_foundry_parsed   = provider::azurerm::parse_resource_id(var.foundry_ai_foundry_id)
-  app_insights_parsed = provider::azurerm::parse_resource_id(var.foundry_application_insights_id)
+  # Parse standard Azure resource IDs using azapi provider function
+  # Signature: parse_resource_id(resource_type, resource_id)
+  ai_foundry_parsed   = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.foundry_ai_foundry_id)
+  app_insights_parsed = provider::azapi::parse_resource_id("Microsoft.Insights/components", var.foundry_application_insights_id)
 
-  # Extract components - the function returns a map with parts of the ID
-  # Access using the actual keys returned by the function
-  foundry_resource_group_name = local.ai_foundry_parsed["resource_group_name"]
-  ai_foundry_name             = local.ai_foundry_parsed["resource_name"]
+  # Parse AI Foundry Project ID (sub-resource)
+  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}/projects/{project-name}
+  project_parsed = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts/projects", var.foundry_ai_foundry_project_id)
 
-  app_insights_resource_group = local.app_insights_parsed["resource_group_name"]
-  app_insights_name           = local.app_insights_parsed["resource_name"]
+  # Extract components from parsed resource IDs
+  foundry_resource_group_name = local.ai_foundry_parsed.resource_group_name
+  ai_foundry_name             = local.ai_foundry_parsed.name
 
-  # Parse AI Foundry Project ID to extract project name
-  project_id_parts        = split("/", var.foundry_ai_foundry_project_id)
-  ai_foundry_project_name = element(local.project_id_parts, length(local.project_id_parts) - 1)
+  app_insights_resource_group = local.app_insights_parsed.resource_group_name
+  app_insights_name           = local.app_insights_parsed.name
+
+  ai_foundry_project_name = local.project_parsed.name
 
   # Validation using the parsed objects
   is_valid_ai_foundry_id = (
-    can(local.ai_foundry_parsed["resource_group_name"]) &&
-    can(local.ai_foundry_parsed["resource_name"])
+    can(local.ai_foundry_parsed.resource_group_name) &&
+    can(local.ai_foundry_parsed.name)
   )
 
   is_valid_app_insights_id = (
-    can(local.app_insights_parsed["resource_group_name"]) &&
-    can(local.app_insights_parsed["resource_name"])
+    can(local.app_insights_parsed.resource_group_name) &&
+    can(local.app_insights_parsed.name)
   )
+
 }
-
-
 
 # Validation check
 resource "terraform_data" "validate_inputs" {

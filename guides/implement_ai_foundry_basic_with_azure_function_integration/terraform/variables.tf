@@ -20,7 +20,12 @@ variable "foundry_ai_foundry_id" {
 
 variable "foundry_ai_foundry_project_id" {
   type        = string
-  description = "The resource ID of the AI Foundry Project from foundry_basic deployment"
+  description = "The resource ID of the AI Foundry Project from foundry_basic deployment. Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}/projects/{project-name}"
+
+  validation {
+    condition     = can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.CognitiveServices/accounts/[^/]+/projects/[^/]+$", var.foundry_ai_foundry_project_id))
+    error_message = "foundry_ai_foundry_project_id must be a valid AI Foundry project ID with format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}/projects/{project-name}"
+  }
 }
 
 variable "foundry_application_insights_id" {
@@ -28,7 +33,7 @@ variable "foundry_application_insights_id" {
   description = "The resource ID of the Application Insights instance from foundry_basic deployment"
 
   validation {
-    condition     = can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[Mm]icrosoft\\.[Ii]nsights/components/[^/]+$", var.foundry_application_insights_id))
+    condition     = can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/[Mm]icrosoft.[Ii]nsights/components/[^/]+$", var.foundry_application_insights_id))
     error_message = "foundry_application_insights_id must be a valid Application Insights resource ID"
   }
 }

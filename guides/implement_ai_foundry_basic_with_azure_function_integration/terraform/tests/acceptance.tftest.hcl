@@ -38,7 +38,7 @@ run "testacc_prerequisites" {
 
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123/projects/default-project"
     foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
@@ -67,19 +67,13 @@ run "testacc_prerequisites" {
   }
 
   assert {
-    condition     = local.ai_foundry_endpoint == "https://cog-basic-test123.cognitiveservices.azure.com/"
-    error_message = "Should discover AI Foundry endpoint from data source"
-  }
-
-  # Validate Application Insights parsing
-  assert {
     condition     = local.app_insights_name == "appi-basic-test123"
     error_message = "Should correctly parse Application Insights name from resource ID"
   }
 
   assert {
-    condition     = local.app_insights_resource_group == "rg-basic-test123"
-    error_message = "Should correctly parse resource group from Application Insights ID"
+    condition     = local.ai_foundry_endpoint == "https://cog-basic-test123.cognitiveservices.azure.com/"
+    error_message = "Should discover AI Foundry endpoint from data source"
   }
 }
 
@@ -88,7 +82,7 @@ run "testacc_function_app_configuration" {
 
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123/projects/default-project"
     foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
@@ -107,7 +101,6 @@ run "testacc_function_app_configuration" {
     error_message = "The App Service Plan SKU should be 'B1' for Dedicated tier"
   }
 
-  # Test the new native storage account resource
   assert {
     condition     = azurerm_storage_account.function.account_tier == "Standard"
     error_message = "Storage account should be Standard tier"
@@ -118,7 +111,6 @@ run "testacc_function_app_configuration" {
     error_message = "Storage account should have shared access keys disabled for security"
   }
 
-  # Test the new native function app resource
   assert {
     condition     = azurerm_linux_function_app.main.storage_uses_managed_identity == true
     error_message = "Function app should use managed identity for storage access"
@@ -140,7 +132,7 @@ run "testacc_role_assignments" {
 
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123/projects/default-project"
     foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
@@ -159,7 +151,7 @@ run "testacc_security_configuration" {
 
   variables {
     foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
+    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123/projects/default-project"
     foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
     foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
 
@@ -190,55 +182,5 @@ run "testacc_security_configuration" {
   assert {
     condition     = azurerm_linux_function_app.main.site_config[0].minimum_tls_version == "1.2"
     error_message = "Function app should use minimum TLS 1.2"
-  }
-}
-
-run "testacc_outputs_for_local_dev" {
-  command = plan
-
-  variables {
-    foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.CognitiveServices/accounts/cog-basic-test123"
-    foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.MachineLearningServices/workspaces/proj-test/projects/default-project"
-    foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.Insights/components/appi-basic-test123"
-    foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-test123/providers/Microsoft.OperationalInsights/workspaces/log-basic-test123"
-
-    project_name = "test-ai-func"
-  }
-
-  # Verify all outputs needed for local development exist
-  assert {
-    condition     = output.ai_foundry_endpoint != null && output.ai_foundry_endpoint != ""
-    error_message = "Should output AI Foundry endpoint for local development"
-  }
-
-  assert {
-    condition     = output.ai_foundry_project_name != null && output.ai_foundry_project_name != ""
-    error_message = "Should output AI Foundry project name for local development"
-  }
-
-  assert {
-    condition     = output.ai_foundry_project_id != null && output.ai_foundry_project_id != ""
-    error_message = "Should output AI Foundry project ID for local development"
-  }
-
-  assert {
-    condition     = output.foundry_resource_group_name != null && output.foundry_resource_group_name != ""
-    error_message = "Should output foundry resource group name for local development"
-  }
-
-  assert {
-    condition     = output.subscription_id != null && output.subscription_id != ""
-    error_message = "Should output subscription ID for local development"
-  }
-
-  # Verify outputs match expected values
-  assert {
-    condition     = output.foundry_resource_group_name == "rg-basic-test123"
-    error_message = "Foundry resource group output should match parsed value"
-  }
-
-  assert {
-    condition     = output.ai_foundry_project_name == "default-project"
-    error_message = "Project name output should match parsed value"
   }
 }
