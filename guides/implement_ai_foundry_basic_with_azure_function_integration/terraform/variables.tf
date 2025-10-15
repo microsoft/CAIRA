@@ -28,6 +28,11 @@ variable "foundry_ai_foundry_project_id" {
   }
 }
 
+variable "foundry_ai_foundry_project_name" {
+  type        = string
+  description = "The name of the AI Foundry project from foundry_basic deployment"
+}
+
 variable "foundry_application_insights_id" {
   type        = string
   description = "The resource ID of the Application Insights instance from foundry_basic deployment"

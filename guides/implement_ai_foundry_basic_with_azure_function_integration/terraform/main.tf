@@ -17,10 +17,6 @@ locals {
   ai_foundry_parsed   = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.foundry_ai_foundry_id)
   app_insights_parsed = provider::azapi::parse_resource_id("Microsoft.Insights/components", var.foundry_application_insights_id)
 
-  # Parse AI Foundry Project ID (sub-resource)
-  # Format: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.CognitiveServices/accounts/{name}/projects/{project-name}
-  project_parsed = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts/projects", var.foundry_ai_foundry_project_id)
-
   # Extract components from parsed resource IDs
   foundry_resource_group_name = local.ai_foundry_parsed.resource_group_name
   ai_foundry_name             = local.ai_foundry_parsed.name
@@ -28,7 +24,7 @@ locals {
   app_insights_resource_group = local.app_insights_parsed.resource_group_name
   app_insights_name           = local.app_insights_parsed.name
 
-  ai_foundry_project_name = local.project_parsed.name
+  ai_foundry_project_name = var.foundry_ai_foundry_project_name
 
   # Validation using the parsed objects
   is_valid_ai_foundry_id = (
@@ -40,7 +36,6 @@ locals {
     can(local.app_insights_parsed.resource_group_name) &&
     can(local.app_insights_parsed.name)
   )
-
 }
 
 # Validation check

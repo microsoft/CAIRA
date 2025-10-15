@@ -9,6 +9,7 @@
 
 foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.CognitiveServices/accounts/cog-basic-xxxxx"
 foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.CognitiveServices/accounts/cog-basic-xxxxx/projects/default-project"
+foundry_ai_foundry_project_name    = "default-project"
 foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.Insights/components/appi-basic-xxxxx"
 foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.OperationalInsights/workspaces/log-basic-xxxxx"
 

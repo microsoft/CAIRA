@@ -50,6 +50,11 @@ run "setup_foundry_basic" {
   }
 
   assert {
+    condition     = output.ai_foundry_project_name != null
+    error_message = "foundry_basic AI Foundry project name should be created"
+  }
+
+  assert {
     condition     = output.application_insights_id != null
     error_message = "foundry_basic Application Insights should be created"
   }
@@ -63,6 +68,7 @@ run "test_function_deployment" {
     # Use outputs from the setup_foundry_basic run
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
@@ -123,6 +129,11 @@ run "test_function_deployment" {
     error_message = "Discovered AI Foundry endpoint should match foundry_basic output"
   }
 
+  assert {
+    condition     = local.ai_foundry_project_name == run.setup_foundry_basic.ai_foundry_project_name
+    error_message = "Project name from variable should match foundry_basic output"
+  }
+
   # Validate Application Insights ID parsing worked
   assert {
     condition     = local.app_insights_name != null && local.app_insights_name != ""
@@ -142,6 +153,7 @@ run "test_connectivity" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
@@ -166,7 +178,12 @@ run "test_connectivity" {
 
   assert {
     condition     = local.ai_foundry_project_name != null && local.ai_foundry_project_name != ""
-    error_message = "Project name should be parsed from project ID"
+    error_message = "Project name should be available from variable"
+  }
+
+  assert {
+    condition     = local.ai_foundry_project_name == run.setup_foundry_basic.ai_foundry_project_name
+    error_message = "Project name should match foundry_basic output"
   }
 
   assert {
@@ -182,7 +199,7 @@ run "test_connectivity" {
 
   assert {
     condition     = azurerm_linux_function_app.main.app_settings["AI_FOUNDRY_PROJECT_NAME"] == local.ai_foundry_project_name
-    error_message = "Function App should have parsed project name configured"
+    error_message = "Function App should have project name configured"
   }
 
   assert {
@@ -198,6 +215,7 @@ run "test_role_assignments" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
@@ -230,6 +248,7 @@ run "test_security" {
   variables {
     foundry_ai_foundry_id              = run.setup_foundry_basic.ai_foundry_id
     foundry_ai_foundry_project_id      = run.setup_foundry_basic.ai_foundry_project_id
+    foundry_ai_foundry_project_name    = run.setup_foundry_basic.ai_foundry_project_name
     foundry_application_insights_id    = run.setup_foundry_basic.application_insights_id
     foundry_log_analytics_workspace_id = run.setup_foundry_basic.log_analytics_workspace_id
 
@@ -292,6 +311,11 @@ run "test_security" {
   assert {
     condition     = output.ai_foundry_project_name != null && output.ai_foundry_project_name != ""
     error_message = "Should output AI Foundry project name for local development"
+  }
+
+  assert {
+    condition     = output.ai_foundry_project_name == run.setup_foundry_basic.ai_foundry_project_name
+    error_message = "AI Foundry project name output should match foundry_basic"
   }
 
   assert {

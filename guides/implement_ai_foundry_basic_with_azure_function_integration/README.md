@@ -58,6 +58,11 @@ variable "foundry_ai_foundry_project_id" {
   description = "The resource ID of the AI Foundry Project from foundry_basic deployment"
 }
 
+variable "foundry_ai_foundry_project_name" {
+  type        = string
+  description = "The name of the AI Foundry project from foundry_basic deployment"
+}
+
 variable "foundry_application_insights_id" {
   type        = string
   description = "The resource ID of the Application Insights instance from foundry_basic deployment"
@@ -92,7 +97,7 @@ identity {
 }
 app_settings = {
   "AI_FOUNDRY_ENDPOINT"     = local.ai_foundry_endpoint     # Discovered via data source
-  "AI_FOUNDRY_PROJECT_NAME" = local.ai_foundry_project_name # Parsed from project ID
+  "AI_FOUNDRY_PROJECT_NAME" = local.ai_foundry_project_name # From foundry_basic output
   "AI_FOUNDRY_PROJECT_ID"   = var.foundry_ai_foundry_project_id
 }
 ```
@@ -114,7 +119,7 @@ See complete infrastructure code: [`terraform/function.tf`](terraform/function.t
 
 ### Part 2: Automatic Resource Discovery
 
-Your function layer automatically discovers resources from just 4 resource IDs. See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
+Your function layer receives 5 inputs from foundry_basic (4 resource IDs + project name). See [`terraform/variables.tf`](terraform/variables.tf) for the complete interface.
 
 **How it works:**
 
@@ -124,7 +129,6 @@ Your function layer automatically discovers resources from just 4 resource IDs. 
 locals {
   ai_foundry_parsed   = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.foundry_ai_foundry_id)
   app_insights_parsed = provider::azapi::parse_resource_id("Microsoft.Insights/components", var.foundry_application_insights_id)
-  project_parsed      = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts/projects", var.foundry_ai_foundry_project_id)
 }
 
 # 2. Extract components using dot notation
@@ -135,7 +139,8 @@ locals {
   app_insights_resource_group = local.app_insights_parsed.resource_group_name
   app_insights_name           = local.app_insights_parsed.name
 
-  ai_foundry_project_name = local.project_parsed.name
+  # Use project name directly from foundry_basic output
+  ai_foundry_project_name = var.foundry_ai_foundry_project_name
 }
 
 # 3. Use parsed names in data sources to discover resources
@@ -211,7 +216,7 @@ curl -X POST https://<function-app>.azurewebsites.net/api/agent \
 # Chat
 curl -X POST https://<function-app>.azurewebsites.net/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"action": "chat", "message": "Hello"}' | j.
+  -d '{"action": "chat", "message": "Hello"}' | jq .
 ```
 
 **3. Run the complete demo:**
@@ -261,20 +266,20 @@ See local setup details: [`scripts/configure-local-settings.sh`](scripts/configu
 
 ### 1. Configuration with Automatic Discovery
 
-Your function layer receives only 4 resource IDs from foundry_basic:
+Your function layer receives 5 inputs from foundry_basic:
 
 - AI Foundry resource ID (contains resource group and account name)
-- AI Foundry project resource ID (contains project name)
+- AI Foundry project resource ID
+- AI Foundry project name (explicit from foundry_basic output)
 - Application Insights resource ID
 - Log Analytics workspace resource ID
 
 Everything else is automatically discovered:
 
-- Resource group name → Parsed from AI Foundry ID
-- AI Foundry account name → Parsed from AI Foundry ID
-- AI Foundry project name → Parsed from project ID
+- Resource group name → Parsed from AI Foundry ID using azapi provider
+- AI Foundry account name → Parsed from AI Foundry ID using azapi provider
 - AI Foundry endpoint → Retrieved via data source
-- Application Insights name → Parsed from Application Insights ID
+- Application Insights name → Parsed from Application Insights ID using azapi provider
 
 See the complete variable interface: [`terraform/variables.tf`](terraform/variables.tf)
 
@@ -402,6 +407,7 @@ terraform apply
 # Capture outputs for the function layer
 AI_FOUNDRY_ID=$(terraform output -raw ai_foundry_id)
 AI_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
+AI_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
 APP_INSIGHTS_ID=$(terraform output -raw application_insights_id)
 LOG_WORKSPACE_ID=$(terraform output -raw log_analytics_workspace_id)
 ```
@@ -415,6 +421,7 @@ cd ../../guides/implement_ai_foundry_basic_with_azure_function_integration/terra
 cat > terraform.tfvars <<EOF
 foundry_ai_foundry_id              = "$AI_FOUNDRY_ID"
 foundry_ai_foundry_project_id      = "$AI_PROJECT_ID"
+foundry_ai_foundry_project_name    = "$AI_PROJECT_NAME"
 foundry_application_insights_id    = "$APP_INSIGHTS_ID"
 foundry_log_analytics_workspace_id = "$LOG_WORKSPACE_ID"
 project_name                       = "ai-integration"
