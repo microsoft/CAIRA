@@ -119,20 +119,23 @@ Your function layer automatically discovers resources from just 4 resource IDs. 
 **How it works:**
 
 ```hcl
-# 1. Parse resource IDs using the AzureRM provider function
-# The function returns a map with all components of the resource ID
+# 1. Parse resource IDs using the AzAPI provider function
+# Signature: parse_resource_id(resource_type, resource_id)
 locals {
-  ai_foundry_parsed   = provider::azurerm::parse_resource_id(var.foundry_ai_foundry_id)
-  app_insights_parsed = provider::azurerm::parse_resource_id(var.foundry_application_insights_id)
+  ai_foundry_parsed   = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.foundry_ai_foundry_id)
+  app_insights_parsed = provider::azapi::parse_resource_id("Microsoft.Insights/components", var.foundry_application_insights_id)
+  project_parsed      = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts/projects", var.foundry_ai_foundry_project_id)
 }
 
-# 2. Extract components using map keys
+# 2. Extract components using dot notation
 locals {
-  foundry_resource_group_name = local.ai_foundry_parsed["resource_group_name"]
-  ai_foundry_name             = local.ai_foundry_parsed["resource_name"]
+  foundry_resource_group_name = local.ai_foundry_parsed.resource_group_name
+  ai_foundry_name             = local.ai_foundry_parsed.name
 
-  app_insights_resource_group = local.app_insights_parsed["resource_group_name"]
-  app_insights_name           = local.app_insights_parsed["resource_name"]
+  app_insights_resource_group = local.app_insights_parsed.resource_group_name
+  app_insights_name           = local.app_insights_parsed.name
+
+  ai_foundry_project_name = local.project_parsed.name
 }
 
 # 3. Use parsed names in data sources to discover resources
