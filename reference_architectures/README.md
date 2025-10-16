@@ -77,28 +77,6 @@ See the reference architecture at `reference_architectures/foundry_standard`.
 | foundry_standard         | Required  | Optional  | Required        | Required     | Not Required   |
 | foundry_standard_private | Required  | Required  | Required        | Required     | Required       |
 
-## Implementation Complexity Guide
-
-The Integration Complexity Index (ICI) helps teams understand the relative complexity of each reference architecture and set appropriate expectations for implementation time and expertise required.
-
-### Complexity Scoring
-
-| Reference Architecture        | ICI Score | Implementation Approach    | Typical Timeline |
-|-------------------------------|-----------|----------------------------|------------------|
-| foundry_basic                 | **2**     | Full Automation            | 30 minutes       |
-| foundry_basic (multi-project) | **5**     | Full Automation            | 45 minutes       |
-| foundry_basic_private         | **19**    | Semi-Automation with Gates | 2-4 hours        |
-| foundry_standard              | **19**    | Semi-Automation with Gates | 2-4 hours        |
-| foundry_standard_private      | **36**    | Expert Guidance Required   | 1-2 days         |
-
-**Complexity Levels:**
-
-- **Low (ICI 0-5)**: Straightforward deployment, minimal configuration required
-- **Medium (ICI 6-20)**: Moderate complexity, prerequisites and validation checkpoints needed
-- **High (ICI 21+)**: High complexity, significant planning and expertise required
-
-*Complexity factors include: integration points, network configuration requirements, infrastructure dependencies, and asynchronous operations.*
-
 ## Additional Resources
 
 For detailed networking requirements, security configurations, and deployment prerequisites, refer to the [official Azure AI Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/).
