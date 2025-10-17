@@ -80,7 +80,7 @@ jobs:
 
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v4.30.8
+        uses: github/codeql-action/init@16140ae1a102900babc80a33c44059580f687047 # v4.30.9
         # if: ${{ github.event_name != 'pull_request' || (github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true') }}
         with:
           config-file: ./.github/linters/.codeql.yml
@@ -94,7 +94,7 @@ jobs:
           # queries: security-extended,security-and-quality
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@f443b600d91635bebf5b0d9ebc620189c0d6fba5 # v4.30.8
+        uses: github/codeql-action/analyze@16140ae1a102900babc80a33c44059580f687047 # v4.30.9
         # if: ${{ github.event_name != 'pull_request' || (github.event_name == 'pull_request' && steps.changed-files.outputs.any_changed == 'true') }}
         with:
           category: "/language:${{matrix.language}}"
