@@ -4,7 +4,6 @@
 # ---------------------------------------------------------------------
 
 # configure-local-settings.sh - Configure local settings for AI Foundry integration
-# Gets all values from the functions layer deployment
 
 set -e
 
@@ -24,28 +23,16 @@ if [ ! -f "terraform.tfstate" ]; then
   exit 1
 fi
 
-echo "Fetching configuration from functions layer..."
+echo "Extracting configuration from terraform outputs..."
 
-# Get values from terraform outputs
+# Get all values from terraform outputs
 FUNCTION_APP_NAME=$(terraform output -raw function_app_name)
 FUNCTION_APP_URL=$(terraform output -raw function_app_url)
-
-# Get the foundry values from terraform state (these are from data sources)
-AI_FOUNDRY_NAME=$(terraform state show data.azurerm_cognitive_account.ai_foundry | grep "^\s*name\s*=" | head -1 | awk -F'"' '{print $2}')
-RESOURCE_GROUP=$(terraform state show data.azurerm_resource_group.this | grep "^\s*name\s*=" | head -1 | awk -F'"' '{print $2}')
-
-# Get project name and ID from terraform variables/state
-AI_FOUNDRY_PROJECT_NAME=$(terraform state show var.foundry_ai_foundry_project_name | grep "^\s*value\s*=" | awk -F'"' '{print $2}')
-AI_FOUNDRY_PROJECT_ID=$(terraform state show var.foundry_ai_foundry_project_id | grep "^\s*value\s*=" | awk -F'"' '{print $2}')
-
-# Get AI Foundry endpoint using Azure CLI
-AI_FOUNDRY_ENDPOINT=$(az cognitiveservices account show \
-  --name "$AI_FOUNDRY_NAME" \
-  --resource-group "$RESOURCE_GROUP" \
-  --query "properties.endpoint" -o tsv)
-
-# Get subscription ID from Azure CLI
-AZURE_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+RESOURCE_GROUP=$(terraform output -raw foundry_resource_group_name)
+AI_FOUNDRY_ENDPOINT=$(terraform output -raw ai_foundry_endpoint)
+AI_FOUNDRY_PROJECT_NAME=$(terraform output -raw ai_foundry_project_name)
+AI_FOUNDRY_PROJECT_ID=$(terraform output -raw ai_foundry_project_id)
+AZURE_SUBSCRIPTION_ID=$(terraform output -raw subscription_id)
 
 # Navigate to function-app directory
 cd ../function-app
@@ -81,10 +68,10 @@ echo ""
 echo "Configuration Summary:"
 echo "----------------------"
 echo "Resource Group: $RESOURCE_GROUP"
-echo "AI Foundry Name: $AI_FOUNDRY_NAME"
 echo "AI Foundry Endpoint: $AI_FOUNDRY_ENDPOINT"
 echo "AI Foundry Project: $AI_FOUNDRY_PROJECT_NAME"
 echo "AI Foundry Project ID: $AI_FOUNDRY_PROJECT_ID"
+echo "Subscription ID: $AZURE_SUBSCRIPTION_ID"
 echo "Function App Name: $FUNCTION_APP_NAME"
 echo "Function App URL: $FUNCTION_APP_URL"
 echo ""

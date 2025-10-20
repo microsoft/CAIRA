@@ -9,7 +9,7 @@
 # Storage Account for Function App
 resource "azurerm_storage_account" "function" {
   name                     = replace(module.naming.storage_account.name_unique, "-", "")
-  resource_group_name      = local.resource_group_name
+  resource_group_name      = local.function_resource_group_name
   location                 = local.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -39,7 +39,7 @@ resource "azurerm_storage_account" "function" {
 # App Service Plan for Function App
 resource "azurerm_service_plan" "function" {
   name                = module.naming.app_service_plan.name_unique
-  resource_group_name = local.resource_group_name
+  resource_group_name = local.function_resource_group_name
   location            = local.location
   os_type             = "Linux"
   sku_name            = var.function_sku_size
@@ -52,7 +52,7 @@ resource "azurerm_service_plan" "function" {
 # Linux Function App with Managed Identity
 resource "azurerm_linux_function_app" "main" {
   name                = local.function_app_name
-  resource_group_name = local.resource_group_name
+  resource_group_name = local.function_resource_group_name
   location            = local.location
   service_plan_id     = azurerm_service_plan.function.id
 
@@ -86,8 +86,8 @@ resource "azurerm_linux_function_app" "main" {
   # Application settings
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"              = "python"
-    "AI_FOUNDRY_ENDPOINT"                   = var.foundry_ai_foundry_endpoint
-    "AI_FOUNDRY_PROJECT_NAME"               = var.foundry_ai_foundry_project_name
+    "AI_FOUNDRY_ENDPOINT"                   = local.ai_foundry_endpoint
+    "AI_FOUNDRY_PROJECT_NAME"               = local.ai_foundry_project_name
     "AI_FOUNDRY_PROJECT_ID"                 = var.foundry_ai_foundry_project_id
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = data.azurerm_application_insights.this.connection_string
     "AzureWebJobsStorage__accountName"      = azurerm_storage_account.function.name

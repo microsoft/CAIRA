@@ -15,8 +15,8 @@ terraform {
       version = "~> 4.40"
     }
     azapi = {
-      source  = "Azure/azapi"
-      version = "~> 2.6"
+      source  = "azure/azapi"
+      version = "~> 2.1"
     }
   }
 }
@@ -30,4 +30,8 @@ provider "azurerm" {
   }
 
   storage_use_azuread = true
+}
+
+# Configure the AzAPI Provider
+provider "azapi" {
 }

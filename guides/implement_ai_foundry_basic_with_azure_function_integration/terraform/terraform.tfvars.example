@@ -2,21 +2,23 @@
 #
 # Copy this file to terraform.tfvars and populate with actual values
 # from your foundry_basic deployment outputs
+#
+# =============================================================================
+# Required: Resource IDs from foundry_basic deployment
+# =============================================================================
 
-# Required: Outputs from foundry_basic deployment
-foundry_resource_group_name        = "rg-basic-xxxxx"
-foundry_ai_foundry_id              = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/..."
-foundry_ai_foundry_endpoint        = "https://cog-basic-xxxxx.cognitiveservices.azure.com/"
-foundry_ai_foundry_project_id      = "/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/.../projects/..."
+foundry_ai_foundry_id              = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.CognitiveServices/accounts/cog-basic-xxxxx"
+foundry_ai_foundry_project_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.CognitiveServices/accounts/cog-basic-xxxxx/projects/default-project"
 foundry_ai_foundry_project_name    = "default-project"
-foundry_application_insights_name  = "appi-basic-xxxxx"
-foundry_log_analytics_workspace_id = "/subscriptions/.../resourceGroups/.../providers/Microsoft.OperationalInsights/workspaces/..."
+foundry_application_insights_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.Insights/components/appi-basic-xxxxx"
+foundry_log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-basic-xxxxx/providers/Microsoft.OperationalInsights/workspaces/log-basic-xxxxx"
 
+# =============================================================================
 # Optional: Function-specific configuration
-# These have defaults in variables.tf but can be overridden
-project_name      = "ai-integration"
-function_sku_size = "B1"         # Default: "B1"
-python_version    = "3.11"       # Default: "3.11"
+# =============================================================================
+
+project_name      = "ai-integration"  # Default: "ai-integration"
+function_sku_size = "B1"              # Default: "B1" (Basic tier)
 
 # Resource tags (optional - defaults to empty map)
 tags = {
