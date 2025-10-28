@@ -197,7 +197,8 @@ ${tfTestExitCode !== 'unknown' ? testBody : ''}
       await github.rest.issues.create({
         ...context.repo,
         title: `[bug] E2E Terraform Test Failure in \`${workDir}\``,
-        body: issueHeader + issueBody
+        body: issueHeader + issueBody,
+        labels: ['type/bug']
       });
     } else if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
       const { data: comments } = await github.rest.issues.listComments({
