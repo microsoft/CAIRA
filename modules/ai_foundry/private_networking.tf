@@ -39,18 +39,26 @@ data "azurerm_private_dns_zone" "openai" {
   resource_group_name = local.private_dns_zone_rg
 }
 
+## Wait 10 seconds for the AI Foundry finishes creating before creating private endpoints
+resource "time_sleep" "wait_ai_foundry" {
+  depends_on = [
+    azapi_resource.ai_foundry
+  ]
+  create_duration = "10s"
+}
+
 # Private Endpoint for the AI Foundry Cognitive Services account
 resource "azurerm_private_endpoint" "ai_foundry_pe" {
   count = var.foundry_subnet_id != null ? 1 : 0
 
-  name                = "${var.ai_foundry_name}-pe"
+  name                = "${var.name}-pe"
   location            = var.location
   resource_group_name = local.target_rg_name
   subnet_id           = var.foundry_subnet_id
   tags                = var.tags
 
   private_service_connection {
-    name                           = "${var.ai_foundry_name}-pe-conn"
+    name                           = "${var.name}-pe-conn"
     private_connection_resource_id = azapi_resource.ai_foundry.id
     subresource_names              = ["account"]
     is_manual_connection           = false
@@ -66,6 +74,6 @@ resource "azurerm_private_endpoint" "ai_foundry_pe" {
   }
 
   depends_on = [
-    azapi_resource.ai_foundry
+    time_sleep.wait_ai_foundry
   ]
 }

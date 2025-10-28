@@ -15,11 +15,6 @@ run "testint_foundry_basic_comprehensive" {
   command = apply
 
   variables {
-    location             = "swedencentral"
-    project_name         = "integration-test-project"
-    project_display_name = "Integration Test Project"
-    project_description  = "Project created for integration testing validation"
-    sku                  = "S0"
     tags = {
       environment  = "test"
       purpose      = "terraform-test"
@@ -34,11 +29,6 @@ run "testint_foundry_basic_comprehensive" {
   # ==========================================================================
 
   # Verify resource group creation and properties
-  assert {
-    condition     = azurerm_resource_group.this[0].name != null
-    error_message = "Resource group name should not be null"
-  }
-
   assert {
     condition     = azurerm_resource_group.this[0].location == "swedencentral"
     error_message = "Resource group location should match the specified location"
@@ -94,36 +84,30 @@ run "testint_foundry_basic_comprehensive" {
 
   # Verify AI Foundry project creation and properties
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_id != null
+    condition     = module.default_project.ai_foundry_project_id != null
     error_message = "AI Foundry project ID should not be null"
   }
 
   # Validate project resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.ai_foundry.ai_foundry_project_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.default_project.ai_foundry_project_id)) > 0
     error_message = "AI Foundry project ID should be a valid Azure resource ID"
   }
 
   # Verify project name matches configuration
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_name == "integration-test-project"
-    error_message = "AI Foundry project name should match the configured project_name variable"
+    condition     = module.default_project.ai_foundry_project_name == "default-project"
+    error_message = "AI Foundry project name should be the default name"
   }
 
   # ==========================================================================
   # MODEL DEPLOYMENT VALIDATION
   # ==========================================================================
 
-  # Verify model deployments are created
-  assert {
-    condition     = module.ai_foundry.ai_foundry_model_deployments_ids != null && length(module.ai_foundry.ai_foundry_model_deployments_ids) > 0
-    error_message = "There should be at least one AI Model Deployment"
-  }
-
-  # Verify specific number of model deployments (gpt-4, o1-mini, text-embedding-3-large)
+  # Verify specific number of model deployments
   assert {
     condition     = length(module.ai_foundry.ai_foundry_model_deployments_ids) == 3
-    error_message = "Should have exactly 3 model deployments (gpt-4, o1-mini, text-embedding-3-large)"
+    error_message = "Should have exactly 3 model deployments"
   }
 
   # Validate all model deployment resource IDs
@@ -141,13 +125,13 @@ run "testint_foundry_basic_comprehensive" {
 
   # Verify system-assigned managed identity
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_identity_principal_id != null
+    condition     = module.default_project.ai_foundry_project_identity_principal_id != null
     error_message = "AI Foundry project identity principal ID should be available"
   }
 
   # Validate GUID format for principal ID
   assert {
-    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.ai_foundry.ai_foundry_project_identity_principal_id)) > 0
+    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.default_project.ai_foundry_project_identity_principal_id)) > 0
     error_message = "AI Foundry project identity principal ID should be a valid GUID"
   }
 
@@ -195,13 +179,13 @@ run "testint_foundry_basic_comprehensive" {
   }
 
   assert {
-    condition     = output.ai_foundry_project_id == module.ai_foundry.ai_foundry_project_id
-    error_message = "Output ai_foundry_project_id should match module output"
+    condition     = output.ai_foundry_default_project_id == module.default_project.ai_foundry_project_id
+    error_message = "Output ai_foundry_default_project_id should match module output"
   }
 
   assert {
-    condition     = output.ai_foundry_project_name == module.ai_foundry.ai_foundry_project_name
-    error_message = "Output ai_foundry_project_name should match module output"
+    condition     = output.ai_foundry_default_project_name == module.default_project.ai_foundry_project_name
+    error_message = "Output ai_foundry_default_project_name should match module output"
   }
 
   # Verify resource group outputs are populated
@@ -244,39 +228,8 @@ run "testint_foundry_basic_comprehensive" {
   }
 
   # ==========================================================================
-  # VARIABLE CONFIGURATION VALIDATION
-  # ==========================================================================
-
-  # Verify configured variables are properly applied
-  assert {
-    condition     = var.location == "swedencentral"
-    error_message = "Location variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.project_name == "integration-test-project"
-    error_message = "Project name variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.sku == "S0"
-    error_message = "SKU variable should be properly applied"
-  }
-
-  # ==========================================================================
   # RESOURCE RELATIONSHIP VALIDATION
   # ==========================================================================
-
-  # Verify AI Foundry and project are in the same resource group
-  assert {
-    condition     = strcontains(module.ai_foundry.ai_foundry_id, azurerm_resource_group.this[0].name)
-    error_message = "AI Foundry should be created in the same resource group"
-  }
-
-  assert {
-    condition     = strcontains(module.ai_foundry.ai_foundry_project_id, azurerm_resource_group.this[0].name)
-    error_message = "AI Foundry project should be created in the same resource group"
-  }
 
   # Verify Application Insights is in the same resource group
   assert {

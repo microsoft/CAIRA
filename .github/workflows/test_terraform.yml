@@ -46,6 +46,15 @@ permissions:
 
 env:
   OWNER: "microsoft/caira-mtain"
+
+  # variables required for terraform plan
+  TF_VAR_foundry_subnet_id: ${{ vars.TF_VAR_FSP_SUBNET_ID }}
+  TF_VAR_agents_subnet_id: ${{ vars.TF_VAR_FSP_SUBNET_ID }}
+  TF_VAR_existing_capability_host_resource_group_id: /subscriptions/${{ vars.PERSISTENT_SUB_AZURE_SUBSCRIPTION_ID}}/resourceGroups/${{ vars.TF_VAR_FSP_RESOURCE_GROUP_NAME }}
+  TF_VAR_existing_cosmosdb_account_name: ${{ vars.TF_VAR_FSP_COSMOSDB_ACCOUNT_NAME }}
+  TF_VAR_existing_storage_account_name: ${{ vars.TF_VAR_FSP_STORAGE_ACCOUNT_NAME }}
+  TF_VAR_existing_search_service_name: ${{ vars.TF_VAR_FSP_SEARCH_SERVICE_NAME }}
+
   # Durable Infrastructure Pools - Foundry Standard Private (Pool 2)
   TF_VAR_fsp_resource_group_name: ${{ vars.TF_VAR_FSP_RESOURCE_GROUP_NAME }}
   TF_VAR_fsp_vnet_name: ${{ vars.TF_VAR_FSP_VNET_NAME }}
@@ -319,7 +328,7 @@ jobs:
 
       - name: 📦 Upload out
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: out-${{ matrix.src.name }}-${{ github.run_id }}
           path: |
@@ -328,7 +337,7 @@ jobs:
 
       - name: 📦 Upload test results
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: tests-results-${{ matrix.src.name }}-${{ github.run_id }}
           path: |

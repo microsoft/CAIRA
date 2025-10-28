@@ -53,12 +53,7 @@ module "ai_foundry" {
   sku = var.sku # AI Foundry SKU/tier
 
   # Logical name used for AI Foundry and dependent resources
-  ai_foundry_name = module.naming.cognitive_account.name_unique
-
-  # Project name and description
-  project_name         = var.project_name
-  project_description  = var.project_description
-  project_display_name = var.project_display_name
+  name = module.naming.cognitive_account.name_unique
 
   # Model deployments to make available within Foundry
   # Add/remove models as needed for your workload requirements
@@ -68,12 +63,31 @@ module "ai_foundry" {
     module.common_models.text_embedding_3_large
   ]
 
-  # Application Insights wiring for telemetry and diagnostics
-  application_insights = {
-    resource_id       = module.application_insights.resource_id
-    name              = module.application_insights.name
-    connection_string = module.application_insights.connection_string
-  }
+  application_insights = module.application_insights
 
   tags = var.tags
 }
+
+# Foundry default project
+module "default_project" {
+  source = "../../modules/ai_foundry_project"
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+}
+
+# If you need a second project in your Foundry environment, uncomment
+# this block with the corresponding outputs and customize
+# the project name, display name, and description
+
+# Foundry secondary project
+# module "secondary_project" {
+#   source = "../../modules/ai_foundry_project"
+
+#   location      = var.location
+#   ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+#   project_name         = "secondary-project"
+#   project_display_name = "Secondary Project"
+#   project_description  = "Secondary project"
+# }

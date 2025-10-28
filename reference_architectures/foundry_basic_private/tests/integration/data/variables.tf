@@ -5,11 +5,13 @@
 variable "fbp_resource_group_name" {
   description = "Name of the resource group containing foundry basic private durable test infrastructure"
   type        = string
+  default     = "rg-fbscprv-durable"
 }
 
 variable "fbp_vnet_name" {
   description = "Name of the foundry basic private durable VNet"
   type        = string
+  default     = "vnet-fbscprv-durable"
 }
 
 variable "connection_subnet_name" {

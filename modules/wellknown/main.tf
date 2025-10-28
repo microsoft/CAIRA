@@ -124,6 +124,10 @@ resource "azurerm_cosmosdb_account" "cosmos" {
     failover_priority = 0
     zone_redundant    = false
   }
+
+  capabilities {
+    name = "EnableServerless"
+  }
 }
 
 # Azure AI Search (via AzAPI to use latest API surface)

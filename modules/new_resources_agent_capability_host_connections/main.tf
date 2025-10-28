@@ -39,6 +39,10 @@ resource "azurerm_cosmosdb_account" "cosmosdb" {
     failover_priority = 0
     zone_redundant    = false
   }
+
+  capabilities {
+    name = "EnableServerless"
+  }
 }
 
 # Storage Account
@@ -78,7 +82,7 @@ resource "azapi_resource" "ai_search" {
 
   body = {
     sku = {
-      name = "standard"
+      name = "basic"
     }
 
     identity = {

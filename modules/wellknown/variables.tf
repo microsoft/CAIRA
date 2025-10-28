@@ -41,5 +41,5 @@ variable "storage_replication_type" {
 variable "search_sku" {
   type        = string
   description = "SKU for Azure AI Search (e.g., 'basic', 'standard')."
-  default     = "standard"
+  default     = "basic"
 }

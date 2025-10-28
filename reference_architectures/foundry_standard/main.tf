@@ -54,12 +54,7 @@ module "ai_foundry" {
   sku = var.sku # AI Foundry SKU/tier
 
   # Logical name used for AI Foundry and dependent resources
-  ai_foundry_name = module.naming.cognitive_account.name_unique
-
-  # Project name and description
-  project_name         = var.project_name
-  project_description  = var.project_description
-  project_display_name = var.project_display_name
+  name = module.naming.cognitive_account.name_unique
 
   # Model deployments to make available within Foundry
   # Add/remove models as needed for your workload requirements
@@ -69,25 +64,30 @@ module "ai_foundry" {
     module.common_models.text_embedding_3_large
   ]
 
-  # Application Insights wiring for telemetry and diagnostics
-  application_insights = {
-    resource_id       = module.application_insights.resource_id
-    name              = module.application_insights.name
-    connection_string = module.application_insights.connection_string
-  }
-
-  # If you don't have specific requirements for data sovereignty and resource compliance,
-  # you can remove this variable, and those resource will be managed by the agent service.
-  agent_capability_host_connections = module.capability_host_resources.connections
+  application_insights = module.application_insights
 
   tags = var.tags
+}
+
+# Foundry default project
+module "default_project" {
+  source = "../../modules/ai_foundry_project"
+
+  depends_on = [module.ai_foundry]
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+  agent_capability_host_connections = module.capability_host_resources_1.connections
+  tags                              = var.tags
 }
 
 # This module provisions new resources for AI Foundry agent capability host.
 # If you prefer to use existing resources for the capability host, you can use the
 # existing_resources_agent_capability_host_connections module as a drop-in replacement.
 
-module "capability_host_resources" {
+# Capability host resources for the default project.
+module "capability_host_resources_1" {
   source = "../../modules/new_resources_agent_capability_host_connections"
 
   location                   = var.location
@@ -97,4 +97,34 @@ module "capability_host_resources" {
   cosmos_db_account_name = module.naming.cosmosdb_account.name_unique
   storage_account_name   = module.naming.storage_account.name_unique
   ai_search_name         = module.naming.search_service.name_unique
+}
+
+# Foundry secondary project
+module "secondary_project" {
+  source = "../../modules/ai_foundry_project"
+
+  depends_on = [module.ai_foundry]
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+  project_name         = "secondary-project"
+  project_display_name = "Secondary Project"
+  project_description  = "Secondary project"
+
+  agent_capability_host_connections = module.capability_host_resources_2.connections
+  tags                              = var.tags
+}
+
+# Capability host resources for the secondary project.
+module "capability_host_resources_2" {
+  source = "../../modules/new_resources_agent_capability_host_connections"
+
+  location                   = var.location
+  resource_group_resource_id = local.resource_group_resource_id
+  tags                       = var.tags
+
+  cosmos_db_account_name = "${module.naming.cosmosdb_account.name_unique}2"
+  storage_account_name   = "${module.naming.storage_account.name_unique}2"
+  ai_search_name         = "${module.naming.search_service.name_unique}2"
 }

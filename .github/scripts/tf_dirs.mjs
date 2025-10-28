@@ -88,8 +88,14 @@ export default async ({ context, core }) => {
           dirPath = dirPath.substring(0, testsIndex);
         }
 
-        // Validate and normalize the path, but exclude module paths from final output
-        if (dirPath && dirPath !== '.' && dirPath.length > 0 && !dirPath.includes('modules')) {
+        // Validate and normalize the path, but exclude module paths and infrastructure pools from final output
+        if (
+          dirPath &&
+          dirPath !== '.' &&
+          dirPath.length > 0 &&
+          !dirPath.includes('modules') &&
+          !dirPath.includes('testing/infrastructure_pools')
+        ) {
           dirPaths.add(dirPath);
         }
       } catch (error) {

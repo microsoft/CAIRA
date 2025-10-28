@@ -1,0 +1,7 @@
+project: foundry_standard_private
+kind: breaking
+body: Support for multiple projects
+time: 2025-10-24T15:03:32.925721052Z
+custom:
+    Author: PabloZaiden
+    Issue: "127"

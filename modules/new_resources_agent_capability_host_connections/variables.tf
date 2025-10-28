@@ -18,12 +18,6 @@ variable "tags" {
   default     = {}
 }
 
-variable "create_required_role_assignments" {
-  description = "Flag to indicate if required role assignments should be created."
-  type        = bool
-  default     = true
-}
-
 variable "cosmos_db_account_name" {
   description = "The name of the Cosmos DB account to create."
   type        = string
