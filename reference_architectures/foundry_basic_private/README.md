@@ -217,6 +217,7 @@ For issues and questions:
 | ai\_foundry           | ../../modules/ai_foundry                 | n/a     |
 | application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
 | common\_models        | ../../modules/common_models              | n/a     |
+| default\_project      | ../../modules/ai_foundry_project         | n/a     |
 | naming                | Azure/naming/azurerm                     | 0.4.2   |
 
 ## Resources
@@ -228,31 +229,28 @@ For issues and questions:
 
 ## Inputs
 
-| Name                                        | Description                                                                                                                                                                                                 | Type          | Default                         | Required |
-|---------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|---------------------------------|:--------:|
-| foundry\_subnet\_id                         | The subnet ID for the AI Foundry private endpoints.                                                                                                                                                         | `string`      | n/a                             |   yes    |
-| enable\_telemetry                           | This variable controls whether or not telemetry is enabled for the module.<br/>For more information see <https://aka.ms/avm/telemetryinfo>.<br/>If it is set to false, then no telemetry will be collected. | `bool`        | `true`                          |    no    |
-| location                                    | Azure region where the resource should be deployed.                                                                                                                                                         | `string`      | `"swedencentral"`               |    no    |
-| monitor\_private\_link\_scope\_resource\_id | The resource ID of the Monitor Private Link Scope to link Application Insights to.                                                                                                                          | `string`      | `null`                          |    no    |
-| project\_description                        | The description of the AI Foundry project                                                                                                                                                                   | `string`      | `"Default Project description"` |    no    |
-| project\_display\_name                      | The display name of the AI Foundry project                                                                                                                                                                  | `string`      | `"Default Project"`             |    no    |
-| project\_name                               | The name of the AI Foundry project                                                                                                                                                                          | `string`      | `"default-project"`             |    no    |
-| resource\_group\_resource\_id               | The resource group resource id where the module resources will be deployed. If not provided, a new resource group will be created.                                                                          | `string`      | `null`                          |    no    |
-| sku                                         | The SKU for the AI Foundry resource. The default is 'S0'.                                                                                                                                                   | `string`      | `"S0"`                          |    no    |
-| tags                                        | (Optional) Tags to be applied to all resources.                                                                                                                                                             | `map(string)` | `null`                          |    no    |
+| Name                                        | Description                                                                                                                                                                                                 | Type          | Default           | Required |
+|---------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------|-------------------|:--------:|
+| foundry\_subnet\_id                         | The subnet ID for the AI Foundry private endpoints.                                                                                                                                                         | `string`      | n/a               |   yes    |
+| enable\_telemetry                           | This variable controls whether or not telemetry is enabled for the module.<br/>For more information see <https://aka.ms/avm/telemetryinfo>.<br/>If it is set to false, then no telemetry will be collected. | `bool`        | `true`            |    no    |
+| location                                    | Azure region where the resource should be deployed.                                                                                                                                                         | `string`      | `"swedencentral"` |    no    |
+| monitor\_private\_link\_scope\_resource\_id | The resource ID of the Monitor Private Link Scope to link Application Insights to.                                                                                                                          | `string`      | `null`            |    no    |
+| resource\_group\_resource\_id               | The resource group resource id where the module resources will be deployed. If not provided, a new resource group will be created.                                                                          | `string`      | `null`            |    no    |
+| sku                                         | The SKU for the AI Foundry resource. The default is 'S0'.                                                                                                                                                   | `string`      | `"S0"`            |    no    |
+| tags                                        | (Optional) Tags to be applied to all resources.                                                                                                                                                             | `map(string)` | `null`            |    no    |
 
 ## Outputs
 
-| Name                                          | Description                                                                  |
-|-----------------------------------------------|------------------------------------------------------------------------------|
-| ai\_foundry\_id                               | The resource ID of the AI Foundry account.                                   |
-| ai\_foundry\_model\_deployments\_ids          | The IDs of the AI Foundry model deployments.                                 |
-| ai\_foundry\_name                             | The name of the AI Foundry account.                                          |
-| ai\_foundry\_project\_id                      | The resource ID of the AI Foundry Project.                                   |
-| ai\_foundry\_project\_identity\_principal\_id | The principal ID of the AI Foundry project system-assigned managed identity. |
-| ai\_foundry\_project\_name                    | The name of the AI Foundry Project.                                          |
-| application\_insights\_id                     | The resource ID of the Application Insights instance.                        |
-| log\_analytics\_workspace\_id                 | The resource ID of the Log Analytics workspace.                              |
-| resource\_group\_id                           | The resource ID of the resource group.                                       |
-| resource\_group\_name                         | The name of the resource group.                                              |
+| Name                                                   | Description                                                                  |
+|--------------------------------------------------------|------------------------------------------------------------------------------|
+| ai\_foundry\_default\_project\_id                      | The resource ID of the AI Foundry Project.                                   |
+| ai\_foundry\_default\_project\_identity\_principal\_id | The principal ID of the AI Foundry project system-assigned managed identity. |
+| ai\_foundry\_default\_project\_name                    | The name of the AI Foundry Project.                                          |
+| ai\_foundry\_id                                        | The resource ID of the AI Foundry account.                                   |
+| ai\_foundry\_model\_deployments\_ids                   | The IDs of the AI Foundry model deployments.                                 |
+| ai\_foundry\_name                                      | The name of the AI Foundry account.                                          |
+| application\_insights\_id                              | The resource ID of the Application Insights instance.                        |
+| log\_analytics\_workspace\_id                          | The resource ID of the Log Analytics workspace.                              |
+| resource\_group\_id                                    | The resource ID of the resource group.                                       |
+| resource\_group\_name                                  | The name of the resource group.                                              |
 <!-- END_TF_DOCS -->

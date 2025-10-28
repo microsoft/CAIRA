@@ -2,38 +2,6 @@
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
 # ---------------------------------------------------------------------
 
-# Connection to Application Insights
-resource "azapi_resource" "appinsights_connection" {
-  count = var.application_insights != null ? 1 : 0
-
-  type                      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01"
-  name                      = var.application_insights.name
-  parent_id                 = azapi_resource.ai_foundry_project.id
-  schema_validation_enabled = false
-
-
-  body = {
-    name = var.application_insights.name
-    properties = {
-      category      = "AppInsights"
-      target        = var.application_insights.resource_id
-      authType      = "ApiKey"
-      isSharedToAll = false
-      credentials = {
-        key = var.application_insights.connection_string
-      }
-      metadata = {
-        ApiType    = "Azure"
-        ResourceId = var.application_insights.resource_id
-      }
-    }
-  }
-
-  depends_on = [
-    azapi_resource.ai_foundry_project
-  ]
-}
-
 # Connection to Cosmos DB
 resource "azapi_resource" "cosmosdb_connection" {
   count = var.agent_capability_host_connections != null ? 1 : 0
@@ -136,30 +104,6 @@ resource "time_sleep" "ai_search_connection_destroy_delay" {
   depends_on = [azapi_resource.ai_search_connection]
 }
 
-resource "azapi_resource" "ai_foundry_capability_host" {
-  # Only create account-level capability host if there are connections but no agent subnet is provided
-  count = var.agent_capability_host_connections != null && var.agents_subnet_id == null ? 1 : 0
-
-  type                      = "Microsoft.CognitiveServices/accounts/capabilityHosts@2025-04-01-preview"
-  name                      = "${azapi_resource.ai_foundry.name}-agents-capability-host"
-  parent_id                 = azapi_resource.ai_foundry.id
-  schema_validation_enabled = false
-
-  body = {
-    properties = {
-      capabilityHostKind = "Agents"
-    }
-  }
-
-  depends_on = [
-    azapi_resource.cosmosdb_connection,
-    azapi_resource.storage_connection,
-    azapi_resource.ai_search_connection,
-
-    time_sleep.wait_rbac
-  ]
-}
-
 # Capability host for AI Foundry Agents
 resource "azapi_resource" "ai_foundry_project_capability_host" {
   count = var.agent_capability_host_connections != null ? 1 : 0
@@ -167,7 +111,6 @@ resource "azapi_resource" "ai_foundry_project_capability_host" {
   replace_triggers_external_values = var.agent_capability_host_connections
 
   depends_on = [
-    azapi_resource.ai_foundry_capability_host,
     azapi_resource.cosmosdb_connection,
     azapi_resource.storage_connection,
     azapi_resource.ai_search_connection,

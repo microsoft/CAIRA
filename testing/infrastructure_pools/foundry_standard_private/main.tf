@@ -72,7 +72,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
 # foundry_standard_private references instead of creating new resources
 
 resource "azurerm_cosmosdb_account" "this" {
-  name                = module.naming.cosmosdb_account.name
+  name                = module.naming.cosmosdb_account.name_unique
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   offer_type          = "Standard"
@@ -105,7 +105,7 @@ resource "azurerm_storage_account" "this" {
 }
 
 resource "azurerm_search_service" "this" {
-  name                = module.naming.search_service.name
+  name                = module.naming.search_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
   sku                 = "basic"

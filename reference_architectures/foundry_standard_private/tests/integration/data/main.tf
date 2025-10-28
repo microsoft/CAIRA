@@ -40,7 +40,6 @@ data "azurerm_subnet" "connection" {
   virtual_network_name = data.azurerm_virtual_network.this.name
 }
 
-# NOTE: Agent subnet lookup removed
 # Agent subnets cannot be shared across AI Foundry instances due to exclusive
 # delegation requirement. Use setup_ephemeral module to create dedicated
 # ephemeral agent subnets per test run.

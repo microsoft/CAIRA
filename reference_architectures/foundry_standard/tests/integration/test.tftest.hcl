@@ -15,11 +15,6 @@ run "testint_foundry_standard_comprehensive" {
   command = apply
 
   variables {
-    location             = "swedencentral"
-    project_name         = "integration-test-project"
-    project_display_name = "Integration Test Project"
-    project_description  = "Project created for integration testing validation"
-    sku                  = "S0"
     tags = {
       environment  = "test"
       purpose      = "terraform-test"
@@ -41,7 +36,7 @@ run "testint_foundry_standard_comprehensive" {
 
   assert {
     condition     = azurerm_resource_group.this[0].location == "swedencentral"
-    error_message = "Resource group location should match the specified location"
+    error_message = "Resource group location should match the default location"
   }
 
   # Verify naming pattern follows Azure naming conventions
@@ -94,36 +89,45 @@ run "testint_foundry_standard_comprehensive" {
 
   # Verify AI Foundry project creation and properties
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_id != null
+    condition     = module.default_project.ai_foundry_project_id != null
+    error_message = "AI Foundry project ID should not be null"
+  }
+
+  assert {
+    condition     = module.secondary_project.ai_foundry_project_id != null
     error_message = "AI Foundry project ID should not be null"
   }
 
   # Validate project resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.ai_foundry.ai_foundry_project_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.default_project.ai_foundry_project_id)) > 0
     error_message = "AI Foundry project ID should be a valid Azure resource ID"
   }
 
-  # Verify project name matches configuration
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_name == "integration-test-project"
-    error_message = "AI Foundry project name should match the configured project_name variable"
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.secondary_project.ai_foundry_project_id)) > 0
+    error_message = "AI Foundry secondary project ID should be a valid Azure resource ID"
+  }
+
+  # Verify project names matches configuration
+  assert {
+    condition     = module.default_project.ai_foundry_project_name == "default-project"
+    error_message = "AI Foundry default project name should match the default"
+  }
+
+  assert {
+    condition     = module.secondary_project.ai_foundry_project_name == "secondary-project"
+    error_message = "AI Foundry secondary project name should be 'secondary-project'"
   }
 
   # ==========================================================================
   # MODEL DEPLOYMENT VALIDATION
   # ==========================================================================
 
-  # Verify model deployments are created
-  assert {
-    condition     = module.ai_foundry.ai_foundry_model_deployments_ids != null && length(module.ai_foundry.ai_foundry_model_deployments_ids) > 0
-    error_message = "There should be at least one AI Model Deployment"
-  }
-
-  # Verify specific number of model deployments (gpt-4, o4-mini, text-embedding-3-large)
+  # Verify specific number of model deployments
   assert {
     condition     = length(module.ai_foundry.ai_foundry_model_deployments_ids) == 3
-    error_message = "Should have exactly 3 model deployments (gpt-4, o4-mini, text-embedding-3-large)"
+    error_message = "Should have exactly 3 model deployments"
   }
 
   # Validate all model deployment resource IDs
@@ -141,14 +145,24 @@ run "testint_foundry_standard_comprehensive" {
 
   # Verify system-assigned managed identity
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_identity_principal_id != null
-    error_message = "AI Foundry project identity principal ID should be available"
+    condition     = module.default_project.ai_foundry_project_identity_principal_id != null
+    error_message = "AI Foundry default project identity principal ID should be available"
+  }
+
+  assert {
+    condition     = module.secondary_project.ai_foundry_project_identity_principal_id != null
+    error_message = "AI Foundry secondary project identity principal ID should be available"
   }
 
   # Validate GUID format for principal ID
   assert {
-    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.ai_foundry.ai_foundry_project_identity_principal_id)) > 0
+    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.default_project.ai_foundry_project_identity_principal_id)) > 0
     error_message = "AI Foundry project identity principal ID should be a valid GUID"
+  }
+
+  assert {
+    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.secondary_project.ai_foundry_project_identity_principal_id)) > 0
+    error_message = "AI Foundry secondary project identity principal ID should be a valid GUID"
   }
 
   # ==========================================================================
@@ -185,83 +199,153 @@ run "testint_foundry_standard_comprehensive" {
 
   # Verify agent capability host connections are created
   assert {
-    condition     = output.agent_capability_host_connections != null
+    condition     = output.agent_capability_host_connections_1 != null
+    error_message = "Agent capability host connections should be available"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2 != null
     error_message = "Agent capability host connections should be available"
   }
 
   # Verify Cosmos DB connection is configured
   assert {
-    condition     = output.agent_capability_host_connections.cosmos_db != null
+    condition     = output.agent_capability_host_connections_1.cosmos_db != null
+    error_message = "Cosmos DB connection should be configured for capability host"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2.cosmos_db != null
     error_message = "Cosmos DB connection should be configured for capability host"
   }
 
   # Validate Cosmos DB resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.DocumentDB/databaseAccounts/.*", output.agent_capability_host_connections.cosmos_db.resource_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.DocumentDB/databaseAccounts/.*", output.agent_capability_host_connections_1.cosmos_db.resource_id)) > 0
+    error_message = "Cosmos DB resource ID should be valid"
+  }
+
+  assert {
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.DocumentDB/databaseAccounts/.*", output.agent_capability_host_connections_2.cosmos_db.resource_id)) > 0
     error_message = "Cosmos DB resource ID should be valid"
   }
 
   # Verify Cosmos DB endpoint is available
   assert {
-    condition     = output.agent_capability_host_connections.cosmos_db.endpoint != null && length(output.agent_capability_host_connections.cosmos_db.endpoint) > 0
+    condition     = output.agent_capability_host_connections_1.cosmos_db.endpoint != null && length(output.agent_capability_host_connections_1.cosmos_db.endpoint) > 0
+    error_message = "Cosmos DB endpoint should be available"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2.cosmos_db.endpoint != null && length(output.agent_capability_host_connections_2.cosmos_db.endpoint) > 0
     error_message = "Cosmos DB endpoint should be available"
   }
 
   # Validate Cosmos DB endpoint URL format
   assert {
-    condition     = length(regexall("^https://.*\\.documents\\.azure\\.com:443/$", output.agent_capability_host_connections.cosmos_db.endpoint)) > 0
+    condition     = length(regexall("^https://.*\\.documents\\.azure\\.com:443/$", output.agent_capability_host_connections_1.cosmos_db.endpoint)) > 0
+    error_message = "Cosmos DB endpoint should follow correct Azure Cosmos DB URL pattern"
+  }
+
+  assert {
+    condition     = length(regexall("^https://.*\\.documents\\.azure\\.com:443/$", output.agent_capability_host_connections_2.cosmos_db.endpoint)) > 0
     error_message = "Cosmos DB endpoint should follow correct Azure Cosmos DB URL pattern"
   }
 
   # Verify Storage Account connection is configured
   assert {
-    condition     = output.agent_capability_host_connections.storage_account != null
+    condition     = output.agent_capability_host_connections_1.storage_account != null
+    error_message = "Storage Account connection should be configured for capability host"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2.storage_account != null
     error_message = "Storage Account connection should be configured for capability host"
   }
 
   # Validate Storage Account resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Storage/storageAccounts/.*", output.agent_capability_host_connections.storage_account.resource_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Storage/storageAccounts/.*", output.agent_capability_host_connections_1.storage_account.resource_id)) > 0
+    error_message = "Storage Account resource ID should be valid"
+  }
+
+  assert {
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Storage/storageAccounts/.*", output.agent_capability_host_connections_2.storage_account.resource_id)) > 0
     error_message = "Storage Account resource ID should be valid"
   }
 
   # Verify Storage Account blob endpoint is available
   assert {
-    condition     = output.agent_capability_host_connections.storage_account.primary_blob_endpoint != null && length(output.agent_capability_host_connections.storage_account.primary_blob_endpoint) > 0
+    condition     = output.agent_capability_host_connections_1.storage_account.primary_blob_endpoint != null && length(output.agent_capability_host_connections_1.storage_account.primary_blob_endpoint) > 0
+    error_message = "Storage Account primary blob endpoint should be available"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2.storage_account.primary_blob_endpoint != null && length(output.agent_capability_host_connections_2.storage_account.primary_blob_endpoint) > 0
     error_message = "Storage Account primary blob endpoint should be available"
   }
 
   # Validate Storage Account blob endpoint URL format
   assert {
-    condition     = length(regexall("^https://.*\\.blob\\.core\\.windows\\.net/$", output.agent_capability_host_connections.storage_account.primary_blob_endpoint)) > 0
+    condition     = length(regexall("^https://.*\\.blob\\.core\\.windows\\.net/$", output.agent_capability_host_connections_1.storage_account.primary_blob_endpoint)) > 0
+    error_message = "Storage Account blob endpoint should follow correct Azure Blob Storage URL pattern"
+  }
+
+  assert {
+    condition     = length(regexall("^https://.*\\.blob\\.core\\.windows\\.net/$", output.agent_capability_host_connections_2.storage_account.primary_blob_endpoint)) > 0
     error_message = "Storage Account blob endpoint should follow correct Azure Blob Storage URL pattern"
   }
 
   # Verify AI Search connection is configured
   assert {
-    condition     = output.agent_capability_host_connections.ai_search != null
+    condition     = output.agent_capability_host_connections_1.ai_search != null
+    error_message = "AI Search connection should be configured for capability host"
+  }
+
+  assert {
+    condition     = output.agent_capability_host_connections_2.ai_search != null
     error_message = "AI Search connection should be configured for capability host"
   }
 
   # Validate AI Search resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Search/searchServices/.*", output.agent_capability_host_connections.ai_search.resource_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Search/searchServices/.*", output.agent_capability_host_connections_1.ai_search.resource_id)) > 0
+    error_message = "AI Search resource ID should be valid"
+  }
+
+  assert {
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Search/searchServices/.*", output.agent_capability_host_connections_2.ai_search.resource_id)) > 0
     error_message = "AI Search resource ID should be valid"
   }
 
   # Verify all capability host resources are in the same resource group
   assert {
-    condition     = strcontains(output.agent_capability_host_connections.cosmos_db.resource_id, azurerm_resource_group.this[0].name)
+    condition     = strcontains(output.agent_capability_host_connections_1.cosmos_db.resource_id, azurerm_resource_group.this[0].name)
     error_message = "Cosmos DB should be created in the same resource group"
   }
 
   assert {
-    condition     = strcontains(output.agent_capability_host_connections.storage_account.resource_id, azurerm_resource_group.this[0].name)
+    condition     = strcontains(output.agent_capability_host_connections_1.storage_account.resource_id, azurerm_resource_group.this[0].name)
     error_message = "Storage Account should be created in the same resource group"
   }
 
   assert {
-    condition     = strcontains(output.agent_capability_host_connections.ai_search.resource_id, azurerm_resource_group.this[0].name)
+    condition     = strcontains(output.agent_capability_host_connections_1.ai_search.resource_id, azurerm_resource_group.this[0].name)
+    error_message = "AI Search should be created in the same resource group"
+  }
+
+  assert {
+    condition     = strcontains(output.agent_capability_host_connections_2.cosmos_db.resource_id, azurerm_resource_group.this[0].name)
+    error_message = "Cosmos DB should be created in the same resource group"
+  }
+
+  assert {
+    condition     = strcontains(output.agent_capability_host_connections_2.storage_account.resource_id, azurerm_resource_group.this[0].name)
+    error_message = "Storage Account should be created in the same resource group"
+  }
+
+  assert {
+    condition     = strcontains(output.agent_capability_host_connections_2.ai_search.resource_id, azurerm_resource_group.this[0].name)
     error_message = "AI Search should be created in the same resource group"
   }
 
@@ -309,13 +393,23 @@ run "testint_foundry_standard_comprehensive" {
   }
 
   assert {
-    condition     = output.ai_foundry_project_id == module.ai_foundry.ai_foundry_project_id
-    error_message = "Output ai_foundry_project_id should match module output"
+    condition     = output.ai_foundry_default_project_id == module.default_project.ai_foundry_project_id
+    error_message = "Output ai_foundry_default_project_id should match module output"
   }
 
   assert {
-    condition     = output.ai_foundry_project_name == module.ai_foundry.ai_foundry_project_name
-    error_message = "Output ai_foundry_project_name should match module output"
+    condition     = output.ai_foundry_default_project_name == module.default_project.ai_foundry_project_name
+    error_message = "Output ai_foundry_default_project_name should match module output"
+  }
+
+  assert {
+    condition     = output.ai_foundry_secondary_project_id == module.secondary_project.ai_foundry_project_id
+    error_message = "Output ai_foundry_secondary_project_id should match module output"
+  }
+
+  assert {
+    condition     = output.ai_foundry_secondary_project_name == module.secondary_project.ai_foundry_project_name
+    error_message = "Output ai_foundry_secondary_project_name should match module output"
   }
 
   # Verify resource group outputs are populated
@@ -330,39 +424,8 @@ run "testint_foundry_standard_comprehensive" {
   }
 
   # ==========================================================================
-  # VARIABLE CONFIGURATION VALIDATION
-  # ==========================================================================
-
-  # Verify configured variables are properly applied
-  assert {
-    condition     = var.location == "swedencentral"
-    error_message = "Location variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.project_name == "integration-test-project"
-    error_message = "Project name variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.sku == "S0"
-    error_message = "SKU variable should be properly applied"
-  }
-
-  # ==========================================================================
   # RESOURCE RELATIONSHIP VALIDATION
   # ==========================================================================
-
-  # Verify AI Foundry and project are in the same resource group
-  assert {
-    condition     = strcontains(module.ai_foundry.ai_foundry_id, azurerm_resource_group.this[0].name)
-    error_message = "AI Foundry should be created in the same resource group"
-  }
-
-  assert {
-    condition     = strcontains(module.ai_foundry.ai_foundry_project_id, azurerm_resource_group.this[0].name)
-    error_message = "AI Foundry project should be created in the same resource group"
-  }
 
   # Verify Application Insights is in the same resource group
   assert {

@@ -75,7 +75,7 @@ keywords:
 | base\_name                  | Semantic base name used for generating unique resource names.   | `string`      | `"privateenv"`    |    no    |
 | connections\_subnet\_prefix | Address prefix for the 'connections' subnet.                    | `string`      | `"172.16.0.0/24"` |    no    |
 | location                    | Azure region where the resources will be deployed.              | `string`      | `"swedencentral"` |    no    |
-| search\_sku                 | SKU for Azure AI Search (e.g., 'basic', 'standard').            | `string`      | `"standard"`      |    no    |
+| search\_sku                 | SKU for Azure AI Search (e.g., 'basic', 'standard').            | `string`      | `"basic"`         |    no    |
 | storage\_replication\_type  | Replication type for the storage account (e.g., LRS, ZRS, GRS). | `string`      | `"ZRS"`           |    no    |
 | tags                        | Optional tags to apply to resources.                            | `map(string)` | `null`            |    no    |
 

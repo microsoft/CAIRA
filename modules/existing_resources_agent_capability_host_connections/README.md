@@ -28,10 +28,6 @@ This module retrieves details of:
 
 And exposes a single output, designed to be used together with the `ai_foundry` module to quickly wire up Agent Capability Host connections with freshly created resources.
 
-## Note
-
-- This module does not create any RBAC assignments. The `create_required_role_assignments` value is only forwarded so that downstream modules (like `ai_foundry`) can decide whether to assign RBAC.
-
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -58,14 +54,13 @@ And exposes a single output, designed to be used together with the `ai_foundry` 
 
 ## Inputs
 
-| Name                                | Description                                                                                         | Type     | Default | Required |
-|-------------------------------------|-----------------------------------------------------------------------------------------------------|----------|---------|:--------:|
-| cosmosdb\_account\_name             | Name of the existing Azure Cosmos DB account to reference.                                          | `string` | n/a     |   yes    |
-| location                            | The Azure region where resources will be created.                                                   | `string` | n/a     |   yes    |
-| search\_service\_name               | Name of the existing Azure AI Search service to reference.                                          | `string` | n/a     |   yes    |
-| storage\_account\_name              | Name of the existing Storage Account to reference.                                                  | `string` | n/a     |   yes    |
-| create\_required\_role\_assignments | Flag to indicate if required role assignments should be created.                                    | `bool`   | `true`  |    no    |
-| resource\_group\_resource\_id       | The ID of an existing resource group to use. If not provided, a new resource group will be created. | `string` | `null`  |    no    |
+| Name                          | Description                                                                                         | Type     | Default | Required |
+|-------------------------------|-----------------------------------------------------------------------------------------------------|----------|---------|:--------:|
+| cosmosdb\_account\_name       | Name of the existing Azure Cosmos DB account to reference.                                          | `string` | n/a     |   yes    |
+| location                      | The Azure region where resources will be created.                                                   | `string` | n/a     |   yes    |
+| search\_service\_name         | Name of the existing Azure AI Search service to reference.                                          | `string` | n/a     |   yes    |
+| storage\_account\_name        | Name of the existing Storage Account to reference.                                                  | `string` | n/a     |   yes    |
+| resource\_group\_resource\_id | The ID of an existing resource group to use. If not provided, a new resource group will be created. | `string` | `null`  |    no    |
 
 ## Outputs
 

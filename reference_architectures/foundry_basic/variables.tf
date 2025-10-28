@@ -15,24 +15,6 @@ variable "resource_group_resource_id" {
   default     = null
 }
 
-variable "project_name" {
-  type        = string
-  description = "The name of the AI Foundry project"
-  default     = "default-project"
-}
-
-variable "project_display_name" {
-  type        = string
-  description = "The display name of the AI Foundry project"
-  default     = "Default Project"
-}
-
-variable "project_description" {
-  type        = string
-  description = "The description of the AI Foundry project"
-  default     = "Default Project description"
-}
-
 variable "sku" {
   type        = string
   description = "The SKU for the AI Foundry resource. The default is 'S0'."

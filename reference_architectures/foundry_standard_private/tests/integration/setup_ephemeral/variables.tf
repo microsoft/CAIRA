@@ -15,11 +15,13 @@ variable "test_run_id" {
 variable "vnet_name" {
   description = "Name of the durable VNet from infrastructure pool"
   type        = string
+  default     = "vnet-fstdprv-durable"
 }
 
 variable "vnet_resource_group" {
   description = "Resource group containing the durable VNet"
   type        = string
+  default     = "rg-fstdprv-durable"
 }
 
 variable "subnet_destroy_time_sleep" {

@@ -5,11 +5,13 @@
 variable "fsp_resource_group_name" {
   description = "Name of the resource group containing foundry standard private durable test infrastructure"
   type        = string
+  default     = "rg-fstdprv-durable"
 }
 
 variable "fsp_vnet_name" {
   description = "Name of the foundry standard private durable VNet"
   type        = string
+  default     = "vnet-fstdprv-durable"
 }
 
 variable "connection_subnet_name" {
@@ -17,9 +19,6 @@ variable "connection_subnet_name" {
   type        = string
   default     = "connections"
 }
-
-# NOTE: agent_subnet_name variable removed
-# Agent subnets must be created ephemerally using setup_ephemeral module
 
 variable "cognitive_dns_zone_name" {
   description = "Name of the Cognitive Services private DNS zone"

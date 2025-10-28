@@ -23,7 +23,5 @@ output "connections" {
       primary_blob_endpoint = azurerm_storage_account.storage_account.primary_blob_endpoint
       location              = azurerm_storage_account.storage_account.location
     }
-
-    create_required_role_assignments = var.create_required_role_assignments
   }
 }

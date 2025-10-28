@@ -28,10 +28,6 @@ This module creates:
 
 And exposes a single output, designed to be used together with the `ai_foundry` module to quickly wire up Agent Capability Host connections with freshly created resources.
 
-## Note
-
-- This module does not create any RBAC assignments. The `create_required_role_assignments` value is only forwarded so that downstream modules (like `ai_foundry`) can decide whether to assign RBAC.
-
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -58,15 +54,14 @@ And exposes a single output, designed to be used together with the `ai_foundry` 
 
 ## Inputs
 
-| Name                                | Description                                                      | Type          | Default | Required |
-|-------------------------------------|------------------------------------------------------------------|---------------|---------|:--------:|
-| ai\_search\_name                    | The name of the Azure AI Search service to create.               | `string`      | n/a     |   yes    |
-| cosmos\_db\_account\_name           | The name of the Cosmos DB account to create.                     | `string`      | n/a     |   yes    |
-| location                            | The Azure region where resources will be created.                | `string`      | n/a     |   yes    |
-| resource\_group\_resource\_id       | The ID of an existing resource group to use.                     | `string`      | n/a     |   yes    |
-| storage\_account\_name              | The name of the Storage Account to create.                       | `string`      | n/a     |   yes    |
-| create\_required\_role\_assignments | Flag to indicate if required role assignments should be created. | `bool`        | `true`  |    no    |
-| tags                                | Tags to apply to created resources.                              | `map(string)` | `{}`    |    no    |
+| Name                          | Description                                        | Type          | Default | Required |
+|-------------------------------|----------------------------------------------------|---------------|---------|:--------:|
+| ai\_search\_name              | The name of the Azure AI Search service to create. | `string`      | n/a     |   yes    |
+| cosmos\_db\_account\_name     | The name of the Cosmos DB account to create.       | `string`      | n/a     |   yes    |
+| location                      | The Azure region where resources will be created.  | `string`      | n/a     |   yes    |
+| resource\_group\_resource\_id | The ID of an existing resource group to use.       | `string`      | n/a     |   yes    |
+| storage\_account\_name        | The name of the Storage Account to create.         | `string`      | n/a     |   yes    |
+| tags                          | Tags to apply to created resources.                | `map(string)` | `{}`    |    no    |
 
 ## Outputs
 

@@ -6,8 +6,8 @@ name: Refresh Durable Infrastructure Pools
 # Runs weekly on Sunday at 3am UTC to refresh test infrastructure pools
 # Ensures storage account names remain unique and infrastructure is clean
 on:
-  schedule:
-    - cron: "0 3 * * 0" # Sunday at 3am UTC
+  # schedule:
+  #  - cron: "0 3 * * 0" # Sunday at 3am UTC
   workflow_dispatch: # Allow manual triggers
     inputs: #checkov:skip=CKV_GHA_7
       skip_destroy:
@@ -153,6 +153,10 @@ jobs:
     outputs:
       fsp_storage_account_name: >-
         ${{ steps.get_fsp_outputs.outputs.storage_account_name }}
+      fsp_cosmosdb_account_name: >-
+        ${{ steps.get_fsp_outputs.outputs.cosmosdb_account_name }}
+      fsp_search_service_name: >-
+        ${{ steps.get_fsp_outputs.outputs.search_service_name }}
       fbp_vnet_name: ${{ steps.get_fbp_outputs.outputs.vnet_name }}
     env:
       ARM_USE_AZUREAD: true
@@ -225,6 +229,12 @@ jobs:
           echo "storage_account_name=${SA_NAME}" >> "$GITHUB_OUTPUT"
           echo "📊 Storage Account Name: ${SA_NAME}"
 
+          COSMOS_NAME=$(terraform output -raw cosmosdb_account_name)
+          echo "cosmosdb_account_name=${COSMOS_NAME}" >> "$GITHUB_OUTPUT"
+
+          SEARCH_NAME=$(terraform output -raw search_service_name)
+          echo "search_service_name=${SEARCH_NAME}" >> "$GITHUB_OUTPUT"
+
   # Update GitHub repository variable with new storage account name
   update-github-variables:
     name: Update GitHub Variables
@@ -239,15 +249,23 @@ jobs:
           script: |
             const deployOutputs = context.payload.needs ||
               ${{ toJSON(needs) }};
-            const fspOutput = deployOutputs['deploy-infrastructure']
+            const storageAccountName = deployOutputs['deploy-infrastructure']
               ?.outputs?.fsp_storage_account_name ||
               # yamllint disable-line rule:line-length
               '${{ needs.deploy-infrastructure.outputs.fsp_storage_account_name }}';
-            const storageAccountName = fspOutput;
+            const cosmosAccountName = deployOutputs['deploy-infrastructure']
+              ?.outputs?.fsp_cosmosdb_account_name ||
+              # yamllint disable-line rule:line-length
+              '${{ needs.deploy-infrastructure.outputs.fsp_cosmosdb_account_name }}';
+            const searchServiceName = deployOutputs['deploy-infrastructure']
+              ?.outputs?.fsp_search_service_name ||
+              # yamllint disable-line rule:line-length
+              '${{ needs.deploy-infrastructure.outputs.fsp_search_service_name }}';
+
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const varName = 'TF_VAR_FSP_STORAGE_ACCOUNT_NAME';
+            let varName = 'TF_VAR_FSP_STORAGE_ACCOUNT_NAME';
             console.log(`📝 Updating ${varName}`);
             console.log(`Value: ${storageAccountName}`);
 
@@ -281,6 +299,82 @@ jobs:
                 repo,
                 name: 'TF_VAR_FSP_STORAGE_ACCOUNT_NAME',
                 value: storageAccountName
+              });
+              console.log('✅ Variable created successfully');
+            }
+
+            varName = 'TF_VAR_FSP_COSMOSDB_ACCOUNT_NAME';
+            console.log(`📝 Updating ${varName}`);
+            console.log(`Value: ${cosmosAccountName}`);
+
+            // Check if variable exists
+            variableExists = false;
+            try {
+              await github.rest.actions.getRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_COSMOSDB_ACCOUNT_NAME'
+              });
+              variableExists = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            // Update or create variable
+            if (variableExists) {
+              await github.rest.actions.updateRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_COSMOSDB_ACCOUNT_NAME',
+                value: cosmosAccountName
+              });
+              console.log('✅ Variable updated successfully');
+            } else {
+              await github.rest.actions.createRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_COSMOSDB_ACCOUNT_NAME',
+                value: cosmosAccountName
+              });
+              console.log('✅ Variable created successfully');
+            }
+
+            varName = 'TF_VAR_FSP_SEARCH_ACCOUNT_NAME';
+            console.log(`📝 Updating ${varName}`);
+            console.log(`Value: ${searchServiceName}`);
+
+            // Check if variable exists
+            variableExists = false;
+            try {
+              await github.rest.actions.getRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_SEARCH_ACCOUNT_NAME'
+              });
+              variableExists = true;
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+            // Update or create variable
+            if (variableExists) {
+              await github.rest.actions.updateRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_SEARCH_ACCOUNT_NAME',
+                value: searchServiceName
+              });
+              console.log('✅ Variable updated successfully');
+            } else {
+              await github.rest.actions.createRepoVariable({
+                owner,
+                repo,
+                name: 'TF_VAR_FSP_SEARCH_ACCOUNT_NAME',
+                value: searchServiceName
               });
               console.log('✅ Variable created successfully');
             }

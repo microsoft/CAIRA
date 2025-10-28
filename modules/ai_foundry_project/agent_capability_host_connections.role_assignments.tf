@@ -5,19 +5,19 @@
 # Required role assignments for the resources to be used as Agent connections
 
 resource "azurerm_role_assignment" "cosmosdb_operator_ai_foundry_project" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     resource.time_sleep.wait_project_identities
   ]
-  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${var.resource_group_id}cosmosdboperator")
+  name                 = uuidv5("dns", "${azapi_resource.ai_foundry_project.name}${azapi_resource.ai_foundry_project.output.identity.principalId}${local.resource_group_id}cosmosdboperator")
   scope                = var.agent_capability_host_connections.cosmos_db.resource_id
   role_definition_name = "Cosmos DB Operator"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
 }
 
 resource "azurerm_role_assignment" "storage_blob_data_contributor_ai_foundry_project" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     resource.time_sleep.wait_project_identities
@@ -29,7 +29,7 @@ resource "azurerm_role_assignment" "storage_blob_data_contributor_ai_foundry_pro
 }
 
 resource "azurerm_role_assignment" "search_index_data_contributor_ai_foundry_project" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     resource.time_sleep.wait_project_identities
@@ -41,7 +41,7 @@ resource "azurerm_role_assignment" "search_index_data_contributor_ai_foundry_pro
 }
 
 resource "azurerm_role_assignment" "search_service_contributor_ai_foundry_project" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     resource.time_sleep.wait_project_identities
@@ -57,7 +57,7 @@ resource "azurerm_role_assignment" "search_service_contributor_ai_foundry_projec
 ## Pause 60 seconds to allow for role assignments to propagate
 ##
 resource "time_sleep" "wait_rbac" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     azurerm_role_assignment.cosmosdb_operator_ai_foundry_project[0],
@@ -78,7 +78,7 @@ locals {
 }
 
 resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_user_thread_message_store" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     azapi_resource.ai_foundry_project_capability_host
@@ -92,7 +92,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_user_
 }
 
 resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_system_thread_name" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_user_thread_message_store
@@ -106,7 +106,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_syste
 }
 
 resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_entity_store_name" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_system_thread_name
@@ -122,7 +122,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_db_sql_role_aifp_entit
 ## Create the necessary data plane role assignments to the Azure Storage Account containers created by the AI Foundry Project
 ##
 resource "azurerm_role_assignment" "storage_blob_data_owner_ai_foundry_project" {
-  count = var.agent_capability_host_connections != null && try(var.agent_capability_host_connections.create_required_role_assignments, false) ? 1 : 0
+  count = var.agent_capability_host_connections != null ? 1 : 0
 
   depends_on = [
     azapi_resource.ai_foundry_project_capability_host

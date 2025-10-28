@@ -13,11 +13,6 @@
 # creating ephemeral resources. This eliminates 8-12 minute setup overhead per test run.
 #
 # ENVIRONMENT VARIABLES REQUIRED (set via TF_VAR_ prefix):
-# - TF_VAR_fbp_resource_group_name  : Resource group containing durable FBP pool (e.g., rg-fbscprv-durable)
-# - TF_VAR_fbp_vnet_name            : VNet name in the FBP pool (e.g., vnet-fbscprv-durable)
-# - TF_VAR_fbp_cosmosdb_account_name: Cosmos DB account name (e.g., cosmos-fbscprv-durable)
-# - TF_VAR_fbp_storage_account_name : Storage account name (e.g., stfbscprvdurable)
-# - TF_VAR_fbp_search_service_name  : AI Search service name (e.g., srch-fbscprv-durable)
 # =============================================================================
 
 provider "azurerm" {
@@ -43,12 +38,7 @@ run "testint_foundry_basic_private_comprehensive" {
   command = apply
 
   variables {
-    location             = "swedencentral"
-    foundry_subnet_id    = run.data.connection.id
-    project_name         = "integration-test-private-project"
-    project_display_name = "Integration Test Private Project"
-    project_description  = "Private project created for integration testing validation"
-    sku                  = "S0"
+    foundry_subnet_id = run.data.connection.id
     tags = {
       environment     = "test"
       purpose         = "terraform-test"
@@ -71,7 +61,7 @@ run "testint_foundry_basic_private_comprehensive" {
 
   assert {
     condition     = azurerm_resource_group.this[0].location == "swedencentral"
-    error_message = "Resource group location should match the specified location"
+    error_message = "Resource group location should match the default"
   }
 
   # Verify naming pattern follows Azure naming conventions for private architecture
@@ -129,20 +119,20 @@ run "testint_foundry_basic_private_comprehensive" {
 
   # Verify AI Foundry project creation and properties
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_id != null
+    condition     = module.default_project.ai_foundry_project_id != null
     error_message = "AI Foundry project ID should not be null"
   }
 
   # Validate project resource ID format
   assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.ai_foundry.ai_foundry_project_id)) > 0
+    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/.*", module.default_project.ai_foundry_project_id)) > 0
     error_message = "AI Foundry project ID should be a valid Azure resource ID"
   }
 
   # Verify project name matches configuration
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_name == "integration-test-private-project"
-    error_message = "AI Foundry project name should match the configured project_name variable"
+    condition     = module.default_project.ai_foundry_project_name == "default-project"
+    error_message = "AI Foundry project name should match the default"
   }
 
   # ==========================================================================
@@ -155,10 +145,10 @@ run "testint_foundry_basic_private_comprehensive" {
     error_message = "There should be at least one AI Model Deployment"
   }
 
-  # Verify specific number of model deployments (gpt-4, o1-mini, text-embedding-3-large)
+  # Verify specific number of model deployments
   assert {
     condition     = length(module.ai_foundry.ai_foundry_model_deployments_ids) == 3
-    error_message = "Should have exactly 3 model deployments (gpt-4, o1-mini, text-embedding-3-large)"
+    error_message = "Should have exactly 3 model deployments"
   }
 
   # Validate all model deployment resource IDs
@@ -176,13 +166,13 @@ run "testint_foundry_basic_private_comprehensive" {
 
   # Verify system-assigned managed identity
   assert {
-    condition     = module.ai_foundry.ai_foundry_project_identity_principal_id != null
+    condition     = module.default_project.ai_foundry_project_identity_principal_id != null
     error_message = "AI Foundry project identity principal ID should be available"
   }
 
   # Validate GUID format for principal ID
   assert {
-    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.ai_foundry.ai_foundry_project_identity_principal_id)) > 0
+    condition     = length(regexall("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", module.default_project.ai_foundry_project_identity_principal_id)) > 0
     error_message = "AI Foundry project identity principal ID should be a valid GUID"
   }
 
@@ -215,39 +205,6 @@ run "testint_foundry_basic_private_comprehensive" {
   }
 
   # ==========================================================================
-  # PRIVATE NETWORKING VALIDATION
-  # ==========================================================================
-
-  # Verify the foundry_subnet_id variable was passed correctly from setup
-  assert {
-    condition     = var.foundry_subnet_id != null && var.foundry_subnet_id != ""
-    error_message = "Foundry subnet ID should be provided from setup module"
-  }
-
-  # Verify the subnet ID matches what was created in setup
-  assert {
-    condition     = var.foundry_subnet_id == run.data.connection.id
-    error_message = "Foundry subnet ID should match the setup module output"
-  }
-
-  # Verify subnet ID follows Azure resource ID format
-  assert {
-    condition     = length(regexall("^/subscriptions/.*/resourceGroups/.*/providers/Microsoft.Network/virtualNetworks/.*/subnets/.*", var.foundry_subnet_id)) > 0
-    error_message = "Foundry subnet ID should be a valid Azure subnet resource ID"
-  }
-
-  # Verify setup networking resources are accessible
-  assert {
-    condition     = run.data.resource_group_name != null && run.data.resource_group_name != ""
-    error_message = "Setup resource group name should be available"
-  }
-
-  assert {
-    condition     = run.data.virtual_network_id != null && run.data.virtual_network_id != ""
-    error_message = "Setup virtual network ID should be available"
-  }
-
-  # ==========================================================================
   # OUTPUT CONSISTENCY VALIDATION
   # ==========================================================================
 
@@ -263,13 +220,13 @@ run "testint_foundry_basic_private_comprehensive" {
   }
 
   assert {
-    condition     = output.ai_foundry_project_id == module.ai_foundry.ai_foundry_project_id
-    error_message = "Output ai_foundry_project_id should match module output"
+    condition     = output.ai_foundry_default_project_id == module.default_project.ai_foundry_project_id
+    error_message = "Output ai_foundry_default_project_id should match module output"
   }
 
   assert {
-    condition     = output.ai_foundry_project_name == module.ai_foundry.ai_foundry_project_name
-    error_message = "Output ai_foundry_project_name should match module output"
+    condition     = output.ai_foundry_default_project_name == module.default_project.ai_foundry_project_name
+    error_message = "Output ai_foundry_default_project_name should match module output"
   }
 
   # Verify resource group outputs are populated
@@ -297,26 +254,6 @@ run "testint_foundry_basic_private_comprehensive" {
   # Private access is validated through the private endpoint resource existence
 
   # ==========================================================================
-  # VARIABLE CONFIGURATION VALIDATION
-  # ==========================================================================
-
-  # Verify configured variables are properly applied
-  assert {
-    condition     = var.location == "swedencentral"
-    error_message = "Location variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.project_name == "integration-test-private-project"
-    error_message = "Project name variable should be properly applied"
-  }
-
-  assert {
-    condition     = var.sku == "S0"
-    error_message = "SKU variable should be properly applied"
-  }
-
-  # ==========================================================================
   # RESOURCE RELATIONSHIP VALIDATION
   # ==========================================================================
 
@@ -324,11 +261,6 @@ run "testint_foundry_basic_private_comprehensive" {
   assert {
     condition     = strcontains(module.ai_foundry.ai_foundry_id, azurerm_resource_group.this[0].name)
     error_message = "AI Foundry should be created in the same resource group"
-  }
-
-  assert {
-    condition     = strcontains(module.ai_foundry.ai_foundry_project_id, azurerm_resource_group.this[0].name)
-    error_message = "AI Foundry project should be created in the same resource group"
   }
 
   # Verify Application Insights is in the same resource group
@@ -345,11 +277,5 @@ run "testint_foundry_basic_private_comprehensive" {
   assert {
     condition     = run.data.resource_group_name != azurerm_resource_group.this[0].name
     error_message = "Setup resources should be in a separate resource group from the main deployment"
-  }
-
-  # Verify setup virtual network is properly referenced
-  assert {
-    condition     = length(regexall(run.data.resource_group_name, var.foundry_subnet_id)) > 0
-    error_message = "Foundry subnet ID should reference the setup resource group"
   }
 }

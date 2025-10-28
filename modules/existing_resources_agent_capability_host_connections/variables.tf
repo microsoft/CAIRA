@@ -27,9 +27,3 @@ variable "search_service_name" {
   description = "Name of the existing Azure AI Search service to reference."
   type        = string
 }
-
-variable "create_required_role_assignments" {
-  description = "Flag to indicate if required role assignments should be created."
-  type        = bool
-  default     = true
-}
