@@ -22,6 +22,11 @@ terraform {
   }
 }
 
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
 # Resource Group containing all durable infrastructure
 data "azurerm_resource_group" "this" {
   name = var.fsp_resource_group_name
