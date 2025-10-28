@@ -16,6 +16,11 @@ test {
   parallel = true
 }
 
+provider "azurerm" {
+  storage_use_azuread = true
+  features {}
+}
+
 # Lookup the durable infrastructure pool instead of creating ephemeral resources
 # The data module will use TF_VAR_ environment variables for resource names
 run "data" {
