@@ -1,7 +1,0 @@
-project: foundry_standard
-kind: breaking
-body: Support for multiple projects
-time: 2025-10-24T15:03:32.925720177Z
-custom:
-    Author: PabloZaiden
-    Issue: "127"
