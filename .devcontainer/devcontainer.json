@@ -54,8 +54,8 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.defaultProfile.osx": "zsh",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.defaultProfile.osx": "bash",
         "powershell.powerShellAdditionalExePaths": {
           "pwsh": "/usr/bin/pwsh"
         },
