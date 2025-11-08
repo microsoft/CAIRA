@@ -1,7 +1,0 @@
-project: foundry_standard
-kind: changed
-body: Set disableLocalAuth = true to disable API Key authentication
-time: 2025-09-22T18:21:59.595162802Z
-custom:
-    Author: PabloZaiden
-    Issue: "95"
