@@ -1,7 +1,0 @@
-project: foundry_standard
-kind: added
-body: Improved tests for foundry standard configuration
-time: 2025-09-29T08:13:12.440585311-07:00
-custom:
-    Author: BSamodien
-    Issue: "122"

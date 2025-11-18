@@ -134,7 +134,7 @@ For these scenarios, we recommend you use the [foundry_basic_private](../foundry
 After deployment, you can access your AI Foundry environment through:
 
 1. **Azure Portal**: Navigate to your Cognitive Services account
-1. **AI Foundry Studio**: Use the web interface for model management
+1. **AI Foundry Portal**: Use the web interface for model management
 1. **Azure CLI**: Interact programmatically with your deployments
 1. **SDKs**: Connect from your applications using Azure AI SDKs
 

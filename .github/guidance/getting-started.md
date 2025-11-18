@@ -47,8 +47,8 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
    - **Choose based on needs**: Development/experimentation vs. enterprise/regulated workloads
 
 1. **Immediate Value**
-   - Access AI Foundry Studio through Azure Portal
-   - Choose and configure available, platform-managed model options in AI Foundry Studio; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
+   - Access AI Foundry Portal through Azure Portal
+   - Choose and configure available, platform-managed model options in AI Foundry Portal; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
    - Ready for AI application development
    - Built-in monitoring with Application Insights
 
