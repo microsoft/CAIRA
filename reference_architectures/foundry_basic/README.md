@@ -31,6 +31,8 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 For these scenarios, we recommend you use the [foundry_basic_private](../foundry_basic_private/README.md) reference architecture. For a full set of other security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
 
+Foundry-only use case: If you are not planning to use the Agent Service, this basic architecture (or its private networking counterpart) is recommended; the standard architectures add agent-focused dependent resources (Cosmos DB, Storage, AI Search) you can omit.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
