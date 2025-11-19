@@ -29,6 +29,8 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 **NOTE**: While the Azure AI Foundry endpoints will be private, if you are using AI Agent Service, its endpoints will be running in a VNET managed by Microsoft and potentially with other tenants. If you want complete isolation for your AI Agents as well, we recommend you use the [foundry_standard_private](../foundry_standard_private/README.md) reference architecture.
 
+Foundry-only use case: If you are not planning to use the Agent Service, this basic architecture (or its public networking counterpart) is recommended; the standard architectures add agent-focused dependent resources (Cosmos DB, Storage, AI Search) you can omit.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)

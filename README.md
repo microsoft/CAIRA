@@ -8,6 +8,8 @@ CAIRA provides several baseline configurations for Azure AI Foundry based soluti
 
 Look [here for documentation](https://github.com/microsoft/CAIRA/tree/main/reference_architectures) that details the available configurations.
 
+Foundry-only use case: If you only need Azure AI Foundry (account, project, model deployments, observability) and do NOT plan to use Azure AI Agent Service, choose one of the `_basic` reference architectures (`foundry_basic` for public endpoints or `foundry_basic_private` for private networking). The `_standard` variants add agent-focused dependent resources (Cosmos DB, Storage, AI Search) and capability host connection wiring that are unnecessary for a Foundry-only environment.
+
 ## Getting Started
 
 To use CAIRA, you'll need to set up your development environment with the required tools and dependencies. The easiest way to do it is using the devcontainer provided in with the repository. If you rather configure the environment manually, follow the directions outlined in [Environment Setup](./docs/environment_setup.md)

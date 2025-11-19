@@ -58,6 +58,8 @@ See the reference architecture at `reference_architectures/foundry_standard`.
 - **foundry_standard** - Enterprise features with Bring Your Own Resource (BYOR) approach
 - **foundry_standard_private** - Enterprise configuration with protected agent support
 
+Foundry-only use case: If you only need Azure AI Foundry (account, project, model deployments, observability) and do NOT plan to use the Agent Service, choose one of the `_basic` reference architectures (`foundry_basic` for public endpoints or `foundry_basic_private` for private networking). The `_standard` variants add agent-focused dependent resources (Cosmos DB, Storage, AI Search) and capability host connection wiring that are not required when not using the Agent service.
+
 ## Deployment Decision Matrix
 
 | Customer Requirement   | Portal Possible | IaC Required  | Recommended RA           |

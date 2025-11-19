@@ -5,7 +5,6 @@ This directory contains specialized AI chatmode configurations designed to enhan
 ## AI Usage Disclaimer
 
 **Important Notice**: AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
-AI assistance is helpful but variable. Results depend on model selection, context quality, and evolving technology capabilities. Always validate AI-generated content with qualified professionals, especially for production environments.
 
 _Copilot is powered by AI, so mistakes are possible. Review output carefully before use._
 
