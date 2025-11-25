@@ -218,7 +218,7 @@ properties = {
 ### Tooling & Automation Recommendations
 
 | Layer | Tooling Recommendation | Purpose |
-|-------|------------------------|---------|
+| ------- | ------------------------ | --------- |
 | IaC Static | tfsec / Checkov / TFLint | Mis-config & policy drift detection |
 | Secrets | Gitleaks / Trufflehog | Secret exposure scanning |
 | Dependencies | Dependency Review / Renovate / Dependabot | Supply chain hygiene |

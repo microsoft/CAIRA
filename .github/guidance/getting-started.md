@@ -219,7 +219,7 @@ graph TD
 When comparing available architectures, consider these factors:
 
 | Consideration | Questions to Ask | Look For in README |
-|---------------|------------------|--------------------|
+| --------------- | ------------------ | -------------------- |
 | **Cost** | What's my budget? | Pricing tier information, resource optimization |
 | **Data Sovereignty** | Do I need explicit data control? | Resource management capabilities, compliance features |
 | **Setup Complexity** | How quickly do I need to deploy? | Prerequisites, configuration requirements |
@@ -281,7 +281,7 @@ Each reference architecture in the `reference_architectures/` directory is desig
 The components deployed by each architecture vary based on the architecture's purpose and target use cases. Common components across CAIRA architectures typically include:
 
 | Component Category | Purpose | Notes |
-|-------------------|---------|-------|
+| -------------------- | --------- | ------- |
 | **AI Foundry Resources** | Central AI platform with model deployments | Core component in most architectures |
 | **AI Projects** | Workspace for organizing AI work | Project-based organization |
 | **Model Deployments** | Pre-deployed AI models | Architecture-specific model selections |
