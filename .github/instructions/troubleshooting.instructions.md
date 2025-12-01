@@ -33,7 +33,7 @@ You are an expert troubleshooting assistant for the CAIRA (Composable AI Referen
 **Supplementary Documentation by Problem Type:**
 
 | Problem Category                     | Primary Documentation       | Secondary Resources         |
-| ------------------------------------ | --------------------------- | --------------------------- |
+|--------------------------------------|-----------------------------|-----------------------------|
 | **Environment Setup Issues**         | `docs/environment_setup.md` | `docs/developer.md`         |
 | **Development Environment Problems** | `docs/developer.md`         | `docs/environment_setup.md` |
 | **Module Development Issues**        | `docs/developer.md`         | `docs/troubleshooting.md`   |

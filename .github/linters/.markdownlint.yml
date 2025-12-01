@@ -38,3 +38,5 @@ MD041: false
 MD046:
   # Block style
   style: "fenced"
+
+MD060: false

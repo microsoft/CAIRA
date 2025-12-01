@@ -24,7 +24,7 @@ When working with Getting Started files or Getting Started-related contexts:
 ### Required Guidance File Details
 
 | Requirement         | Value                                                |
-| ------------------- | ---------------------------------------------------- |
+|---------------------|------------------------------------------------------|
 | Guidance File Path  | [getting-started.md](../guidance/getting-started.md) |
 | Read All Lines      | Required                                             |
 | Minimum Lines       | 1000                                                 |

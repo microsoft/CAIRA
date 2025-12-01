@@ -24,7 +24,7 @@ When working with Architecture Guidance files or Architecture Guidance-related c
 ### Required Guidance File Details
 
 | Requirement         | Value                                                            |
-| ------------------- | ---------------------------------------------------------------- |
+|---------------------|------------------------------------------------------------------|
 | Guidance File Path  | [architecture-guidance.md](../guidance/architecture-guidance.md) |
 | Read All Lines      | Required                                                         |
 | Minimum Lines       | 1000                                                             |

@@ -59,4 +59,5 @@ tasks:
     cmds:
       - markdownlint-cli2 "./**/*.md" --config "./.github/linters/.markdownlint-cli2.yaml" --fix
       - markdown-table-formatter "./**/*.md"
+      - markdown-table-formatter "./.*/**/*.md" # without this, hidden directories are skipped
     dir: "{{.ROOT_DIR}}"

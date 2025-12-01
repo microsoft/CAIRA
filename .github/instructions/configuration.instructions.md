@@ -24,7 +24,7 @@ When working with Configuration Guidance files or Configuration-related contexts
 ### Required Guidance File Details
 
 | Requirement         | Value                                                              |
-| ------------------- | ------------------------------------------------------------------ |
+|---------------------|--------------------------------------------------------------------|
 | Guidance File Path  | [configuration-guidance.md](../guidance/configuration-guidance.md) |
 | Read All Lines      | Required                                                           |
 | Minimum Lines       | 1000                                                               |

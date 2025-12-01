@@ -217,16 +217,16 @@ properties = {
 
 ### Tooling & Automation Recommendations
 
-| Layer | Tooling Recommendation | Purpose |
-| ------- | ------------------------ | --------- |
-| IaC Static | tfsec / Checkov / TFLint | Mis-config & policy drift detection |
-| Secrets | Gitleaks / Trufflehog | Secret exposure scanning |
-| Dependencies | Dependency Review / Renovate / Dependabot | Supply chain hygiene |
-| Container / Images | Trivy | Vulnerability scanning |
-| Runtime Policy | Azure Policy / Defender for Cloud | Governance & enforcement |
-| Admission / OPA | Config test | Pre-merge & pipeline policy gates |
-| CodeQL | GitHub CodeQL | Code-level security analysis |
-| Monitoring | Log Analytics / Sentinel / Defender | Threat detection & telemetry |
+| Layer              | Tooling Recommendation                    | Purpose                             |
+|--------------------|-------------------------------------------|-------------------------------------|
+| IaC Static         | tfsec / Checkov / TFLint                  | Mis-config & policy drift detection |
+| Secrets            | Gitleaks / Trufflehog                     | Secret exposure scanning            |
+| Dependencies       | Dependency Review / Renovate / Dependabot | Supply chain hygiene                |
+| Container / Images | Trivy                                     | Vulnerability scanning              |
+| Runtime Policy     | Azure Policy / Defender for Cloud         | Governance & enforcement            |
+| Admission / OPA    | Config test                               | Pre-merge & pipeline policy gates   |
+| CodeQL             | GitHub CodeQL                             | Code-level security analysis        |
+| Monitoring         | Log Analytics / Sentinel / Defender       | Threat detection & telemetry        |
 
 ### Human-in-the-Loop Requirement
 

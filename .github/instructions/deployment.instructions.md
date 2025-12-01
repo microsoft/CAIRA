@@ -24,7 +24,7 @@ When working with Deploy files or Deploy-related contexts:
 ### Required Prompt File Details
 
 | Requirement         | Value                              |
-| ------------------- | ---------------------------------- |
+|---------------------|------------------------------------|
 | Prompt File Path    | [deploy.md](../guidance/deploy.md) |
 | Read All Lines      | Required                           |
 | Minimum Lines       | 1000                               |

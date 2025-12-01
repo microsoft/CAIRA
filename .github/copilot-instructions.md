@@ -42,14 +42,14 @@ These instructions define **HOW** Copilot should process user queries and **WHEN
 
 When user queries match these patterns, **immediately** load the corresponding guidance:
 
-| User Query Context | Required Instruction File | Load Priority |
-| -------------------- | --------------------------- | --------------- |
-| Deployment, infrastructure provisioning, IaC deployment | `.github/instructions/deployment.instructions.md` | Critical |
-| Getting started, setup, help requests | `.github/instructions/getting-started.instructions.md` | Critical |
-| Architecture decisions, best practices, design guidance | `.github/instructions/architecture-guidance.instructions.md` | Critical |
-| Terraform files (.tf), IaC configuration, modules | `.github/instructions/terraform.instructions.md` | Critical |
-| Configuration parameters, SKUs, pricing, variables, validation | `.github/instructions/configuration.instructions.md` | Critical |
-| Task implementation, .copilot-tracking files | `.github/instructions/task-implementation.instructions.md` | Critical |
+| User Query Context                                             | Required Instruction File                                    | Load Priority |
+|----------------------------------------------------------------|--------------------------------------------------------------|---------------|
+| Deployment, infrastructure provisioning, IaC deployment        | `.github/instructions/deployment.instructions.md`            | Critical      |
+| Getting started, setup, help requests                          | `.github/instructions/getting-started.instructions.md`       | Critical      |
+| Architecture decisions, best practices, design guidance        | `.github/instructions/architecture-guidance.instructions.md` | Critical      |
+| Terraform files (.tf), IaC configuration, modules              | `.github/instructions/terraform.instructions.md`             | Critical      |
+| Configuration parameters, SKUs, pricing, variables, validation | `.github/instructions/configuration.instructions.md`         | Critical      |
+| Task implementation, .copilot-tracking files                   | `.github/instructions/task-implementation.instructions.md`   | Critical      |
 
 **Pattern Matching Rules:**
 
@@ -80,12 +80,12 @@ When user queries match these patterns, **immediately** load the corresponding g
 
 #### File Reading Strategy
 
-| File Type | When to Read | Purpose |
-| ----------- | -------------- | --------- |
-| `README.md` | Any directory context | Complete component understanding |
-| `variables.tf` | Terraform modules | Input parameters and validation rules |
-| `outputs.tf` | Terraform modules | Available outputs and dependencies |
-| Guidance files | Pattern match detected | Specific implementation instructions |
+| File Type      | When to Read           | Purpose                               |
+|----------------|------------------------|---------------------------------------|
+| `README.md`    | Any directory context  | Complete component understanding      |
+| `variables.tf` | Terraform modules      | Input parameters and validation rules |
+| `outputs.tf`   | Terraform modules      | Available outputs and dependencies    |
+| Guidance files | Pattern match detected | Specific implementation instructions  |
 
 ## Project Knowledge
 
@@ -106,13 +106,13 @@ Internal modules provide reusable Terraform components:
 
 #### When to Read Workflow Documentation
 
-| User Intent | Required Reading | Minimum Lines |
-| ------------- | ------------------ | --------------- |
-| Making contributions | `./docs/contributing/development_workflow.md` | 500 |
-| Creating pull requests | `./docs/contributing/pull_request_guide.md` | 300 |
-| Code review | `./docs/contributing/code_review_guidelines.md` | 300 |
-| Setting up environment | `./docs/environment_setup.md` | 400 |
-| Writing documentation | `./docs/contributing/frontmatter-validation-guide.md` | 200 |
+| User Intent            | Required Reading                                      | Minimum Lines |
+|------------------------|-------------------------------------------------------|---------------|
+| Making contributions   | `./docs/contributing/development_workflow.md`         | 500           |
+| Creating pull requests | `./docs/contributing/pull_request_guide.md`           | 300           |
+| Code review            | `./docs/contributing/code_review_guidelines.md`       | 300           |
+| Setting up environment | `./docs/environment_setup.md`                         | 400           |
+| Writing documentation  | `./docs/contributing/frontmatter-validation-guide.md` | 200           |
 
 ## User Interaction
 
