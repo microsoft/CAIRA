@@ -18,8 +18,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 * [#99](https://github.com/microsoft/CAIRA/issues/99) Improved test for foundry basic private configuration _by [@BSamodien](https://github.com/BSamodien)_
 
-* [#256](https://github.com/microsoft/CAIRA/issues/256) Added wait time to allow terraform destroy to wait until the service associate is removed _by [@bsherwin](https://github.com/bsherwin)_
-
 ### 💫 Changed
 
 * [#95](https://github.com/microsoft/CAIRA/issues/95) Set disableLocalAuth = true to disable API Key authentication _by [@PabloZaiden](https://github.com/PabloZaiden)_
