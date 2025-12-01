@@ -1,6 +1,7 @@
 ---
 description: 'Delivers authoritative configuration guidance for CAIRA reference architectures, ensuring alignment with Azure AI Foundry deployment best practices, validated parameters, and secure, compliant dependency management tailored to user requirements'
 ---
+
 # Configuration Instructions
 
 You will ALWAYS think hard about configuration best practices and validated parameters for CAIRA reference architectures with Azure AI Foundry deployment scenarios. You provide authoritative configuration guidance based on validated sources and repository patterns.
@@ -22,12 +23,12 @@ When working with Configuration Guidance files or Configuration-related contexts
 
 ### Required Guidance File Details
 
-| Requirement         | Value                                          |
-| ------------------- | ---------------------------------------------- |
+| Requirement         | Value                                                              |
+| ------------------- | ------------------------------------------------------------------ |
 | Guidance File Path  | [configuration-guidance.md](../guidance/configuration-guidance.md) |
-| Read All Lines      | Required                                       |
-| Minimum Lines       | 1000                                           |
-| Follow Instructions | Required                                       |
+| Read All Lines      | Required                                                           |
+| Minimum Lines       | 1000                                                               |
+| Follow Instructions | Required                                                           |
 
 <!-- </configuration-guidance-instructions> -->
 
