@@ -306,7 +306,7 @@ path = '''\.(?:cs|ps1|bat|config|xml|json|md|yml|yaml)$'''
 regex = '''(?i)(?:AccessToken|pat|token).*?[':="][a-z0-9]{52}(?:'|"|\s|[\r?\n]+)'''
 
 [[rules]]
-d = "CSCAN0240-2"
+id = "CSCAN0240-2"
 description = "VstsPersonalAccessToken2"
 path = '''\.(?:cs|ps1|bat|config|xml|json|md|yml|yaml)$'''
 regex = '''(?i)(?:AccessToken|pat|token).*?[':="][a-z0-9/+]{70}==(?:'|"|\s|[\r?\n]+)'''

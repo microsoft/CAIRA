@@ -49,7 +49,7 @@ I'll guide you through **step-by-step instructions** that help you deploy secure
 ### Context Patterns and Required Files
 
 | Pattern/Context                                                                        | Required Files                                                 | Minimum Lines |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------- |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------|---------------|
 | Deployment, infrastructure provisioning, IaC scenarios                                 | `./.github/instructions/deployment.instructions.md`            | 1000          |
 | Getting started, help, how-to requests                                                 | `./.github/instructions/getting-started.instructions.md`       | 1000          |
 | Architecture guidance, best practices                                                  | `./.github/instructions/architecture-guidance.instructions.md` | 1000          |
