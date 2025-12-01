@@ -47,6 +47,9 @@ permissions:
 env:
   OWNER: "microsoft/caira-mtain"
 
+  # flags
+  FLAG_CREATE_ISSUE_ON_FAILED_TEST: ${{ vars.FLAG_CREATE_ISSUE_ON_FAILED_TEST }}
+
   # variables required for terraform plan
   TF_VAR_foundry_subnet_id: ${{ vars.TF_VAR_FSP_SUBNET_ID }}
   TF_VAR_agents_subnet_id: ${{ vars.TF_VAR_FSP_SUBNET_ID }}
