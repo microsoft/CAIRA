@@ -164,26 +164,6 @@ When using agent subnet injection (`agents_subnet_id`), Azure creates a Containe
 
 The module provides a `subnet_cleanup_wait_time` variable (default: 5 minutes) that controls how long to wait after AI Foundry deletion before allowing the agent subnet to be destroyed. This ensures service association links are properly cleaned up.
 
-**Usage Example:**
-
-```terraform
-module "ai_foundry" {
-  source = "../../modules/ai_foundry"
-
-  # ... other configuration ...
-
-  agents_subnet_id          = var.agents_subnet_id
-  subnet_cleanup_wait_time  = "5m" # Adjust if needed
-}
-
-# In subnet module or resource, depend on cleanup wait:
-resource "azurerm_subnet" "agent" {
-  # ... subnet configuration ...
-
-  depends_on = [module.ai_foundry.subnet_cleanup_wait]
-}
-```
-
 **If you encounter subnet deletion errors** like `InUseSubnetCannotBeDeleted`, increase the `subnet_cleanup_wait_time` value to allow more time for Azure to clean up service association links.
 
 <!-- BEGIN_TF_DOCS -->
