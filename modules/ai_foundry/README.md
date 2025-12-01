@@ -205,10 +205,6 @@ resource "azurerm_subnet" "agent" {
 | azurerm | ~> 4.40 |
 | time    | ~> 0.13 |
 
-## Modules
-
-No modules.
-
 ## Resources
 
 | Name                                                                                                                                                   | Type        |
@@ -240,6 +236,7 @@ No modules.
 | foundry\_subnet\_id   | Optional subnet ID to inject the AI Foundry.                                | `string`                                                                                                                                                                                                                                                                                      | `null`  |    no    |
 | sku                   | The SKU for the AI Foundry resource.                                        | `string`                                                                                                                                                                                                                                                                                      | `"S0"`  |    no    |
 | tags                  | A list of tags to apply to the AI Foundry resource.                         | `map(string)`                                                                                                                                                                                                                                                                                 | `null`  |    no    |
+
 ## Outputs
 
 | Name                                 | Description                                  |
