@@ -75,13 +75,36 @@ resource "azurerm_subnet" "agent" {
       ]
     }
   }
+
+  # CRITICAL: Ensure subnet waits for service link cleanup before deletion
+  depends_on = [time_sleep.wait_for_service_link_cleanup]
 }
 
-# Wait for service association link cleanup on destroy
-# Container App Environment creates service association links that
-# require time to cleanup after environment deletion
-resource "time_sleep" "purge_ai_foundry_cooldown" {
+# CRITICAL: Wait for service association link cleanup on destroy
+# When AI Foundry with networkInjections (agent subnet injection) is destroyed,
+# Azure creates a Container App Environment that establishes service association
+# links to the subnet. These links must be cleaned up before the subnet can be
+# deleted, otherwise you'll get error:
+# "InUseSubnetCannotBeDeleted: Subnet is in use by .../serviceAssociationLinks/..."
+#
+# The wait happens DURING DESTROY ONLY to allow Azure time to clean up links.
+# Using a null_resource with triggers ensures the wait occurs in the destroy phase.
+resource "time_sleep" "wait_for_service_link_cleanup" {
   destroy_duration = var.subnet_destroy_time_sleep
+  create_duration  = "0s" # No wait on create
 
-  depends_on = [azurerm_subnet.agent]
+  # Dummy trigger to ensure resource is created and can be destroyed
+  triggers = {
+    always_run = timestamp()
+  }
+
+  lifecycle {
+    # Always recreate so destroy_duration is applied on every destroy
+    replace_triggered_by = [terraform_data.subnet_cleanup_trigger]
+  }
+}
+
+# Terraform data resource that changes on every apply to trigger time_sleep replacement
+resource "terraform_data" "subnet_cleanup_trigger" {
+  input = timestamp()
 }

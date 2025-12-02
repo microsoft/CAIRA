@@ -68,3 +68,13 @@ variable "application_insights" {
   sensitive = true
 }
 
+variable "subnet_cleanup_wait_time" {
+  description = "Wait time for service association link cleanup after AI Foundry deletion when using agent subnet injection. Otherwise, '5m'."
+  type        = string
+  default     = "5m"
+
+  validation {
+    condition     = can(regex("^[0-9]+[smh]$", var.subnet_cleanup_wait_time))
+    error_message = "subnet_cleanup_wait_time must be a valid duration (e.g., '5m', '300s', '1h')"
+  }
+}
