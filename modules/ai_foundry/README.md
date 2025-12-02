@@ -169,66 +169,62 @@ The module provides a `subnet_cleanup_wait_time` variable (default: 5 minutes) t
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-| Name | Version |
-|------|---------|
+| Name      | Version        |
+|-----------|----------------|
 | terraform | >= 1.13, < 2.0 |
-| azapi | ~> 2.6 |
-| azurerm | ~> 4.40 |
-| random | ~> 3.7 |
-| time | ~> 0.13 |
+| azapi     | ~> 2.6         |
+| azurerm   | ~> 4.40        |
+| random    | ~> 3.7         |
+| time      | ~> 0.13        |
 
 ## Providers
 
-| Name | Version |
-|------|---------|
-| azapi | ~> 2.6 |
+| Name    | Version |
+|---------|---------|
+| azapi   | ~> 2.6  |
 | azurerm | ~> 4.40 |
-| time | ~> 0.13 |
-
-## Modules
-
-No modules.
+| time    | ~> 0.13 |
 
 ## Resources
 
-| Name | Type |
-|------|------|
-| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
-| [azapi_resource.ai_foundry_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
-| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
-| [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) | resource |
-| [azurerm_cognitive_deployment.model_deployments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_deployment) | resource |
-| [azurerm_private_endpoint.ai_foundry_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
-| [time_sleep.wait_ai_foundry](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [time_sleep.wait_before_delete_capability_host](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [time_sleep.wait_before_purge](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [time_sleep.wait_for_subnet_cleanup](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
-| [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_private_dns_zone.cognitive](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
+| Name                                                                                                                                                   | Type        |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| [azapi_resource.ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                        | resource    |
+| [azapi_resource.ai_foundry_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                        | resource    |
+| [azapi_resource.appinsights_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                            | resource    |
+| [azapi_resource_action.purge_ai_foundry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action)                    | resource    |
+| [azurerm_cognitive_deployment.model_deployments](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_deployment) | resource    |
+| [azurerm_private_endpoint.ai_foundry_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint)             | resource    |
+| [time_sleep.wait_ai_foundry](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                       | resource    |
+| [time_sleep.wait_before_delete_capability_host](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                    | resource    |
+| [time_sleep.wait_before_purge](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                     | resource    |
+| [time_sleep.wait_for_subnet_cleanup](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                               | resource    |
+| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config)                      | data source |
+| [azurerm_private_dns_zone.ai_services](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)            | data source |
+| [azurerm_private_dns_zone.cognitive](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)              | data source |
+| [azurerm_private_dns_zone.openai](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone)                 | data source |
 
 ## Inputs
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| agents\_subnet\_id | Optional subnet ID to inject the AI Foundry Agents capability host. | `string` | `null` | no |
-| application\_insights | Configuration for Application Insights connection. | <pre>object({<br/>    resource_id       = string<br/>    name              = string<br/>    connection_string = string<br/>  })</pre> | n/a | yes |
-| foundry\_subnet\_id | Optional subnet ID to inject the AI Foundry. | `string` | `null` | no |
-| location | The Azure region where the AI Foundry resource will be deployed. | `string` | n/a | yes |
-| model\_deployments | A map of model deployments to be created in the AI Foundry resource. | <pre>list(object({<br/>    name    = string<br/>    version = string<br/>    format  = string<br/>    sku = optional(object({<br/>      name     = string<br/>      capacity = number<br/>      }), {<br/>      name     = "GlobalStandard"<br/>      capacity = 1<br/>    })<br/>  }))</pre> | n/a | yes |
-| name | The name of the AI Foundry resource. | `string` | n/a | yes |
-| resource\_group\_id | The ID of the resource group where the AI Foundry resource will be created. | `string` | n/a | yes |
-| sku | The SKU for the AI Foundry resource. | `string` | `"S0"` | no |
-| subnet\_cleanup\_wait\_time | Wait time for service association link cleanup after AI Foundry deletion when using agent subnet injection. Otherwise, '5m'. | `string` | `"5m"` | no |
-| tags | A list of tags to apply to the AI Foundry resource. | `map(string)` | `null` | no |
+| Name                        | Description                                                                                                                  | Type                                                                                                                                                                                                                                                                                          | Default | Required |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|:--------:|
+| application\_insights       | Configuration for Application Insights connection.                                                                           | <pre>object({<br/>    resource_id       = string<br/>    name              = string<br/>    connection_string = string<br/>  })</pre>                                                                                                                                                         | n/a     |   yes    |
+| location                    | The Azure region where the AI Foundry resource will be deployed.                                                             | `string`                                                                                                                                                                                                                                                                                      | n/a     |   yes    |
+| model\_deployments          | A map of model deployments to be created in the AI Foundry resource.                                                         | <pre>list(object({<br/>    name    = string<br/>    version = string<br/>    format  = string<br/>    sku = optional(object({<br/>      name     = string<br/>      capacity = number<br/>      }), {<br/>      name     = "GlobalStandard"<br/>      capacity = 1<br/>    })<br/>  }))</pre> | n/a     |   yes    |
+| name                        | The name of the AI Foundry resource.                                                                                         | `string`                                                                                                                                                                                                                                                                                      | n/a     |   yes    |
+| resource\_group\_id         | The ID of the resource group where the AI Foundry resource will be created.                                                  | `string`                                                                                                                                                                                                                                                                                      | n/a     |   yes    |
+| agents\_subnet\_id          | Optional subnet ID to inject the AI Foundry Agents capability host.                                                          | `string`                                                                                                                                                                                                                                                                                      | `null`  |    no    |
+| foundry\_subnet\_id         | Optional subnet ID to inject the AI Foundry.                                                                                 | `string`                                                                                                                                                                                                                                                                                      | `null`  |    no    |
+| sku                         | The SKU for the AI Foundry resource.                                                                                         | `string`                                                                                                                                                                                                                                                                                      | `"S0"`  |    no    |
+| subnet\_cleanup\_wait\_time | Wait time for service association link cleanup after AI Foundry deletion when using agent subnet injection. Otherwise, '5m'. | `string`                                                                                                                                                                                                                                                                                      | `"5m"`  |    no    |
+| tags                        | A list of tags to apply to the AI Foundry resource.                                                                          | `map(string)`                                                                                                                                                                                                                                                                                 | `null`  |    no    |
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| ai\_foundry\_endpoint | The endpoint URL of the AI Foundry account. |
-| ai\_foundry\_id | The resource ID of the AI Foundry account. |
+| Name                                 | Description                                  |
+|--------------------------------------|----------------------------------------------|
+| ai\_foundry\_endpoint                | The endpoint URL of the AI Foundry account.  |
+| ai\_foundry\_id                      | The resource ID of the AI Foundry account.   |
 | ai\_foundry\_model\_deployments\_ids | The IDs of the AI Foundry model deployments. |
-| ai\_foundry\_name | The name of the AI Foundry account. |
+| ai\_foundry\_name                    | The name of the AI Foundry account.          |
 <!-- END_TF_DOCS -->
