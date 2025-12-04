@@ -75,9 +75,6 @@ resource "azurerm_subnet" "agent" {
       ]
     }
   }
-
-  # CRITICAL: Ensure subnet waits for service link cleanup before deletion
-  depends_on = [time_sleep.wait_for_service_link_cleanup]
 }
 
 # CRITICAL: Wait for service association link cleanup on destroy
@@ -102,6 +99,9 @@ resource "time_sleep" "wait_for_service_link_cleanup" {
     # Always recreate so destroy_duration is applied on every destroy
     replace_triggered_by = [terraform_data.subnet_cleanup_trigger]
   }
+
+  # CRITICAL: Ensure subnet waits for service link cleanup before deletion
+  depends_on = [azurerm_subnet.agent]
 }
 
 # Terraform data resource that changes on every apply to trigger time_sleep replacement

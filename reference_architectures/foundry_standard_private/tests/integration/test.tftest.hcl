@@ -46,10 +46,9 @@ run "setup_agent" {
   }
 
   variables {
-    test_run_id               = formatdate("YYYYMMDDHHmmss", timestamp())
-    vnet_name                 = run.setup_data.virtual_network_id != null ? split("/", run.setup_data.virtual_network_id)[8] : ""
-    vnet_resource_group       = run.setup_data.resource_group_name
-    subnet_destroy_time_sleep = "5m"
+    test_run_id         = formatdate("YYYYMMDDHHmmss", timestamp())
+    vnet_name           = run.setup_data.virtual_network_id != null ? split("/", run.setup_data.virtual_network_id)[8] : ""
+    vnet_resource_group = run.setup_data.resource_group_name
   }
 }
 

@@ -63,16 +63,6 @@ resource "time_sleep" "wait_before_purge" {
   depends_on = [azapi_resource_action.purge_ai_foundry]
 }
 
-## Wait for service association link cleanup when using agent subnet injection
-## Container App Environment creates service association links that require time to cleanup
-resource "time_sleep" "wait_for_subnet_cleanup" {
-  count = var.agents_subnet_id != null ? 1 : 0
-
-  destroy_duration = var.subnet_cleanup_wait_time
-
-  depends_on = [azapi_resource.ai_foundry]
-}
-
 ## Purge soft-deleted Cognitive account AFTER account deletion (and optional delay).
 ## By having the module depend on this action, Terraform will destroy the module (account) first, then issue the purge.
 resource "azapi_resource_action" "purge_ai_foundry" {

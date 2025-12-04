@@ -27,7 +27,7 @@ variable "vnet_resource_group" {
 variable "subnet_destroy_time_sleep" {
   description = "Wait time for service association link cleanup after Container App Environment deletion"
   type        = string
-  default     = "5m"
+  default     = "15m"
 
   validation {
     condition     = can(regex("^[0-9]+[smh]$", var.subnet_destroy_time_sleep))
