@@ -65,7 +65,8 @@ export default async ({ context, github, core }) => {
 
     // Variables
     const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-    const checkTestResult = tfTestExitCode === '1'
+    const checkTestResult =
+      tfTestExitCode === '1'
         ? `An error occurred during the tests for \`${workDir}\` ❌`
         : `All tests passed successfully for \`${workDir}\` ✅`;
 
