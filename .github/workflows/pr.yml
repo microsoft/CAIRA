@@ -163,7 +163,7 @@ jobs:
         check-semantic-pr-title,
         linting_and_validation,
       ]
-    name: Success
+    name: Pull Request Success
     runs-on: ubuntu-24.04
     steps:
       - name: Success
