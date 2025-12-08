@@ -183,7 +183,7 @@ jobs:
       - name: Success
         run: |
           # check that every step passed
-          if [[ "{{ needs.check_changelog.result }}" == "success" && "{{ needs.dependency_review.result }}" == "success" && "{{ needs.check_semantic_pr_title.result }}" == "success" && "{{ needs.linting_and_validation.result }}" == "success" ]]; then
+          if [[ "${{ needs.check_changelog.result }}" == "success" && "${{ needs.dependency_review.result }}" == "success" && "${{ needs.check_semantic_pr_title.result }}" == "success" && "${{ needs.linting_and_validation.result }}" == "success" ]]; then
             echo "All required checks passed."
           else
             echo "Some required checks did not pass."
