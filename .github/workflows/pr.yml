@@ -22,7 +22,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  approval:
+    name: Approval
+    environment: PR # this is used to enforce approval requirements in the GitHub UI
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Approve
+        run: echo "Workflow was approved"
+
   check_changelog:
+    needs: [approval]
     name: Check Changelog
     runs-on: ubuntu-24.04
     steps:
@@ -51,6 +60,7 @@ jobs:
           fi
 
   dependency_review:
+    needs: [approval]
     name: Dependency Review
     if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     runs-on: ubuntu-24.04
@@ -62,6 +72,7 @@ jobs:
         uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
 
   check-semantic-pr-title:
+    needs: [approval]
     name: Check PR title
     if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     runs-on: ubuntu-24.04
@@ -74,6 +85,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linting_and_validation:
+    needs: [approval]
     if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     name: Linting and Validation
     runs-on: ubuntu-24.04
