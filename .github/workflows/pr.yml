@@ -153,3 +153,18 @@ jobs:
 
       - name: Build Site
         run: task site:build -- --strict
+
+  success:
+    needs:
+      [
+        approval,
+        check_changelog,
+        dependency_review,
+        check-semantic-pr-title,
+        linting_and_validation,
+      ]
+    name: Success
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Success
+        run: echo "All checks passed"
