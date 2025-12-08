@@ -160,11 +160,6 @@ jobs:
           INPUT_WORKDIR: ${{ matrix.src.path }}
           INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
           INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
-          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
-          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
-          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
-          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
-          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
           INPUT_TFTEST_OUTCOME: ${{ steps.testacc.outcome }}
           INPUT_TFTEST_EXITCODE: ${{ steps.testacc.outputs.exitcode }}
           INPUT_TFTEST_STDOUT_FILE: tftestacc_stdout.out
@@ -190,11 +185,6 @@ jobs:
           INPUT_WORKDIR: ${{ matrix.src.path }}
           INPUT_TFVERSION_VERSION: ${{ steps.version.outputs.version }}
           INPUT_TFVERSION_PLATFORM: ${{ steps.version.outputs.platform }}
-          INPUT_TFFMT_OUTCOME: ${{ steps.fmt.outcome }}
-          INPUT_TFINIT_OUTCOME: ${{ steps.init.outcome }}
-          INPUT_TFVALIDATE_OUTCOME: ${{ steps.validate.outcome }}
-          INPUT_TFPLAN_OUTCOME: ${{ steps.plan.outcome }}
-          INPUT_TFPLAN_EXITCODE: ${{ steps.plan.outputs.exitcode }}
           INPUT_TFTEST_OUTCOME: ${{ steps.testint.outcome }}
           INPUT_TFTEST_EXITCODE: ${{ steps.testint.outputs.exitcode }}
           INPUT_TFTEST_STDOUT_FILE: tftestint_stdout.out

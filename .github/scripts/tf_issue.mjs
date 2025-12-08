@@ -54,16 +54,6 @@ export default async ({ context, github, core }) => {
     const workDir = core.getInput('WORKDIR', { required: true });
     const tfVersionVersion = core.getInput('TFVERSION_VERSION', { required: true });
     const tfVersionPlatform = core.getInput('TFVERSION_PLATFORM') || `${process.platform}_${process.arch}`;
-    const tfFmtOutcome = core.getInput('TFFMT_OUTCOME') || 'unknown';
-    const tfInitOutcome = core.getInput('TFINIT_OUTCOME') || 'unknown';
-    const tfValidateOutcome = core.getInput('TFVALIDATE_OUTCOME') || 'unknown';
-    const tfValidateStdoutFile = core.getInput('TFVALIDATE_STDOUT_FILE') || 'tfvalidate_stdout.out';
-    const tfValidateStderrFile = core.getInput('TFVALIDATE_STDERR_FILE') || 'tfvalidate_stderr.out';
-    const tfPlanOutcome = core.getInput('TFPLAN_OUTCOME') || 'unknown';
-    const tfPlanExitCode = core.getInput('TFPLAN_EXITCODE') || 'unknown';
-    const tfPlanStdoutFile = core.getInput('TFPLAN_STDOUT_FILE') || 'tfplan_stdout.out';
-    const tfPlanStderrFile = core.getInput('TFPLAN_STDERR_FILE') || 'tfplan_stderr.out';
-    const tfPlanFile = core.getInput('TFPLAN_FILE') || 'tfplan.txt';
     const tfTestOutcome = core.getInput('TFTEST_OUTCOME') || 'unknown';
     const tfTestExitCode = core.getInput('TFTEST_EXITCODE') || 'unknown';
     const tfTestStdoutFile = core.getInput('TFTEST_STDOUT_FILE') || 'tftest_stdout.out';
@@ -75,17 +65,11 @@ export default async ({ context, github, core }) => {
 
     // Variables
     const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-    const checkTestResult =
-      tfPlanExitCode === '1' || tfTestExitCode === '1'
+    const checkTestResult = tfTestExitCode === '1'
         ? `An error occurred during the tests for \`${workDir}\` ❌`
         : `All tests passed successfully for \`${workDir}\` ✅`;
 
     // Process all file outputs using the helper function
-    const tfValidateStdoutResult = readAndProcessFile(workDir, tfValidateStdoutFile);
-    const tfValidateStderrResult = readAndProcessFile(workDir, tfValidateStderrFile);
-    const tfPlanResult = readAndProcessFile(workDir, tfPlanFile);
-    const tfPlanStdoutResult = readAndProcessFile(workDir, tfPlanStdoutFile);
-    const tfPlanStderrResult = readAndProcessFile(workDir, tfPlanStderrFile);
     const tfTestStdoutResult = readAndProcessFile(workDir, tfTestStdoutFile);
     const tfTestStderrResult = readAndProcessFile(workDir, tfTestStderrFile);
 
@@ -128,66 +112,6 @@ ${checkTestResult}
 **Workflow Run:** [${context.runId}](${runUrl})
 
 #### 🔢 Terraform Version and Platform: \`${tfVersionVersion}/${tfVersionPlatform}\`
-
-#### 🖌 Terraform Format and Style: \`${tfFmtOutcome} ${tfFmtOutcome === 'success' ? '✅' : '🛑'}\`
-
-#### ⚙️ Terraform Initialization: \`${tfInitOutcome} ${tfInitOutcome === 'success' ? '✅' : '🛑'}\`
-
-#### 🤖 Terraform Validation: \`${tfValidateOutcome} ${tfValidateOutcome === 'success' ? '✅' : '🛑'}\`
-
-<details><summary>Show Output</summary>
-
-\`\`\`text
-${tfValidateStdoutResult.truncatedContent}
-\`\`\`
-
-</details>
-
-${tfValidateStdoutResult.truncatedMessage}
-
-<details><summary>Show Error</summary>
-
-\`\`\`text
-${tfValidateStderrResult.truncatedContent}
-\`\`\`
-
-</details>
-
-${tfValidateStderrResult.truncatedMessage}
-
-#### 🩺 Terraform Plan Exit Code: \`${tfPlanExitCode}\`
-
-<details><summary>Show Output</summary>
-
-\`\`\`text
-${tfPlanStdoutResult.truncatedContent}
-\`\`\`
-
-</details>
-
-${tfPlanStdoutResult.truncatedMessage}
-
-<details><summary>Show Error</summary>
-
-\`\`\`text
-${tfPlanStderrResult.truncatedContent}
-\`\`\`
-
-</details>
-
-${tfPlanStderrResult.truncatedMessage}
-
-#### 📖 Terraform Plan: \`${tfPlanOutcome} ${tfPlanOutcome === 'success' ? '✅' : '🛑'}\`
-
-<details><summary>Show Output</summary>
-
-\`\`\`text
-${tfPlanResult.truncatedContent}
-\`\`\`
-
-</details>
-
-${tfPlanResult.truncatedMessage}
 
 ${tfTestExitCode !== 'unknown' ? testBody : ''}
 
@@ -234,14 +158,6 @@ ${tfTestExitCode !== 'unknown' ? testBody : ''}
     }
 
     // Output logs to console
-    await core.group('📖 Plan Output', async () => {
-      core.info(tfPlanResult.content);
-    });
-
-    await core.group('📖 Plan Error', async () => {
-      core.info(tfPlanStderrResult.content);
-    });
-
     if (tfTestExitCode !== 'unknown') {
       await core.group('🧪 Test Output', async () => {
         core.info(tfTestStdoutResult.content);
@@ -253,10 +169,6 @@ ${tfTestExitCode !== 'unknown' ? testBody : ''}
     }
 
     // Set failure status
-    if (tfPlanExitCode === '1') {
-      core.setFailed('Terraform Plan failed');
-    }
-
     if (tfTestExitCode === '1') {
       core.setFailed('Terraform Test failed');
     }
