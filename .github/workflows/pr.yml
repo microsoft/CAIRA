@@ -1,0 +1,143 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ format('{0}-{1}-{2}-{3}-{4}', github.workflow, github.event_name, github.ref, github.base_ref || null, github.head_ref || null) }}
+  cancel-in-progress: true
+
+jobs:
+  check_changelog:
+    name: Check Changelog
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Check if changelog exists
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            exists:
+              - added|modified: '.changes/unreleased/*.yaml'
+
+      - name: Check changelog or skip
+        env:
+          SKIP_CHANGELOG: ${{ !contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') && github.actor != 'dependabot[bot]' }}
+        run: |
+          if [ "${SKIP_CHANGELOG}" = "true" ]; then
+            exit 0
+          elif [ "${{ steps.filter.outputs.exists }}" = "true" ]; then
+            exit 0
+          else
+            echo "Changelog is missing. Please add a changelog entry running 'task project:changelog' and commit. or add the 'state/skip-changelog' label to skip this check."
+            exit 1
+          fi
+
+  dependency_review:
+    name: Dependency Review
+    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run Dependency Review
+        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
+
+  check-semantic-pr-title:
+    name: Check PR title
+    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Run Semantic PR validation
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  linting_and_validation:
+    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
+    name: Linting and Validation
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: lts/*
+
+      - name: Setup Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version: stable
+          check-latest: true
+
+      - name: Setup Task
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
+        with:
+          repo-token: ${{ github.token }}
+
+      - name: Setup tools
+        run: |
+          task internal:setup:uv
+          task tools
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Terraform validate
+        run: |
+          terraform init
+          terraform validate
+
+      - name: Generate docs
+        run: task docs
+
+      - name: Run linters
+        run: task lint
+
+      - name: Bot details
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        id: bot-details
+        uses: raven-actions/bot-details@b2d5fd6eb98adc0cb67df864daa834849f3a8bc0 # v1.1.0
+        with:
+          bot-slug-name: dependabot
+
+      # if the author is dependabot, commit potential changes back to the branch
+      - name: Dependabot auto-commit (docs)
+        uses: stefanzweifel/git-auto-commit-action@28e16e81777b558cc906c8750092100bbb34c5e3 # v7.0.0
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        with:
+          commit_message: "docs: automatic updates"
+          commit_user_name: ${{ steps.bot-details.outputs.name }}
+          commit_user_email: ${{ steps.bot-details.outputs.email }}
+          commit_options: "--no-verify --signoff"
+
+      # if the author is not dependabot, check for differences and fail if there are any
+      - name: Check for differences
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference. Run 'task docs' command and commit."; git diff --exit-code)
+
+      - name: Build Site
+        run: task site:build -- --strict
