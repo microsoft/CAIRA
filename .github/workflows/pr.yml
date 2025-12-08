@@ -118,8 +118,21 @@ jobs:
 
       - name: Terraform validate
         run: |
-          terraform init
-          terraform validate
+          cd reference_architectures
+
+          # get the list of subdirectories
+          SUB_DIRS=$(ls -d */)
+
+          # loop through each subdirectory
+          for subdir in $SUB_DIRS; do
+            echo "Validating Terraform configuration in $subdir"
+
+            cd "$subdir"
+            terraform init
+            terraform validate
+            cd ..
+
+          done
 
       - name: Generate docs
         run: task docs
