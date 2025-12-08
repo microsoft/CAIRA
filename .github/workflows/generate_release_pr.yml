@@ -22,16 +22,16 @@ jobs:
   generate-release-pr:
     runs-on: ubuntu-24.04
     steps:
-      - name: ⤵️ Checkout
+      - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: 🚧 Setup Changie
+      - name: Setup Changie
         uses: miniscruff/changie-action@5036dffa79ffc007110dc7f75eca7ef72780e147 # v2.1.0
         with:
           version: latest
           args: --version
 
-      - name: 📜 Compile Changelog
+      - name: Compile Changelog
         id: changelog
         run: |
           changie batch auto --project "${PROJECT}"
@@ -42,7 +42,7 @@ jobs:
         env:
           PROJECT: ${{ github.event.inputs.project }}
 
-      - name: 📤 Create Pull Request
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412 # v7.0.9
         with:
           title: "chore(release): ${{ github.event.inputs.project }}/${{ steps.changelog.outputs.version }}"
