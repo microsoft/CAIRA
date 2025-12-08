@@ -72,7 +72,7 @@ jobs:
       - name: Run Dependency Review
         uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
 
-  check-semantic-pr-title:
+  check_semantic_pr_title:
     needs: [approval]
     name: Check PR title
     if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
@@ -171,14 +171,21 @@ jobs:
   success:
     needs:
       [
-        approval,
         check_changelog,
         dependency_review,
-        check-semantic-pr-title,
+        check_semantic_pr_title,
         linting_and_validation,
       ]
+    if: ${{ always() }}
     name: Pull Request Success
     runs-on: ubuntu-24.04
     steps:
       - name: Success
-        run: echo "All checks passed"
+        run: |
+          # check that every step passed
+          if [[ "{{ needs.check_changelog.result }}" == "success" && "{{ needs.dependency_review.result }}" == "success" && "{{ needs.check_semantic_pr_title.result }}" == "success" && "{{ needs.linting_and_validation.result }}" == "success" ]]; then
+            echo "All required checks passed."
+          else
+            echo "Some required checks did not pass."
+            exit 1
+          fi
