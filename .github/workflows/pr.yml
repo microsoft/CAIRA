@@ -63,7 +63,6 @@ jobs:
   dependency_review:
     needs: [approval]
     name: Dependency Review
-    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -75,7 +74,6 @@ jobs:
   check_semantic_pr_title:
     needs: [approval]
     name: Check PR title
-    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: read
@@ -87,7 +85,6 @@ jobs:
 
   linting_and_validation:
     needs: [approval]
-    if: github.event_name != 'labeled' && github.event_name != 'unlabeled'
     name: Linting and Validation
     runs-on: ubuntu-24.04
     steps:
