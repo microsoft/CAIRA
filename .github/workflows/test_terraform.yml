@@ -102,6 +102,7 @@ jobs:
     needs: changes
     permissions:
       issues: write
+      id-token: write
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:
