@@ -56,7 +56,7 @@ jobs:
           elif [ "${{ steps.filter.outputs.exists }}" = "true" ]; then
             exit 0
           else
-            echo "Changelog is missing. Please add a changelog entry running 'task project:changelog' and commit. or add the 'state/skip-changelog' label to skip this check."
+            echo "Changelog is missing. Please add a changelog entry running 'task project:changelog' and commit, or add the 'state/skip-changelog' label to skip this check."
             exit 1
           fi
 
