@@ -1,5 +1,5 @@
 ---
-name: 🚀 Release
+name: Release
 
 on:
   push:
@@ -14,15 +14,15 @@ permissions:
 
 jobs:
   release:
-    name: 🚀 Release
+    name: Release
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - name: ⤵️ Checkout
+      - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
-      - name: 🏷️ Check for changelog
+      - name: Check for changelog
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
@@ -31,7 +31,7 @@ jobs:
             changelog:
               - added: '.changes/**/v*.md'
 
-      - name: 🏷️ Get Release Tag
+      - name: Get Release Tag
         id: tag
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
@@ -44,14 +44,14 @@ jobs:
           INPUT_CHANGES: ${{ steps.filter.outputs.changelog_files }}
           INPUT_PROJECT_SRC: reference_architectures
 
-      - name: 🤖 Get bot details
+      - name: Get bot details
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         id: bot_details
         uses: raven-actions/bot-details@b2d5fd6eb98adc0cb67df864daa834849f3a8bc0 # v1.1.0
         with:
           set-env: false
 
-      - name: 🔖 Push Release Tag
+      - name: Push Release Tag
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         run: |
           git config --global user.name "${USER_NAME}"
@@ -63,7 +63,7 @@ jobs:
           USER_EMAIL: ${{ steps.bot_details.outputs.email }}
           RELEASE_TAG: ${{ steps.tag.outputs.release_tag }}
 
-      - name: 🚀 Release
+      - name: Release
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         run: |
           gh release create "${RELEASE_TAG}" --verify-tag --latest=false --title "${RELEASE_TAG}" -F "${CHANGELOG_FILE}"
