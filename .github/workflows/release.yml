@@ -47,7 +47,7 @@ jobs:
       - name: Get bot details
         if: ${{ steps.filter.outputs.changelog == 'true' }}
         id: bot_details
-        uses: raven-actions/bot-details@b2d5fd6eb98adc0cb67df864daa834849f3a8bc0 # v1.1.0
+        uses: raven-actions/bot-details@ee8966a9ff6e7e42cbfc4a56b4ddb60a9d1b40a6 # v1.2.0
         with:
           set-env: false
 
