@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 ---
-name: Terraform Test
+name: Test Terraform
 
-# IMPORTANT: This workflow triggers on multiple event types with different contexts:
+# IMPORTANT: This workflow triggers on different event types with different contexts:
 #
 # 1. schedule: Nightly runs - minimal context available
 # 2. workflow_dispatch: Manual runs - github.event.inputs.* available
@@ -98,6 +98,7 @@ jobs:
 
   test:
     if: needs.changes.outputs.src != '[]' && needs.changes.outputs.src != ''
+    environment: Integration
     needs: changes
     permissions:
       issues: write
