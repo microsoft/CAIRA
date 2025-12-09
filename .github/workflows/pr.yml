@@ -49,7 +49,7 @@ jobs:
 
       - name: Check changelog or skip
         env:
-          SKIP_CHANGELOG: ${{ !contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') && github.actor != 'dependabot[bot]' }}
+          SKIP_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') || github.actor == 'dependabot[bot]' }}
         run: |
           if [ "${SKIP_CHANGELOG}" = "true" ]; then
             exit 0
