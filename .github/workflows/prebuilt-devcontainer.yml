@@ -29,20 +29,12 @@ jobs:
         with:
           node-version: lts/*
 
-      - name: Setup devcontainers cli
-        run: npm install -g @devcontainers/cli
-
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
           cosign-release: "v2.2.4"
-
-      - name: Build devcontainer image locally
-        run: |
-          docker buildx create --name ci --driver docker-container --use --bootstrap
-          devcontainer build --workspace-folder . --image-name ${{ env.BASE_IMAGE_NAME }} --platform linux/amd64,linux/arm64
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -58,6 +50,19 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup devcontainers cli
+        run: npm install -g @devcontainers/cli
+
+      - name: Build devcontainer image locally
+        run: |
+          devcontainer build \
+            --workspace-folder . \
+            --image-name ${{ env.BASE_IMAGE_NAME }} \
+            --platform linux/amd64,linux/arm64 \
+            --output type=docker \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
