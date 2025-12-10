@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  BASE_IMAGE_NAME: caira-devcontainer-base
+  BASE_IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer-base
   IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer
 
 jobs:
@@ -58,9 +58,9 @@ jobs:
         run: |
           devcontainer build \
             --workspace-folder . \
-            --image-name ${{ env.BASE_IMAGE_NAME }} \
+            --image-name ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }} \
             --platform linux/amd64,linux/arm64 \
-            --output type=docker \
+            --push
             --cache-from type=gha \
             --cache-to type=gha,mode=max
 
