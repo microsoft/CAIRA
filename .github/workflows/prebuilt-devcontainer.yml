@@ -2,7 +2,7 @@ name: Prebuilt Devcontainer
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+    - cron: "0 3 * * *" # Runs at 03:00 UTC every day
   workflow_dispatch:
 
 env:
@@ -13,6 +13,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     permissions:
       contents: read
       packages: write
@@ -50,21 +51,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup devcontainers cli
-        run: npm install -g @devcontainers/cli
-
-      - name: Build devcontainer image locally
-        run: |
-          lowercase_image_name=$(echo "${{ env.BASE_IMAGE_NAME }}" | tr 'A-Z' 'a-z')
-
-          devcontainer build \
-            --workspace-folder . \
-            --image-name ${{ env.REGISTRY }}/$lowercase_image_name \
-            --platform linux/amd64,linux/arm64 \
-            --push
-            --cache-from type=gha \
-            --cache-to type=gha,mode=max
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
