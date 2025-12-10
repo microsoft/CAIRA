@@ -60,6 +60,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Lowercase base image name
+        run: echo "BASE_IMAGE_NAME_LOWERCASE=$(echo '${{ env.BASE_IMAGE_NAME }}' | tr 'A-Z' 'a-z')" >> $GITHUB_ENV
+
       # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -73,7 +76,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          args: BASE_DEVCONTAINER_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}
+          args: BASE_DEVCONTAINER_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME_LOWERCASE }}
+          platforms: linux/amd64,linux/arm64
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
