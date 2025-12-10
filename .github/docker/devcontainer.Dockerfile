@@ -1,10 +1,13 @@
 ARG BASE_DEVCONTAINER_IMAGE
 FROM ${BASE_DEVCONTAINER_IMAGE}
 
-USER vscode
-WORKDIR /home/vscode
+USER root
 
-RUN sudo chown -R $(id -un):$(id -gn) $HOME/.local
+RUN sudo echo "test"
+RUN chown -R vscode:vscode /home/vscode/.local
+
+#USER vscode
+WORKDIR /home/vscode
 
 # Add task files
 RUN mkdir -p /home/vscode/task
@@ -24,5 +27,8 @@ RUN task tools
 
 WORKDIR /home/vscode
 
-RUN sudo chown -R $(id -un):$(id -gn) /home/vscode
-RUN rm -rf /home/vscode/task
+#USER root
+RUN chown -R vscode:vscode /home/vscode
+#RUN rm -rf /home/vscode/task
+
+USER vscode
