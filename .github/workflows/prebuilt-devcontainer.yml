@@ -56,9 +56,11 @@ jobs:
 
       - name: Build devcontainer image locally
         run: |
+          lowercase_image_name=$(echo "${{ env.BASE_IMAGE_NAME }}" | tr 'A-Z' 'a-z')
+
           devcontainer build \
             --workspace-folder . \
-            --image-name ${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }} \
+            --image-name ${{ env.REGISTRY }}/$lowercase_image_name \
             --platform linux/amd64,linux/arm64 \
             --push
             --cache-from type=gha \
