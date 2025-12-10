@@ -1,13 +1,18 @@
 ARG BASE_DEVCONTAINER_IMAGE
-FROM ${BASE_DEVCONTAINER_IMAGE}
+FROM ${BASE_DEVCONTAINER_IMAGE:-ghcr.io/microsoft/caira/caira-prebuilt-devcontainer-base:latest}
 
 USER root
 
-RUN sudo echo "test"
-RUN chown -R vscode:vscode /home/vscode/.local
+# Fake environment for vscode user
+ENV HOME=/home/vscode
+ENV USER=vscode
+ENV XDG_CONFIG_HOME=/home/vscode/.config
+ENV XDG_CACHE_HOME=/home/vscode/.cache
+ENV XDG_DATA_HOME=/home/vscode/.local/share
+ENV PATH=/usr/local/python/current/bin:/usr/local/share/nvm/versions/node/v24.12.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/go/bin:/go/bin
 
-#USER vscode
-WORKDIR /home/vscode
+# Set the same PATH for future vscode sessions
+RUN echo 'export PATH=/usr/local/python/current/bin:/usr/local/share/nvm/versions/node/v24.12.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/go/bin:/go/bin' >> /home/vscode/.profile
 
 # Add task files
 RUN mkdir -p /home/vscode/task
@@ -25,10 +30,11 @@ RUN git init . && \
 
 RUN task tools
 
-WORKDIR /home/vscode
+RUN rm -rf /home/vscode/task
 
-#USER root
+# Ensure vscode user owns its home directory
 RUN chown -R vscode:vscode /home/vscode
-#RUN rm -rf /home/vscode/task
+
+WORKDIR /home/vscode
 
 USER vscode

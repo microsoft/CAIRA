@@ -1,3 +1,4 @@
+---
 name: Prebuilt Devcontainer base
 
 on:
@@ -9,6 +10,11 @@ env:
   REGISTRY: ghcr.io
   BASE_IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer-base
   IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer
+
+permissions:
+  contents: read
+  packages: read
+  id-token: none
 
 jobs:
   build:
@@ -50,11 +56,13 @@ jobs:
 
       - name: Build and push base devcontainer image locally
         run: |
-          lowercase_image_name=$(echo "${{ env.BASE_IMAGE_NAME }}" | tr 'A-Z' 'a-z')
+          # shellcheck disable=SC2086
+
+          lowercase_image_name=$(echo "${{ env.BASE_IMAGE_NAME }}" | tr '[:upper:]' '[:lower:]')
 
           devcontainer build \
             --workspace-folder . \
-            --image-name ${{ env.REGISTRY }}/$lowercase_image_name \
+            --image-name "${{ env.REGISTRY }}/$lowercase_image_name" \
             --platform linux/amd64,linux/arm64 \
             --push \
             --cache-from type=gha \
