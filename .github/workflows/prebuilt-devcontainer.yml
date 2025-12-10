@@ -76,7 +76,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          args: BASE_DEVCONTAINER_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME_LOWERCASE }}
+          build-args: BASE_DEVCONTAINER_IMAGE=${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME_LOWERCASE }}
           platforms: linux/amd64,linux/arm64
 
       # Sign the resulting Docker image digest except on PRs.
