@@ -97,9 +97,11 @@ jobs:
       - name: Cache settings
         run: |
           # shellcheck disable=SC2086
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.cache }}" = "true" ]; then
+          if [ "${{ github.event.inputs.cache }}" = "true" ]; then
             echo "CACHE_FROM=type=gha" >> $GITHUB_ENV
           else
+
+            # if false or it is a scheduled run, don't use cache
             echo "CACHE_FROM=" >> $GITHUB_ENV
           fi
 
