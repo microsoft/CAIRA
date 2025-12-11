@@ -18,7 +18,7 @@ tasks:
         vars:
           APP: changie
       - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/miniscruff/changie/releases/latest | grep -o -E "https://.+?_linux_amd64.tar.gz")" > ~/changie.tar.gz
+          curl -L "$(curl -L {{.GH_CURL_AUTH}} -s https://api.github.com/repos/miniscruff/changie/releases/latest | grep -o -E "https://.+?_linux_amd64.tar.gz")" > ~/changie.tar.gz
           tar -xf ~/changie.tar.gz --directory ~/ changie \
             && rm -f ~/changie.tar.gz \
             && sudo install ~/changie /usr/local/bin/changie \

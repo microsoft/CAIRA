@@ -36,11 +36,11 @@ tasks:
           APP: "{{.ITEM}}"
         platforms: [windows]
       - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_linux_amd64")" > ~/shfmt
+          curl -L "$(curl -L {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_linux_amd64")" > ~/shfmt
           sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
         platforms: [linux]
       - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_darwin_arm64")" > ~/shfmt
+          curl -L "$(curl -L {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_darwin_arm64")" > ~/shfmt
           sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
         platforms: [darwin]
 

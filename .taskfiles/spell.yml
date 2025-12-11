@@ -35,8 +35,8 @@ tasks:
           APP: lychee
       - cmd: |
           arch=$(uname -m)
-          download_url=$(curl {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/lycheeverse/lychee/releases/latest" | grep 'browser_download_url.*lychee-'"${arch}"'.*gnu.*tar.gz' | grep -o 'https://[^"]*')
-          curl --location -o ~/lychee.tar.gz "${download_url}" \
+          download_url=$(curl -L {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/lycheeverse/lychee/releases/latest" | grep 'browser_download_url.*lychee-'"${arch}"'.*gnu.*tar.gz' | grep -o 'https://[^"]*')
+          curl -L --location -o ~/lychee.tar.gz "${download_url}" \
             && tar -xf ~/lychee.tar.gz --directory ~/ lychee \
             && rm -f ~/lychee.tar.gz \
             && sudo mv ~/lychee /usr/local/bin/

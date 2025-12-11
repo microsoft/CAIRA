@@ -18,7 +18,7 @@ tasks:
         vars:
           APP: actionlint
       - cmd: |
-          curl {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf  https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | sudo bash -s -- latest /usr/local/bin
+          curl -L {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf  https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | sudo bash -s -- latest /usr/local/bin
         platforms: [linux]
 
   # * Install ACT
@@ -32,7 +32,7 @@ tasks:
         vars:
           APP: act
       - cmd: |
-          curl {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash -s -- -b /usr/local/bin
+          curl -L {{.GH_CURL_AUTH}} --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash -s -- -b /usr/local/bin
         platforms: [linux]
 
   # * Install GitHub CLI
