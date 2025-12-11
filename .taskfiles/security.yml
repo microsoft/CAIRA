@@ -28,7 +28,7 @@ tasks:
             exit 1
           fi
           download_url=$(curl -L {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"${arch}"'.*tar.gz"' | grep -o 'https://[^"]*')
-          curl -L --location -o ~/gitleaks.tar.gz "${download_url}" \
+          curl --location -o ~/gitleaks.tar.gz "${download_url}" \
             && tar -xf ~/gitleaks.tar.gz --directory ~/ \
             && rm -f ~/gitleaks.tar.gz \
             && sudo mv ~/gitleaks /usr/local/bin/
