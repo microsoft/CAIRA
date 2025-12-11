@@ -10,10 +10,6 @@ ENV USER=vscode
 ENV XDG_CONFIG_HOME=/home/vscode/.config
 ENV XDG_CACHE_HOME=/home/vscode/.cache
 ENV XDG_DATA_HOME=/home/vscode/.local/share
-ENV PATH=/usr/local/python/current/bin:/usr/local/share/nvm/versions/node/v24.12.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/go/bin:/go/bin
-
-# Set the same PATH for future vscode sessions
-RUN echo 'export PATH=/usr/local/python/current/bin:/usr/local/share/nvm/versions/node/v24.12.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/home/vscode/.local/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/go/bin:/go/bin' >> /home/vscode/.profile
 
 # Add task files
 RUN mkdir -p /home/vscode/task
