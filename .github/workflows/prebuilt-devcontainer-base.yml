@@ -59,6 +59,7 @@ jobs:
 
           devcontainer build \
             --workspace-folder . \
+            --config ./.devcontainer/local/devcontainer.json \
             --image-name "${{ env.REGISTRY }}/$lowercase_image_name" \
             --platform linux/amd64,linux/arm64 \
             --push \
