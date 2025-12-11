@@ -19,7 +19,7 @@ env:
 permissions:
   contents: read
   packages: read
-  id-token: none
+  id-token: read
 
 jobs:
   build:
