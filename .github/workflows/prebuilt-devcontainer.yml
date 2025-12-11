@@ -19,7 +19,6 @@ env:
 permissions:
   contents: read
   packages: read
-  id-token: read
 
 jobs:
   build:
