@@ -54,7 +54,7 @@ jobs:
       - name: Setup devcontainers cli
         run: npm install -g @devcontainers/cli
 
-      - name: Build and push base devcontainer image locally
+      - name: Build and push base devcontainer image
         run: |
           # shellcheck disable=SC2086
 
