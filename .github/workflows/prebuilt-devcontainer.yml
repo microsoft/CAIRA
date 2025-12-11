@@ -11,6 +11,11 @@ on:
         required: false
         default: "latest"
 
+      cache:
+        description: "Use cache when building the image"
+        required: false
+        default: true
+
 env:
   REGISTRY: ghcr.io
   BASE_IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer-base:latest
@@ -83,9 +88,20 @@ jobs:
 
       - name: Lowercase images
         run: |
-          # shellcheck disable=SC2060,SC2086
+          # shellcheck disable=SC2086
           echo "BASE_DEVCONTAINER_IMAGE_LOWERCASE=$(echo '${{ env.REGISTRY }}/${{ env.BASE_IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+          # shellcheck disable=SC2086
           echo "DEVCONTAINER_IMAGE_LOWERCASE=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Cache settings
+        run: |
+          # shellcheck disable=SC2086
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.cache }}" = "true" ]; then
+            echo "CACHE_FROM=type=gha" >> $GITHUB_ENV
+          else
+            echo "CACHE_FROM=" >> $GITHUB_ENV
+          fi
 
       # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
@@ -98,7 +114,7 @@ jobs:
           push: true
           tags: ${{ env.DEVCONTAINER_IMAGE_LOWERCASE }}:${{ env.TAG }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+          cache-from: ${{ env.CACHE_FROM }}
           cache-to: type=gha,mode=max
           build-args: BASE_DEVCONTAINER_IMAGE=${{ env.BASE_DEVCONTAINER_IMAGE_LOWERCASE }}
           platforms: linux/amd64,linux/arm64
