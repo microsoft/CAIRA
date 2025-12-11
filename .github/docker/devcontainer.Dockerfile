@@ -1,7 +1,7 @@
 ARG BASE_DEVCONTAINER_IMAGE
 FROM ${BASE_DEVCONTAINER_IMAGE:-ghcr.io/microsoft/caira/caira-prebuilt-devcontainer-base:latest}
 LABEL devcontainer.metadata="[]"
-
+HEALTHCHECK NONE
 USER root
 
 # Fake environment for vscode user
