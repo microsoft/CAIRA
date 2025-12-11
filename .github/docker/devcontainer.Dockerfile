@@ -23,6 +23,8 @@ COPY ./mkdocs.yml /home/vscode/task
 
 WORKDIR /home/vscode/task
 
+# Create a temporary git repo to satisfy task's git dependency.
+# This is removed after task installs the tools.
 RUN git init . && \
   git config user.email "devcontainer@localhost" && \
   git config user.name "devcontainer" && \
