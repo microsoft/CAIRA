@@ -1,6 +1,6 @@
 {
   "name": "CAIRA-prebuilt",
-  "image": "ghcr.io/microsoft/caira/caira-prebuilt-devcontainer:main",
+  "image": "ghcr.io/microsoft/caira-prebuilt-devcontainer:latest",
   "features": {},
   "onCreateCommand": {
     "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME/.local"

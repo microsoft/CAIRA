@@ -5,10 +5,15 @@ on:
   schedule:
     - cron: "0 3 * * *" # Runs at 03:00 UTC every day
   workflow_dispatch:
+    inputs: #checkov:skip=CKV_GHA_7
+      tag:
+        description: "Tag to build (default: latest)"
+        required: false
+        default: "latest"
 
 env:
   REGISTRY: ghcr.io
-  BASE_IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer-base
+  BASE_IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer-base:latest
   IMAGE_NAME: ${{ github.repository }}-prebuilt-devcontainer
 
 permissions:
@@ -30,6 +35,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up tag
+        run: |
+          # if it's a scheduled run, use 'latest' as the tag.
+          # if it's a manual run, use the provided tag.
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            TAG="latest"
+          else
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+
+          echo "Setting tag to" "${TAG}"
+
+          # shellcheck disable=SC2086
+          echo "TAG=${TAG}" >> $GITHUB_ENV
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -75,7 +96,7 @@ jobs:
           context: .
           file: .github/docker/devcontainer.Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.TAG }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
