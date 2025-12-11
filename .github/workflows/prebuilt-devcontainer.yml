@@ -15,6 +15,7 @@ on:
         description: "Use cache when building the image"
         required: false
         default: true
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
