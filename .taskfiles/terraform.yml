@@ -65,7 +65,7 @@ tasks:
             exit 1
           fi
           download_url=$(curl -L {{.GH_CURL_AUTH}} --silent "https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest" | grep 'browser_download_url.*terraform-docs.*linux-'"${arch}"'.*tar.gz"' | grep -o 'https://[^"]*')
-          curl -L --location -o ~/terraform-docs.tar.gz "${download_url}" \
+          curl --location -o ~/terraform-docs.tar.gz "${download_url}" \
             && tar -xf ~/terraform-docs.tar.gz --directory ~/ \
             && rm -f ~/terraform-docs.tar.gz \
             && chmod +x ~/terraform-docs \
