@@ -4,6 +4,7 @@ title: "Kata: Validating CAIRA with Sample AI Application"
 description: Learn to validate deployed CAIRA infrastructure by deploying and testing a sample Python AI application with end-to-end inference and authentication verification.
 author: HVE Essentials Team
 ms.date: 12/10/2024
+ms.topic: how-to-guide
 
 # Kata Identity
 kata_id: caira-fundamentals-350-validating-with-sample-app
