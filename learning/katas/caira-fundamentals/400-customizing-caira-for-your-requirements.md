@@ -204,8 +204,6 @@ You're a platform engineer preparing CAIRA infrastructure for a production AI te
 
 2. **Review** what is configurable
    - [ ] Open `variables.tf` in your chosen architecture folder
-2. **Review** what is configurable
-   - [ ] Open `variables.tf` in your chosen architecture folder
    - [ ] Identify the variables you want to set explicitly (location, tags, resource group settings, telemetry settings)
    - **Validation checkpoint**: Can you find each variable name and type in `variables.tf`?
    - [ ] **Expected result**: You have a short list of supported variables to override

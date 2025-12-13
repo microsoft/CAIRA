@@ -325,135 +325,15 @@ az group show --name <your-rg-name>
    - **Troubleshooting**: If tests hang beyond 60 seconds, check network connectivity and model availability
    - [ ] **Expected result**: Complete validation suite passing with performance baselines established (fast: <5s, complex: 30-60s)
 
-### Task 3: Run Comprehensive Tests and Document Results (20 minutes)
+### Task 3: Execute Tests and Document Results (20 minutes)
 
 <!-- AI_COACH: Focus on comprehensive validation testing and professional documentation. Since learners deployed the infrastructure in Kata 200, they already have sufficient permissions. The value here is in systematic testing, performance measurement, and creating reusable validation artifacts for their team. Guide them to think about: What test scenarios prove the infrastructure is production-ready? How would application teams use this validation? What documentation helps others reproduce and understand this validation? -->
 
-**What You'll Do**: Execute comprehensive validation tests across multiple scenarios, measure performance, and create professional documentation for team handoff.
+**What You'll Do**: Execute the comprehensive validation tests from Task 2, analyze results, and create professional documentation for team handoff.
 
 **Steps**:
 
-1. **Create** comprehensive validation test suite
-   - [ ] Create `comprehensive_test.py` that tests multiple scenarios:
-     ```python
-     import os
-     import time
-     from openai import AzureOpenAI
-     from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-     from dotenv import load_dotenv
-
-     load_dotenv()
-
-     endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT")
-     model = os.getenv("AZURE_AI_MODEL_NAME")
-
-     print("=" * 60)
-     print("CAIRA Validation Test Suite")
-     print("=" * 60)
-
-     # Authentication
-     token_provider = get_bearer_token_provider(
-         DefaultAzureCredential(),
-         "https://cognitiveservices.azure.com/.default"
-     )
-
-     client = AzureOpenAI(
-         azure_endpoint=endpoint,
-         azure_ad_token_provider=token_provider,
-         api_version="2024-10-21"
-     )
-
-     print(f"\n✓ Authenticated with Azure CLI credentials")
-     print(f"✓ Endpoint: {endpoint}")
-     print(f"✓ Model: {model}")
-
-     # Test scenarios
-     test_cases = [
-         ("Simple Math", "What is 2+2?", 20),
-         ("Technical Explanation", "Explain Infrastructure as Code in 2 sentences.", 100),
-         ("Complex Reasoning", "Compare Terraform and ARM templates. List 3 key differences.", 150),
-     ]
-
-     print("\n" + "=" * 60)
-     print("Running Validation Tests")
-     print("=" * 60)
-
-     results = []
-
-     for test_name, prompt, max_tokens in test_cases:
-         print(f"\n[Test: {test_name}]")
-         print(f"Prompt: {prompt}")
-
-         try:
-             start_time = time.time()
-             response = client.chat.completions.create(
-                 model=model,
-                 messages=[
-                     {"role": "system", "content": "You are a helpful assistant. Be concise."},
-                     {"role": "user", "content": prompt}
-                 ],
-                 max_tokens=max_tokens
-             )
-             elapsed = time.time() - start_time
-
-             answer = response.choices[0].message.content
-             print(f"✓ Success (Response time: {elapsed:.2f}s)")
-             print(f"Response: {answer[:100]}..." if len(answer) > 100 else f"Response: {answer}")
-
-             results.append({
-                 "test": test_name,
-                 "status": "PASS",
-                 "time": f"{elapsed:.2f}s",
-                 "tokens": response.usage.total_tokens
-             })
-
-         except Exception as e:
-             print(f"✗ Failed: {e}")
-             results.append({
-                 "test": test_name,
-                 "status": "FAIL",
-                 "time": "N/A",
-                 "tokens": "N/A"
-             })
-
-     # Error handling test
-     print(f"\n[Test: Error Handling]")
-     print("Testing with invalid model name...")
-     try:
-         client_test = AzureOpenAI(
-             azure_endpoint=endpoint,
-             azure_ad_token_provider=token_provider,
-             api_version="2024-10-21"
-         )
-         response = client_test.chat.completions.create(
-             model="invalid-model-name",
-             messages=[{"role": "user", "content": "test"}],
-             max_tokens=10
-         )
-         print("✗ Should have failed with invalid model")
-         results.append({"test": "Error Handling", "status": "FAIL", "time": "N/A", "tokens": "N/A"})
-     except Exception as e:
-         print(f"✓ Correctly caught error: {type(e).__name__}")
-         results.append({"test": "Error Handling", "status": "PASS", "time": "N/A", "tokens": "N/A"})
-
-     # Summary
-     print("\n" + "=" * 60)
-     print("Test Summary")
-     print("=" * 60)
-     for r in results:
-         status_icon = "✓" if r["status"] == "PASS" else "✗"
-         print(f"{status_icon} {r['test']}: {r['status']} (Time: {r['time']}, Tokens: {r['tokens']})")
-
-     passed = sum(1 for r in results if r["status"] == "PASS")
-     total = len(results)
-     print(f"\nTotal: {passed}/{total} tests passed")
-     print("=" * 60)
-
-     exit(0 if passed == total else 1)
-     ```
-   - [ ] **Expected result**: Automated test suite ready to execute
-
-2. **Execute** comprehensive validation tests
+1. **Execute** comprehensive validation tests from Task 2
    - [ ] Run the comprehensive test suite: `python comprehensive_test.py`
    - [ ] Observe test execution:
      - Simple math test completes successfully
@@ -465,7 +345,7 @@ az group show --name <your-rg-name>
    - **Pro tip**: Save the test output to a log file: `python comprehensive_test.py | tee test_results.log`
    - [ ] **Expected result**: All 4 tests passing with documented response times and token usage
 
-3. **Create** professional validation report
+2. **Create** professional validation report
    - [ ] Create `VALIDATION_REPORT.md` with comprehensive documentation:
      - **Infrastructure Summary**: List all deployed resources from Task 1
      - **Configuration Values**: Document subscription, resource group, endpoint, model name
@@ -479,7 +359,7 @@ az group show --name <your-rg-name>
    - **Success check**: A teammate could use this report to deploy their own AI application without additional help
    - [ ] **Expected result**: Professional validation report ready for team knowledge base
 
-4. **Save** validation artifacts for reuse
+3. **Save** validation artifacts for reuse
    - [ ] Commit `comprehensive_test.py` as reusable validation script
    - [ ] Commit `VALIDATION_REPORT.md` as validation evidence
    - [ ] Save `.env` file template (without secrets) for future reference
