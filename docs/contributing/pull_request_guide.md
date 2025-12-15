@@ -93,7 +93,7 @@ Use our pull request template (automatically populated). Include:
 
 ### Linking Issues
 
-Link your PR relevant issues using GitHub keywords:
+Link your PR to relevant issues using GitHub keywords:
 
 ```markdown
 Closes #123
