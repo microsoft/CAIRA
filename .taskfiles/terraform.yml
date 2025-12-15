@@ -91,11 +91,6 @@ tasks:
     desc: Install Terrascan
     cmds:
       - cmd: |
-          {{.PWSH}} 'Invoke-WebRequest -Uri ((Invoke-RestMethod https://api.github.com/repos/tenable/terrascan/releases/latest).assets | Where-Object { $_.browser_download_url -match "Windows_x86_64\.tar\.gz$" } | Select-Object -ExpandProperty browser_download_url) -OutFile "$env:TMP\terrascan.tar.gz"'
-          {{.PWSH}} 'tar -xzf "$env:TMP\terrascan.tar.gz" -C "$env:TMP" terrascan.exe'
-          {{.PWSH}} 'Remove-Item "$env:TMP\terrascan.tar.gz" -Force'
-        platforms: [windows]
-      - cmd: |
           curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Darwin_x86_64.tar.gz")" > ~/terrascan.tar.gz
           tar -xf ~/terrascan.tar.gz --directory ~/ terrascan \
             && rm -f ~/terrascan.tar.gz \
@@ -141,33 +136,15 @@ tasks:
         platforms: [linux, darwin, windows]
       - cmd: |
           find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\.terraform\\' } | ForEach-Object { terrafmt fmt $_.FullName --fix-finish-lines --quiet}'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
   docs:
     desc: Generate Terraform documentation
-    # vars:
-    #   ITEMS:
-    #     sh: "task tf:get:modules"
     cmds:
       - terraform-docs -c ./.github/configs/.terraform-docs.yml modules
       - terraform-docs -c ./.github/configs/.terraform-docs.yml reference_architectures
       - terraform-docs -c ./.github/configs/.terraform-docs.yml testing
-      # - for: { var: ITEMS }
-      #   cmd: terraform-docs -c ./.terraform-docs.yml "{{osClean .ITEM}}"
-      # - for: { var: ITEMS }
-      #   cmd: |
-      #     {{.PWSH}} '$name = Split-Path "{{osClean .ITEM}}" -Leaf; (Get-Content "./{{osClean .ITEM}}/README.md") -replace "__NAME__", $name | Set-Content "./{{osClean .ITEM}}/README.md"'
-      #   platforms: [windows]
-      # - for: { var: ITEMS }
-      #   cmd: |
-      #     sed -i "s/__NAME__/$(basename "{{osClean .ITEM}}")/g" "./{{osClean .ITEM}}/README.md"
-      #     sed -i -e '$a\' "./{{osClean .ITEM}}/README.md"
-      #   platforms: [linux, darwin]
     dir: "{{.ROOT_DIR}}"
 
   # * Clean
@@ -179,13 +156,6 @@ tasks:
           find ./ -name ".terraform" -type d -exec rm -rf {} \;
           find ./ -name "*.terraform.lock.*" -type f -exec rm -f {} \;
           find ./ -name "*.tfstate*" -type f -exec rm -f {} \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include ".external_modules" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include ".terraform" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "*.terraform.lock.*" -File -Recurse | Remove-Item -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "*.tfstate*" -File -Recurse | Remove-Item -Force -Confirm:$false'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
   # * Run Acceptance Test
@@ -256,8 +226,4 @@ tasks:
     silent: true
     cmds:
       - cmd: find "{{osClean .PATH}}" -mindepth 2 -not -path "*/.*" -type f -name "*.tf" -exec dirname {} \; | sort -u
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} '(Get-ChildItem "{{osClean .PATH}}" *.tf -Recurse).DirectoryName | Where-Object {$_ -notmatch "\\(\..*)\\" } | Select-Object -Unique | ForEach-Object { Resolve-Path -Relative $_ }'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"

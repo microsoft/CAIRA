@@ -297,7 +297,7 @@ check_frontmatter() {
       fi
     fi
 
-    # Validate keywords array (applies to all content types) - EXACT MATCH TO POWERSHELL
+    # Validate keywords array (applies to all content types)
     if [[ -n "${fields['keywords']:-}" ]]; then
       if [[ "${fields['keywords_is_array']:-}" == "true" ]]; then
         local array_length="${fields['keywords_length']:-0}"

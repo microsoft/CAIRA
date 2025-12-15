@@ -36,10 +36,6 @@ tasks:
     dir: "{{.ROOT_DIR}}"
     cmds:
       - cmd: ./.github/scripts/validate-markdown-frontmatter.sh
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH_SCRIPT}} './.github/scripts/Validate-MarkdownFrontmatter.ps1'
-        platforms: [windows]
 
   frontmatter:check:
     desc: >-
@@ -47,11 +43,6 @@ tasks:
     dir: "{{.ROOT_DIR}}"
     cmds:
       - cmd: ./.github/scripts/validate-markdown-frontmatter.sh {{.CLI_ARGS}}
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH_SCRIPT}} \
-            ./.github/scripts/Validate-MarkdownFrontmatter.ps1 {{.CLI_ARGS}}
-        platforms: [windows]
 
   # * Lint
   lint:

@@ -11,7 +11,6 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/powershell:1": {},
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.25"
     },
@@ -55,16 +54,11 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.defaultProfile.osx": "zsh",
-        "powershell.powerShellAdditionalExePaths": {
-          "pwsh": "/usr/bin/pwsh"
-        },
-        "powershell.powerShellDefaultVersion": "pwsh"
+        "terminal.integrated.defaultProfile.osx": "zsh"
       },
       "extensions": [
         "eamodio.gitlens",
         "ms-azuretools.vscode-azureterraform",
-        "ms-vscode.powershell",
         "ms-vscode.azurecli",
         "hashicorp.terraform",
         "ms-azuretools.vscode-azure-github-copilot",

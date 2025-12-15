@@ -4,8 +4,6 @@
 version: "3"
 
 vars:
-  PWSH: pwsh -NonInteractive -NoProfile -NoLogo -Command
-  PWSH_SCRIPT: pwsh -NonInteractive -NoProfile -NoLogo -File
   GH_CURL_AUTH:
     sh: |
       {{if empty .GITHUB_TOKEN | not}}
@@ -26,10 +24,6 @@ tasks:
         msg: No command provided. Please provide a command to check.
     cmds:
       - cmd: command -v "{{.CLI_ARGS}}"
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-Command "{{.CLI_ARGS}}"'
-        platforms: [windows]
 
   install:go:
     desc: go install

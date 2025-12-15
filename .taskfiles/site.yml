@@ -57,8 +57,4 @@ tasks:
     cmds:
       - cmd: |
           find ./ -name "site" -type d -exec rm -rf {} \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "site" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"

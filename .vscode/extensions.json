@@ -2,7 +2,6 @@
   "recommendations": [
     "eamodio.gitlens",
     "ms-azuretools.vscode-azureterraform",
-    "ms-vscode.powershell",
     "ms-vscode.azurecli",
     "hashicorp.terraform",
     "ms-azuretools.vscode-azure-github-copilot",
