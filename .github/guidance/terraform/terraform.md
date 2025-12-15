@@ -144,8 +144,8 @@ You MUST use this file organization for all reference architectures:
 1. `terraform.tfvars` - (Optional) Example variable values
 1. `locals.tf` - (Optional) Local values and computed expressions
 1. `README.md` - Deployment instructions and architecture overview
-2. `images/` - (Optional) Architecture diagrams and visual documentation
-3. `tests/` - Architecture-specific validation and testing
+1. `images/` - (Optional) Architecture diagrams and visual documentation
+1. `tests/` - Architecture-specific validation and testing
    - `acceptance/` - Acceptance test scenarios
    - `integration/` - Integration test scenarios
 <!-- </reference-architecture-files-organization> -->
