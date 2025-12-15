@@ -3,7 +3,7 @@
   "image": "ghcr.io/microsoft/caira-prebuilt-devcontainer:latest",
   "features": {},
   "onCreateCommand": {
-    "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME/.local"
+    "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME"
   },
   "postCreateCommand": {
     "git-safe-dir": "git config --global --add safe.directory ${containerWorkspaceFolder}"
