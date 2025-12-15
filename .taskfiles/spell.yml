@@ -27,9 +27,6 @@ tasks:
   install:lychee:
     desc: Install Lychee
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: lycheeverse.lychee
       - task: internal:install:brew
         vars:
           APP: lychee

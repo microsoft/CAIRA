@@ -539,7 +539,7 @@ The integration tests create a complete environment, test it, and clean up autom
 cd function-app
 # Requires Python 3.11 (to match Azure Function runtime)
 python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 
 # Configure local settings

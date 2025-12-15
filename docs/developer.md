@@ -32,7 +32,7 @@ To run on your machine with the cloned repo, follow [official getting started](h
 
 ### Local Environments
 
-Local development is possible on Windows, Linux and macOS.
+Local development is possible on Windows (with WSL 2), Linux and macOS.
 
 Prerequisites:
 

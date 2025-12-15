@@ -11,9 +11,6 @@ tasks:
   install:terraform:
     desc: Install Terraform
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: HashiCorp.Terraform
       - task: internal:install:brew:tap
         vars:
           APP: hashicorp/tap
@@ -31,9 +28,6 @@ tasks:
   install:opentofu:
     desc: Install OpenTofu
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: OpenTofu.Tofu
       - task: internal:install:brew
         vars:
           APP: opentofu
@@ -48,9 +42,6 @@ tasks:
   install:terraform-docs:
     desc: Install Terraform-Docs
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: Terraform-docs.Terraform-docs
       - task: internal:install:brew
         vars:
           APP: terraform-docs
@@ -76,9 +67,6 @@ tasks:
   install:tflint:
     desc: Install TFLint
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: TerraformLinters.TFLint
       - task: internal:install:brew
         vars:
           APP: tflint
@@ -133,7 +121,6 @@ tasks:
           terraform fmt -recursive
           tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
           tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-        platforms: [linux, darwin, windows]
       - cmd: |
           find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
     dir: "{{.ROOT_DIR}}"

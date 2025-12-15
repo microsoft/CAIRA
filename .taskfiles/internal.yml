@@ -34,17 +34,6 @@ tasks:
     cmds:
       - go install {{.APP}}
 
-  install:winget:
-    desc: winget install
-    internal: true
-    preconditions:
-      - sh: task internal:command -- winget
-        msg: "winget is not installed. Please install winget: https://learn.microsoft.com/windows/package-manager/winget/"
-    cmds:
-      - winget install {{.APP}} --accept-source-agreements --accept-package-agreements
-    ignore_error: true
-    platforms: [windows]
-
   install:brew:
     desc: brew install
     internal: true
@@ -82,9 +71,6 @@ tasks:
         msg: "npm is not installed. Please install npm: https://docs.npmjs.com/cli/commands/npm"
     cmds:
       - cmd: npm install --global {{.APP}}
-        platforms: [linux, darwin]
-      - cmd: npm install --global {{.APP}}
-        platforms: [windows]
 
   install:uv:
     desc: uv install
@@ -103,6 +89,3 @@ tasks:
       - task: install:brew
         vars:
           APP: uv
-      - task: install:winget
-        vars:
-          APP: sh.uv

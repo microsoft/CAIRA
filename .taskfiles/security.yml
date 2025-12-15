@@ -11,9 +11,6 @@ tasks:
   install:gitleaks:
     desc: Install Gitleaks
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: "Gitleaks.Gitleaks"
       - task: internal:install:brew
         vars:
           APP: gitleaks
@@ -38,9 +35,6 @@ tasks:
   install:trivy:
     desc: Install Trivy
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: AquaSecurity.Trivy
       - task: internal:install:brew
         vars:
           APP: trivy

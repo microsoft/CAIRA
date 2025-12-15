@@ -11,9 +11,6 @@ tasks:
   install:actionlint:
     desc: Install Actionlint
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: rhysd.actionlint
       - task: internal:install:brew
         vars:
           APP: actionlint
@@ -25,9 +22,6 @@ tasks:
   install:act:
     desc: Install ACT
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: nektos.act
       - task: internal:install:brew
         vars:
           APP: act
@@ -39,9 +33,6 @@ tasks:
   install:gh:
     desc: Install GitHub CLI
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: GitHub.cli
       - task: internal:install:brew
         vars:
           APP: gh

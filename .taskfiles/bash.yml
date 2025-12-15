@@ -11,11 +11,6 @@ tasks:
   install:shellcheck:
     desc: Install shellcheck
     cmds:
-      - for: [koalaman.shellcheck]
-        task: internal:install:winget
-        vars:
-          APP: "{{.ITEM}}"
-        platforms: [windows]
       - for: [shellcheck]
         task: internal:install:brew
         vars:
@@ -30,11 +25,6 @@ tasks:
   install:shfmt:
     desc: Install shfmt
     cmds:
-      - for: [mvdan.shfmt]
-        task: internal:install:winget
-        vars:
-          APP: "{{.ITEM}}"
-        platforms: [windows]
       - cmd: |
           curl -L "$(curl -L {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_linux_amd64")" > ~/shfmt
           sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
