@@ -324,7 +324,7 @@ For urgent security or critical bug fixes:
 Our CI/CD pipeline automatically checks:
 
 - **Linting** - Code style and formatting
-- **Testing** - Unit and integration tests
+- **Testing** - Acceptance and integration tests
 - **Security** - Static analysis and vulnerability scanning
 - **Documentation** - Link validation and spell checking
 

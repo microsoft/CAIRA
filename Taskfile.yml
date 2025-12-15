@@ -42,8 +42,6 @@ includes:
     taskfile: .taskfiles/yaml.yml
   site:
     taskfile: .taskfiles/site.yml
-  project:
-    taskfile: .taskfiles/project.yml
 
 tasks:
   default:
@@ -56,7 +54,6 @@ tasks:
   tools:
     desc: Install tools
     cmds:
-      - task: project:tools
       - task: sh:tools
       - task: gh:tools
       - task: js:tools

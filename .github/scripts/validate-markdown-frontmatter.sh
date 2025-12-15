@@ -15,7 +15,7 @@ set -euo pipefail
 # Default values
 PATHS=("docs" "modules" "reference_architectures" ".github" "copilot" "capabilities")
 FILES=()
-EXCLUDE_PATTERNS=("*/.terraform/*" "*/CHANGELOG.md")
+EXCLUDE_PATTERNS=("*/.terraform/*")
 WARNINGS_AS_ERRORS=false
 CHANGED_FILES_ONLY=false
 BASE_BRANCH="origin/main"

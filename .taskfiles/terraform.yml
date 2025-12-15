@@ -188,31 +188,6 @@ tasks:
         platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
-  # * Run Unit Test
-  test:unit:
-    desc: Run terraform unit tests
-    silent: true
-    status:
-      - test ! -d "tests/unit"
-    cmds:
-      - terraform init -upgrade -test-directory="tests/unit"
-      - terraform test -test-directory="tests/unit" -junit-xml="testunit-results.xml" -verbose
-    dir: "{{.USER_WORKING_DIR}}"
-
-  test:unit:all:
-    desc: Run terraform unit tests on all modules
-    silent: true
-    vars:
-      ITEMS:
-        sh: "task tf:get:modules -- ."
-    cmds:
-      - for: { var: ITEMS }
-        cmd: |
-          pushd "{{osClean .ITEM}}"
-          task tf:test:unit
-          popd
-    dir: "{{.ROOT_DIR}}"
-
   # * Run Acceptance Test
   test:acc:
     desc: Run terraform acceptance tests
@@ -225,7 +200,7 @@ tasks:
     dir: "{{.USER_WORKING_DIR}}"
 
   test:acc:all:
-    desc: Run terraform unit tests on all modules
+    desc: Run terraform acceptance tests on all modules
     silent: true
     vars:
       ITEMS:
@@ -265,10 +240,8 @@ tasks:
 
   # * Run All Tests
   test:
-    desc: Run all terraform tests (unit, integration, acceptance) on all modules
+    desc: Run all terraform tests (integration, acceptance) on all modules
     cmds:
-      - echo "🧪 Running Unit Tests..."
-      - task: test:unit:all
       - echo "🔗 Running Integration Tests..."
       - task: test:int:all
       - echo "✅ Running Acceptance Tests..."

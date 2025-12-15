@@ -238,9 +238,6 @@ src/cli/configs/*.json
 !src/cli/configs/test_*.json
 !src/cli/configs/test_*.yaml
 
-# release
-.release/
-
 # generated files
 .lycheecache
 .ruff_cache/

@@ -31,35 +31,6 @@ jobs:
       - name: Approve
         run: echo "Workflow was approved"
 
-  check_changelog:
-    needs: [approval]
-    name: Check Changelog
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
-      - name: Check if changelog exists
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
-        id: filter
-        with:
-          filters: |
-            exists:
-              - added|modified: '.changes/unreleased/*.yaml'
-
-      - name: Check changelog or skip
-        env:
-          SKIP_CHANGELOG: ${{ contains(github.event.pull_request.labels.*.name, 'state/skip-changelog') || github.actor == 'dependabot[bot]' }}
-        run: |
-          if [ "${SKIP_CHANGELOG}" = "true" ]; then
-            exit 0
-          elif [ "${{ steps.filter.outputs.exists }}" = "true" ]; then
-            exit 0
-          else
-            echo "Changelog is missing. Please add a changelog entry running 'task project:changelog' and commit, or add the 'state/skip-changelog' label to skip this check."
-            exit 1
-          fi
-
   dependency_review:
     needs: [approval]
     name: Dependency Review
@@ -166,13 +137,7 @@ jobs:
         run: task site:build -- --strict
 
   success:
-    needs:
-      [
-        check_changelog,
-        dependency_review,
-        check_semantic_pr_title,
-        linting_and_validation,
-      ]
+    needs: [dependency_review, check_semantic_pr_title, linting_and_validation]
     if: ${{ always() }}
     name: Pull Request Success
     runs-on: ubuntu-24.04
@@ -180,7 +145,7 @@ jobs:
       - name: Success
         run: |
           # check that every step passed
-          if [[ "${{ needs.check_changelog.result }}" == "success" && "${{ needs.dependency_review.result }}" == "success" && "${{ needs.check_semantic_pr_title.result }}" == "success" && "${{ needs.linting_and_validation.result }}" == "success" ]]; then
+          if [[ "${{ needs.dependency_review.result }}" == "success" && "${{ needs.check_semantic_pr_title.result }}" == "success" && "${{ needs.linting_and_validation.result }}" == "success" ]]; then
             echo "All required checks passed."
           else
             echo "Some required checks did not pass."

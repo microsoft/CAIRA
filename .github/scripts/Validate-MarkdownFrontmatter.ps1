@@ -20,7 +20,7 @@ param(
     [string[]]$Files = @(),
 
     [Parameter(Mandatory = $false)]
-    [string[]]$ExcludePatterns = @('*\.terraform\*', '*/CHANGELOG.md'),
+    [string[]]$ExcludePatterns = @('*\.terraform\*'),
 
     [Parameter(Mandatory = $false)]
     [switch]$WarningsAsErrors,

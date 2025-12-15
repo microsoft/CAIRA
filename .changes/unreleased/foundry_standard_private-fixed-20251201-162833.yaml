@@ -1,7 +1,0 @@
-project: foundry_standard_private
-kind: fixed
-body: Grant the Cosmos DB Built-in Data Contributor role to the database
-time: 2025-12-01T16:28:33.149550218Z
-custom:
-    Author: PabloZaiden
-    Issue: "299"
