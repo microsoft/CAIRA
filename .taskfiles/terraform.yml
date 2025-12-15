@@ -24,20 +24,6 @@ tasks:
             && sudo apt -o DPkg::Lock::Timeout=-1 install terraform -y
         platforms: [linux]
 
-  # * Install OpenTofu
-  install:opentofu:
-    desc: Install OpenTofu
-    cmds:
-      - task: internal:install:brew
-        vars:
-          APP: opentofu
-      - cmd: |
-          curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh
-          chmod +x install-opentofu.sh \
-            && ./install-opentofu.sh --install-method standalone \
-            && rm -f install-opentofu.sh
-        platforms: [linux]
-
   # * Install Terraform-Docs
   install:terraform-docs:
     desc: Install Terraform-Docs
@@ -107,7 +93,6 @@ tasks:
     desc: Install Terraform tools
     cmds:
       - task: install:terraform
-      - task: install:opentofu
       - task: install:terraform-docs
       - task: install:tflint
       - task: install:terrafmt
