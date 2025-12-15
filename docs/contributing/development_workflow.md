@@ -309,7 +309,7 @@ git add .
 git rebase --continue
 
 # Force push to update your PR
-git push --force-with-lease origin feature/123_your-feature
+git push --force-with-lease origin my-branch-name
 ```
 
 ## Common Development Tasks
