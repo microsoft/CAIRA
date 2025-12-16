@@ -88,12 +88,11 @@ tasks:
       TERRAFMT_VERSION: "v0.5.4"
       # NOTE: Using PabloZaiden/terrafmt-dist as the source for terrafmt prebuilt binaries instead of the original katbyte/terrafmt repository.
       # This repository is a trusted mirror/distribution point for prebuilt binaries, as the original does not provide them for all platforms.
-      # Please verify the trustworthiness and equivalence of this source before updating or changing.
-      TERRAFMT_BASE_URL: "https://github.com/PabloZaiden/terrafmt-dist/releases/download"
+      TERRAFMT_URL: "https://github.com/PabloZaiden/terrafmt-dist/releases/download/{{.TERRAFMT_VERSION}}/terrafmt-{{.TERRAFMT_VERSION}}-{{.OS}}-{{.ARCH}}"
 
     desc: Install terrafmt
     cmd: |
-      download_url="{{.TERRAFMT_BASE_URL}}/{{.TERRAFMT_VERSION}}/terrafmt-{{.TERRAFMT_VERSION}}-{{.OS}}-{{.ARCH}}"
+      download_url="{{.TERRAFMT_URL}}"
       echo "Downloading terrafmt from ${download_url}"
       curl -L {{.GH_CURL_AUTH}} -o ~/terrafmt "${download_url}" \
         && chmod +x ~/terrafmt \
