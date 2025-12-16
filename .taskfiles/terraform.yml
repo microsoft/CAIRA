@@ -86,6 +86,9 @@ tasks:
   install:terrafmt:
     vars:
       TERRAFMT_VERSION: "v0.5.4"
+      # NOTE: Using PabloZaiden/terrafmt-dist as the source for terrafmt prebuilt binaries instead of the original katbyte/terrafmt repository.
+      # This repository is a trusted mirror/distribution point for prebuilt binaries, as the original does not provide them for all platforms.
+      # Please verify the trustworthiness and equivalence of this source before updating or changing.
       TERRAFMT_BASE_URL: "https://github.com/PabloZaiden/terrafmt-dist/releases/download"
 
     desc: Install terrafmt
