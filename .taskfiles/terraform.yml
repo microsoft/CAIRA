@@ -140,6 +140,107 @@ tasks:
           find ./ -name "*.tfstate*" -type f -exec rm -f {} \;
     dir: "{{.ROOT_DIR}}"
 
+  env:login:
+    desc: Login to Azure for Terraform tests
+    silent: true
+    cmd: |
+      # ensure az login
+      if ! az account show &> /dev/null; then
+        az login
+      fi
+
+  env:setup:
+    desc: Set up Terraform test environment
+    preconditions:
+      - sh: |
+          # verify az is logged in or ARM_SUBSCRIPTION_ID is set
+          if [[ -z "${ARM_SUBSCRIPTION_ID:-}" ]]; then
+            if ! az account show &> /dev/null; then
+              exit 1
+            fi
+          fi
+        msg: "Azure CLI is not logged in. Run task tf:env:login to authenticate."
+    silent: true
+    cmd: |
+      # set ARM_SUBSCRIPTION_ID if not set
+      if [[ -z "${ARM_SUBSCRIPTION_ID:-}" ]]; then
+        echo "export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)"
+      fi
+
+  test:pools:deploy:
+    desc: Deploy infrastructure pools for integration tests
+    deps:
+      - env:login
+    silent: true
+    cmd: |
+      set -e
+
+      export_azure_sub=$(task tf:env:setup)
+
+      eval "$export_azure_sub"
+
+      echo "Deploying Foundry Basic Private Pool..."
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+
+      # if there is a terraform.tfstate file, skip init/apply
+      if [[ -f "terraform.tfstate" ]]; then
+        echo "Found existing terraform.tfstate file, skipping deployment."
+      else
+        terraform init
+        terraform apply -auto-approve
+      fi
+
+      popd > /dev/null
+
+      echo "Deploying Foundry Standard Private Pool..."
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+
+      # if there is a terraform.tfstate file, skip init/apply
+      if [[ -f "terraform.tfstate" ]]; then
+        echo "Found existing terraform.tfstate file, skipping deployment."
+      else
+        terraform init
+        terraform apply -auto-approve
+      fi
+      popd > /dev/null
+
+  test:pools:outputs:
+    desc: Output infrastructure pools for integration tests
+    silent: true
+    cmd: |
+      set -e
+
+      echo "Foundry Basic Private Pool outputs:"
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+      terraform output
+      popd > /dev/null
+
+      echo "Foundry Standard Private Pool outputs:"
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+      terraform output
+      popd > /dev/null
+
+  test:pools:outputs:env:
+    desc: Export infrastructure pool outputs as environment variables
+    silent: true
+    cmd: |
+      set -e
+
+      # Durable Infrastructure Pools - Foundry Standard Private
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+      echo "export TF_VAR_fsp_resource_group_name=\"$(terraform output -raw resource_group_name)\""
+      echo "export TF_VAR_fsp_vnet_name=\"$(terraform output -json connection | jq -r '.virtual_network_name')\""
+      echo "export TF_VAR_fsp_cosmosdb_account_name=\"$(terraform output -raw cosmosdb_account_name)\""
+      echo "export TF_VAR_fsp_storage_account_name=\"$(terraform output -raw storage_account_name)\""
+      echo "export TF_VAR_fsp_search_service_name=\"$(terraform output -raw search_service_name)\""
+      popd > /dev/null
+
+      # Durable Infrastructure Pools - Foundry Basic Private (Pool 1)
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+      echo "export TF_VAR_fbp_resource_group_name=\"$(terraform output -raw resource_group_name)\""
+      echo "export TF_VAR_fbp_vnet_name=\"$(terraform output -json connection | jq -r '.virtual_network_name')\""
+      popd > /dev/null
+
   # * Run Acceptance Test
   test:acc:
     desc: Run terraform acceptance tests
@@ -176,6 +277,27 @@ tasks:
       - terraform test -test-directory="tests/integration" -junit-xml="testint-results.xml" -verbose
     dir: "{{.USER_WORKING_DIR}}"
 
+  test:int:local:
+    desc: Run terraform integration tests in local mode
+    deps:
+      - test:pools:deploy
+    silent: true
+    status:
+      - test ! -d "tests/integration"
+    cmd: |
+      export_azure_sub=$(task tf:env:setup)
+
+      eval "$export_azure_sub"
+
+      export_pool_vars=$(task tf:test:pools:outputs:env)
+
+      eval "$export_pool_vars"
+
+      terraform init -upgrade -test-directory="tests/integration"
+      terraform test -test-directory="tests/integration" -verbose
+
+    dir: "{{.USER_WORKING_DIR}}"
+
   test:int:all:
     desc: Run terraform integration on all modules
     silent: true
@@ -187,6 +309,20 @@ tasks:
         cmd: |
           pushd "{{osClean .ITEM}}"
           task tf:test:int
+          popd
+    dir: "{{.ROOT_DIR}}"
+
+  test:int:all:local:
+    desc: Run terraform integration on all modules in local mode
+    silent: true
+    vars:
+      ITEMS:
+        sh: "task tf:get:modules -- ."
+    cmds:
+      - for: { var: ITEMS }
+        cmd: |
+          pushd "{{osClean .ITEM}}"
+          task tf:test:int:local
           popd
     dir: "{{.ROOT_DIR}}"
 

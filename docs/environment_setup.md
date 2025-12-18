@@ -46,6 +46,15 @@ If you want to develop or contribute to CAIRA, you will need to install addition
 
 Authenticate to your Azure subscription. Terraform must be able to create and manage resources within Azure.
 
+To ensure you are authenticated to Azure, and the subscription is set correctly, you can run the following commands in your terminal:
+
+```shell
+task tf:env:login
+eval "$(task tf:env:setup)"
+```
+
+Alternatively, you can manually authenticate using the Azure CLI:
+
 Use the following command to login to Azure:
 
 ```shell

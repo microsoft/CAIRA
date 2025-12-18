@@ -170,7 +170,6 @@ For all other files, follow these essential rules:
 
 ### General Quality
 
-- Always read `.mega-linter.yml` before changes
 - Validate frontmatter in documentation
 - Ensure proper table alignment
 - Check links for validity

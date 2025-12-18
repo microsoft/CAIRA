@@ -84,8 +84,6 @@ tasks:
 
   docs:
     desc: Generate documentation
-    # deps:
-    #   - task: tf:lint
     cmds:
       - task: tf:docs
       - task: spell:lint
@@ -96,11 +94,3 @@ tasks:
     deps:
       - task: tf:clean
       - task: site:clean
-
-  lint:ml:
-    desc: Lint using MegaLinter
-    vars:
-      LATEST:
-        sh: gh release list --repo oxsecurity/megalinter --exclude-drafts --exclude-pre-releases --json "isLatest,tagName" --jq '.[] | select(.isLatest) | .tagName'
-    cmds:
-      - docker run -v "{{.REPO_ABS_ROOT_PATH}}":/tmp/lint ghcr.io/oxsecurity/megalinter-cupcake:{{.LATEST}} -e 'SHOW_ELAPSED_TIME=true' -e 'VALIDATE_ALL_CODEBASE=true' --fix
