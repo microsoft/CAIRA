@@ -69,19 +69,6 @@ module "ai_foundry" {
   tags = var.tags
 }
 
-# Foundry default project
-module "default_project" {
-  source = "../../modules/ai_foundry_project"
-
-  depends_on = [module.ai_foundry]
-
-  location      = var.location
-  ai_foundry_id = module.ai_foundry.ai_foundry_id
-
-  agent_capability_host_connections = module.capability_host_resources_1.connections
-  tags                              = var.tags
-}
-
 # This module provisions new resources for AI Foundry agent capability host.
 # If you prefer to use existing resources for the capability host, you can use the
 # existing_resources_agent_capability_host_connections module as a drop-in replacement.
@@ -99,20 +86,16 @@ module "capability_host_resources_1" {
   ai_search_name         = module.naming.search_service.name_unique
 }
 
-# Foundry secondary project
-module "secondary_project" {
+# Foundry default project
+module "default_project" {
   source = "../../modules/ai_foundry_project"
 
-  depends_on = [module.ai_foundry]
+  depends_on = [module.ai_foundry, module.capability_host_resources_1]
 
   location      = var.location
   ai_foundry_id = module.ai_foundry.ai_foundry_id
 
-  project_name         = "secondary-project"
-  project_display_name = "Secondary Project"
-  project_description  = "Secondary project"
-
-  agent_capability_host_connections = module.capability_host_resources_2.connections
+  agent_capability_host_connections = module.capability_host_resources_1.connections
   tags                              = var.tags
 }
 
@@ -127,4 +110,24 @@ module "capability_host_resources_2" {
   cosmos_db_account_name = "${module.naming.cosmosdb_account.name_unique}2"
   storage_account_name   = "${module.naming.storage_account.name_unique}2"
   ai_search_name         = "${module.naming.search_service.name_unique}2"
+
+  # dependency to avoid race condition on Foundry project creation/destruction
+  depends_on = [module.default_project]
+}
+
+# Foundry secondary project
+module "secondary_project" {
+  source = "../../modules/ai_foundry_project"
+
+  depends_on = [module.ai_foundry, module.capability_host_resources_2]
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+  project_name         = "secondary-project"
+  project_display_name = "Secondary Project"
+  project_description  = "Secondary project"
+
+  agent_capability_host_connections = module.capability_host_resources_2.connections
+  tags                              = var.tags
 }
