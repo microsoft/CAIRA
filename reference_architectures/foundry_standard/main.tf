@@ -116,7 +116,10 @@ module "default_project" {
 module "secondary_project" {
   source = "../../modules/ai_foundry_project"
 
-  # dependency to avoid race condition on Foundry project creation/destruction
+  # Dependency to avoid race condition on Foundry project creation/destruction
+  # Ensure the default project (and its capability host resources) completes create/destroy
+  # before provisioning these resources so both projects do not concurrently modify the
+  # shared AI Foundry parent resource, which has previously resulted in conflicting updates.
   depends_on = [module.ai_foundry, module.capability_host_resources_2, module.default_project]
 
   location      = var.location
