@@ -86,6 +86,19 @@ module "capability_host_resources_1" {
   ai_search_name         = module.naming.search_service.name_unique
 }
 
+# Capability host resources for the secondary project.
+module "capability_host_resources_2" {
+  source = "../../modules/new_resources_agent_capability_host_connections"
+
+  location                   = var.location
+  resource_group_resource_id = local.resource_group_resource_id
+  tags                       = var.tags
+
+  cosmos_db_account_name = "${module.naming.cosmosdb_account.name_unique}2"
+  storage_account_name   = "${module.naming.storage_account.name_unique}2"
+  ai_search_name         = "${module.naming.search_service.name_unique}2"
+}
+
 # Foundry default project
 module "default_project" {
   source = "../../modules/ai_foundry_project"
@@ -99,27 +112,12 @@ module "default_project" {
   tags                              = var.tags
 }
 
-# Capability host resources for the secondary project.
-module "capability_host_resources_2" {
-  source = "../../modules/new_resources_agent_capability_host_connections"
-
-  location                   = var.location
-  resource_group_resource_id = local.resource_group_resource_id
-  tags                       = var.tags
-
-  cosmos_db_account_name = "${module.naming.cosmosdb_account.name_unique}2"
-  storage_account_name   = "${module.naming.storage_account.name_unique}2"
-  ai_search_name         = "${module.naming.search_service.name_unique}2"
-
-  # dependency to avoid race condition on Foundry project creation/destruction
-  depends_on = [module.default_project]
-}
-
 # Foundry secondary project
 module "secondary_project" {
   source = "../../modules/ai_foundry_project"
 
-  depends_on = [module.ai_foundry, module.capability_host_resources_2]
+  # dependency to avoid race condition on Foundry project creation/destruction
+  depends_on = [module.ai_foundry, module.capability_host_resources_2, module.default_project]
 
   location      = var.location
   ai_foundry_id = module.ai_foundry.ai_foundry_id
