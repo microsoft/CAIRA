@@ -14,6 +14,7 @@ resource "azurerm_role_assignment" "cosmosdb_operator_ai_foundry_project" {
   scope                = var.agent_capability_host_connections.cosmos_db.resource_id
   role_definition_name = "Cosmos DB Operator"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "storage_blob_data_contributor_ai_foundry_project" {
@@ -26,6 +27,7 @@ resource "azurerm_role_assignment" "storage_blob_data_contributor_ai_foundry_pro
   scope                = var.agent_capability_host_connections.storage_account.resource_id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "search_index_data_contributor_ai_foundry_project" {
@@ -38,6 +40,7 @@ resource "azurerm_role_assignment" "search_index_data_contributor_ai_foundry_pro
   scope                = var.agent_capability_host_connections.ai_search.resource_id
   role_definition_name = "Search Index Data Contributor"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_type       = "ServicePrincipal"
 }
 
 resource "azurerm_role_assignment" "search_service_contributor_ai_foundry_project" {
@@ -50,6 +53,7 @@ resource "azurerm_role_assignment" "search_service_contributor_ai_foundry_projec
   scope                = var.agent_capability_host_connections.ai_search.resource_id
   role_definition_name = "Search Service Contributor"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_type       = "ServicePrincipal"
 }
 
 ##########################
@@ -104,6 +108,7 @@ resource "azurerm_role_assignment" "storage_blob_data_owner_ai_foundry_project" 
   scope                = var.agent_capability_host_connections.storage_account.resource_id
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = azapi_resource.ai_foundry_project.output.identity.principalId
+  principal_type       = "ServicePrincipal"
   condition_version    = "2.0"
   condition            = <<-EOT
   (
