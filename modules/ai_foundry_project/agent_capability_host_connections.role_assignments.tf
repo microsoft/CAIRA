@@ -115,6 +115,8 @@ resource "azurerm_role_assignment" "storage_blob_data_owner_ai_foundry_project" 
     OR
     (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase '${local.project_id_guid}'
     AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase '*-azureml-agent')
+    OR
+    (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase '${local.resource_group_name}-cog-x-')
   )
   EOT
 }

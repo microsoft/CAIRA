@@ -1,5 +1,6 @@
 locals {
-  resource_group_id = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.ai_foundry_id).parent_id
+  resource_group_id   = provider::azapi::parse_resource_id("Microsoft.CognitiveServices/accounts", var.ai_foundry_id).parent_id
+  resource_group_name = provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", local.resource_group_id).resource_group_name
 }
 
 resource "azapi_resource" "ai_foundry_project" {
