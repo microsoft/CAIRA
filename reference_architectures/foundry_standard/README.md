@@ -203,7 +203,7 @@ module "capability_host_resources_1" {
 | capability\_host\_resources\_2 | ../../modules/new_resources_agent_capability_host_connections | n/a     |
 | common\_models                 | ../../modules/common_models                                   | n/a     |
 | default\_project               | ../../modules/ai_foundry_project                              | n/a     |
-| naming                         | Azure/naming/azurerm                                          | 0.4.2   |
+| naming                         | Azure/naming/azurerm                                          | 0.4.3   |
 | secondary\_project             | ../../modules/ai_foundry_project                              | n/a     |
 
 ## Resources

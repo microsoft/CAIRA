@@ -208,7 +208,7 @@ For issues and questions:
 | application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
 | common\_models        | ../../modules/common_models              | n/a     |
 | default\_project      | ../../modules/ai_foundry_project         | n/a     |
-| naming                | Azure/naming/azurerm                     | 0.4.2   |
+| naming                | Azure/naming/azurerm                     | 0.4.3   |
 
 ## Resources
 
