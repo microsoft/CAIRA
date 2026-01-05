@@ -111,19 +111,7 @@ jobs:
         with:
           bot-slug-name: dependabot
 
-      # if the author is dependabot, commit potential changes back to the branch
-      - name: Dependabot auto-commit (docs)
-        uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
-        if: github.event.pull_request.user.login == 'dependabot[bot]'
-        with:
-          commit_message: "docs: automatic updates"
-          commit_user_name: ${{ steps.bot-details.outputs.name }}
-          commit_user_email: ${{ steps.bot-details.outputs.email }}
-          commit_options: "--no-verify --signoff"
-
-      # if the author is not dependabot, check for differences and fail if there are any
       - name: Check for differences
-        if: github.event.pull_request.user.login != 'dependabot[bot]'
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference. Run 'task docs' command and commit."; git diff --exit-code)
