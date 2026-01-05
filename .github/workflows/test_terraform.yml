@@ -214,7 +214,7 @@ jobs:
       - name: Publish test results
         id: test_results
         if: always()
-        uses: dorny/test-reporter@e17be7e0078fc00f61965f3b4032f1e1fdc7fcfb # v2.4.0
+        uses: dorny/test-reporter@b082adf0eced0765477756c2a610396589b8c637 # v2.5.0
         with:
           working-directory: ${{ matrix.src.path }}
           name: Test results (${{ matrix.src.name }})
