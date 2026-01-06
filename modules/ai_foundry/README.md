@@ -105,7 +105,7 @@ module "ai_foundry" {
 
   # Provide at least one model deployment
   model_deployments = [
-    module.common_models.gpt_4_1,
+    module.common_models.gpt_5,
     module.common_models.text_embedding_3_large
   ]
 
