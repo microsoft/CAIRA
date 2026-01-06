@@ -123,7 +123,6 @@ reference_architectures/
     terraform.tf          # Provider requirements and versions
     terraform.tfvars      # Example variable values
     README.md            # Deployment instructions and architecture overview
-    CHANGELOG.md         # Architecture change history
     images/              # Architecture diagrams
       architecture.drawio.svg
     tests/               # Architecture-specific tests
@@ -145,7 +144,6 @@ You MUST use this file organization for all reference architectures:
 1. `terraform.tfvars` - (Optional) Example variable values
 1. `locals.tf` - (Optional) Local values and computed expressions
 1. `README.md` - Deployment instructions and architecture overview
-1. `CHANGELOG.md` - (Optional) Architecture change history
 1. `images/` - (Optional) Architecture diagrams and visual documentation
 1. `tests/` - Architecture-specific validation and testing
    - `acceptance/` - Acceptance test scenarios

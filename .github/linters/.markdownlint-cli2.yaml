@@ -3,5 +3,3 @@
 config:
   extends: ./.markdownlint.yml
 gitignore: true
-# ignores:
-#   - ./.changes/*.md

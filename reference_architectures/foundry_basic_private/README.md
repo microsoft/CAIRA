@@ -29,6 +29,8 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 **NOTE**: While the Azure AI Foundry endpoints will be private, if you are using AI Agent Service, its endpoints will be running in a VNET managed by Microsoft and potentially with other tenants. If you want complete isolation for your AI Agents as well, we recommend you use the [foundry_standard_private](../foundry_standard_private/README.md) reference architecture.
 
+Foundry-only use case: If you are not planning to use the Agent Service, this basic architecture (or its public networking counterpart) is recommended; the standard architectures add agent-focused dependent resources (Cosmos DB, Storage, AI Search) you can omit.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
@@ -140,7 +142,7 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 After deployment, you can access your AI Foundry environment within the private network through:
 
 1. **Azure Portal**: Navigate to your Cognitive Services account
-1. **AI Foundry Studio**: Use the web interface for model management
+1. **AI Foundry Portal**: Use the web interface for model management
 1. **Azure CLI**: Interact programmatically with your deployments
 1. **SDKs**: Connect from your applications using Azure AI SDKs
 
@@ -218,7 +220,7 @@ For issues and questions:
 | application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
 | common\_models        | ../../modules/common_models              | n/a     |
 | default\_project      | ../../modules/ai_foundry_project         | n/a     |
-| naming                | Azure/naming/azurerm                     | 0.4.2   |
+| naming                | Azure/naming/azurerm                     | 0.4.3   |
 
 ## Resources
 

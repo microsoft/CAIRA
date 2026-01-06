@@ -19,24 +19,22 @@
 
 ## Resources
 
-| Name                                                                                                                                                                                                     | Type     |
-|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
-| [azapi_resource.ai_foundry_project_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                  | resource |
-| [azapi_resource.ai_search_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                | resource |
-| [azapi_resource.cosmosdb_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                 | resource |
-| [azapi_resource.storage_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                                                  | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_entity_store_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)         | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_system_thread_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)        | resource |
-| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role_aifp_user_thread_message_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
-| [azurerm_role_assignment.cosmosdb_operator_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                          | resource |
-| [azurerm_role_assignment.search_index_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
-| [azurerm_role_assignment.search_service_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                 | resource |
-| [azurerm_role_assignment.storage_blob_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                              | resource |
-| [azurerm_role_assignment.storage_blob_data_owner_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)                                    | resource |
-| [time_sleep.ai_search_connection_destroy_delay](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                      | resource |
-| [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                                 | resource |
-| [time_sleep.wait_rbac](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                                               | resource |
+| Name                                                                                                                                                                        | Type     |
+|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| [azapi_resource.ai_foundry_project](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                     | resource |
+| [azapi_resource.ai_foundry_project_capability_host](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                     | resource |
+| [azapi_resource.ai_search_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                   | resource |
+| [azapi_resource.cosmosdb_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                    | resource |
+| [azapi_resource.storage_connection](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource)                                                     | resource |
+| [azurerm_cosmosdb_sql_role_assignment.cosmosdb_db_sql_role](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment)   | resource |
+| [azurerm_role_assignment.cosmosdb_operator_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)             | resource |
+| [azurerm_role_assignment.search_index_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.search_service_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)    | resource |
+| [azurerm_role_assignment.storage_blob_data_contributor_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_role_assignment.storage_blob_data_owner_ai_foundry_project](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment)       | resource |
+| [time_sleep.ai_search_connection_destroy_delay](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                         | resource |
+| [time_sleep.wait_project_identities](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                    | resource |
+| [time_sleep.wait_rbac](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                                                                  | resource |
 
 ## Inputs
 

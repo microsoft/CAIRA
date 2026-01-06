@@ -15,6 +15,11 @@ terraform {
       source  = "Azure/azapi"
       version = "~> 2.6"
     }
+    # https://registry.terraform.io/providers/hashicorp/time/latest
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.13"
+    }
   }
 }
 

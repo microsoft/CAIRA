@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - edited
+      - reopened
+      - labeled
+      - unlabeled
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ format('{0}-{1}-{2}-{3}-{4}', github.workflow, github.event_name, github.ref, github.base_ref || null, github.head_ref || null) }}
+  cancel-in-progress: true
+
+jobs:
+  approval:
+    name: Approval
+    environment: PR # this is used to enforce approval requirements in the GitHub UI
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Approve
+        run: echo "Workflow was approved"
+
+  dependency_review:
+    needs: [approval]
+    name: Dependency Review
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run Dependency Review
+        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
+
+  check_semantic_pr_title:
+    needs: [approval]
+    name: Check PR title
+    runs-on: ubuntu-24.04
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Run Semantic PR validation
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  linting_and_validation:
+    needs: [approval]
+    name: Linting and Validation
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: lts/*
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867 # v7.1.6
+
+      - name: Setup Task
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
+        with:
+          repo-token: ${{ github.token }}
+
+      - name: Setup tools
+        run: task tools
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Terraform validate
+        run: |
+          cd reference_architectures
+
+          # get the list of subdirectories
+          SUB_DIRS=$(ls -d ./*/)
+
+          # loop through each subdirectory
+          for subdir in $SUB_DIRS; do
+            echo "Validating Terraform configuration in $subdir"
+
+            cd "$subdir"
+            terraform init
+            terraform validate
+            cd ..
+
+          done
+
+      - name: Generate docs
+        run: task docs
+
+      - name: Run linters
+        run: task lint
+
+      - name: Bot details
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
+        id: bot-details
+        uses: raven-actions/bot-details@ee8966a9ff6e7e42cbfc4a56b4ddb60a9d1b40a6 # v1.2.0
+        with:
+          bot-slug-name: dependabot
+
+      - name: Check for differences
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference. Run 'task docs' command and commit."; git diff --exit-code)
+
+      - name: Build Site
+        run: task site:build -- --strict
+
+  success:
+    needs: [dependency_review, check_semantic_pr_title, linting_and_validation]
+    if: ${{ always() }}
+    name: Pull Request Success
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Success
+        run: |
+          # check that every step passed
+          if [[ "${{ needs.dependency_review.result }}" == "success" && "${{ needs.check_semantic_pr_title.result }}" == "success" && "${{ needs.linting_and_validation.result }}" == "success" ]]; then
+            echo "All required checks passed."
+          else
+            echo "Some required checks did not pass."
+            exit 1
+          fi

@@ -43,7 +43,7 @@ CAIRA can be used in multiple scenarios. The system's intended uses include:
 
 We encourage teams to leverage CAIRA in their innovative solutions. However, here are some considerations when choosing a use case:
 
-* **Architecture Choice:** The reference architectures are designed for different purposes. Using the `foundry_basic` public architecture for a production system that handles sensitive data is not recommended. Users should select the architecture (`foundry_standard_private`, for example) that matches their security and compliance needs.
+* **Architecture Choice:** The reference architectures are designed for different purposes. Using the `foundry_basic` public architecture for a production system that handles sensitive data is not recommended. Users should select the architecture (`foundry_standard_private`, for example) that matches their security and compliance needs. If you do not plan to use Azure AI Agent Service and only need Azure AI Foundry itself, prefer the `_basic` variants (`foundry_basic` / `foundry_basic_private`); the `_standard` variants include additional dependent resources (Cosmos DB, Storage, AI Search) that are required for the Agent service.
 * **Customization:** While CAIRA is extensible, significant deviations from the tested patterns may introduce risks. Users are responsible for validating the security and reliability of their customizations.
 
 ##### Unsupported uses

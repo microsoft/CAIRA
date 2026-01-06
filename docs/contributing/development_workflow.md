@@ -61,31 +61,7 @@ flowchart TB
     style row3 fill:none,stroke:none
 ```
 
-## 1. Issue-First Development
-
-All code changes must be linked to an issue. This ensures:
-
-- Changes are needed and aligned with project goals
-- Approach is discussed before implementation
-- Proper tracking and documentation of changes
-
-### Creating an Issue
-
-Before starting work:
-
-1. **Search existing issues** - Avoid duplicates
-1. **Choose the right template** - Bug report, feature request, or enhancement
-1. **Provide context** - Clear description and requirements
-1. **Label appropriately** - Help maintainers prioritize
-
-### Issue Templates
-
-- **Bug Report** - For reporting problems
-- **Feature Request** - For new functionality
-- **Enhancement** - For improving existing features
-- **Documentation** - For doc-only changes
-
-## 2. Fork and Clone
+## Fork and Clone
 
 ### Fork the Repository
 
@@ -107,38 +83,6 @@ git remote add upstream https://github.com/microsoft/CAIRA.git
 git remote -v
 ```
 
-## 3. Branch Management
-
-### Branch Naming Conventions
-
-Use descriptive branch names that follow this pattern:
-
-```text
-<type>/<issue-number>_<short-description>
-```
-
-**Types:**
-
-- `feature/` - New features or capabilities
-- `fix/` - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `test/` - Test improvements
-- `build/` - Build and dependences
-- `ci/` - CI changes
-- `chore/` - Maintenance tasks
-
-**Examples:**
-
-```shell
-feature/123_azure-openai-module
-fix/456_terraform-validation-error
-docs/789_update-contributing-guide
-refactor/101_module-structure
-test/112_integration-test-coverage
-chore/131_update-dependencies
-```
-
 ### Creating a Branch
 
 ```shell
@@ -147,13 +91,13 @@ git checkout main
 git pull upstream main
 
 # Create and switch to your feature branch
-git checkout -b feature/123_azure-openai-module
+git checkout -b my-branch-name
 
 # Push branch to your fork
-git push -u origin feature/123_azure-openai-module
+git push -u origin my-branch-name
 ```
 
-## 4. Development Process
+## Development Process
 
 ### Code Standards
 
@@ -183,20 +127,11 @@ task md:lint
 task test
 
 # Run specific test
-task test:int:all
 task test:acc:all
-task test:unit:all
+task test:int:all
 ```
 
-## 5. Changelog
-
-Add clear changelog entries for end-users.
-
-```shell
-task project:changelog -- <ISSUE_NUMBER>
-```
-
-## 6. Commit Guidelines
+## Commit Guidelines
 
 ### Signing Commits
 
@@ -269,7 +204,7 @@ to be updated.
 - **Breaking changes** - Use "BREAKING CHANGE:" in footer
 - **Keep it concise** - 50 characters for title, 72 for body lines
 
-## 7. Testing Requirements
+## 6. Testing Requirements
 
 ### Before Committing
 
@@ -285,7 +220,7 @@ task lint
 - **Integration tests**: Major functionality must be tested
 - **Documentation tests**: Examples must be validated
 
-## 8. Pull Request Process
+## 7. Pull Request Process
 
 ### Before Creating a PR
 
@@ -300,8 +235,7 @@ task lint
 1. **Push your branch** to your fork
 1. **Navigate to GitHub** and create a pull request
 1. **Fill out the template** completely
-1. **Link to the issue** using "Closes #123"
-1. **Request reviewers** (maintainers will assign)
+1. **If there is already a related issue, link to it** using "Closes #123"
 
 ### PR Title Format
 
@@ -315,7 +249,7 @@ docs(contributing): update development workflow guide
 
 See our [Pull Request Guide](pull_request_guide.md) for detailed requirements.
 
-## 9. Code Review Process
+## Code Review Process
 
 ### As an Author
 
@@ -333,7 +267,7 @@ See our [Pull Request Guide](pull_request_guide.md) for detailed requirements.
 
 See our [Code Review Guidelines](code_review_guidelines.md) for more details.
 
-## 10. Keeping Your Fork Updated
+## Keeping Your Fork Updated
 
 ### Sync with Upstream
 
@@ -353,7 +287,7 @@ git merge upstream/main
 git push origin main
 
 # Update your feature branch (if needed)
-git checkout feature/123_your-feature
+git checkout my-branch-name
 git rebase main
 ```
 
@@ -366,7 +300,7 @@ If your branch has conflicts with main:
 git fetch upstream
 
 # Rebase your branch
-git checkout feature/123_your-feature
+git checkout my-branch-name
 git rebase upstream/main
 
 # Resolve conflicts in your editor
@@ -375,10 +309,10 @@ git add .
 git rebase --continue
 
 # Force push to update your PR
-git push --force-with-lease origin feature/123_your-feature
+git push --force-with-lease origin my-branch-name
 ```
 
-## 10. Common Development Tasks
+## Common Development Tasks
 
 ### Adding a New Terraform Module
 

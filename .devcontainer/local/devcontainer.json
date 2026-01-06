@@ -11,14 +11,6 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/powershell:1": {},
-    "ghcr.io/devcontainers/features/go:1": {
-      "version": "1.25"
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.13",
-      "toolsToInstall": ""
-    },
     "ghcr.io/jsburckhardt/devcontainer-features/uv:1": {},
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
@@ -28,7 +20,7 @@
     "ghcr.io/eitsupi/devcontainer-features/go-task:1": {}
   },
   "onCreateCommand": {
-    "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME/.local",
+    "chown-local": "sudo chown -R $(id -un):$(id -gn) $HOME",
     "setup-tools": "task tools"
   },
   "postCreateCommand": {
@@ -55,16 +47,11 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.defaultProfile.osx": "zsh",
-        "powershell.powerShellAdditionalExePaths": {
-          "pwsh": "/usr/bin/pwsh"
-        },
-        "powershell.powerShellDefaultVersion": "pwsh"
+        "terminal.integrated.defaultProfile.osx": "zsh"
       },
       "extensions": [
         "eamodio.gitlens",
         "ms-azuretools.vscode-azureterraform",
-        "ms-vscode.powershell",
         "ms-vscode.azurecli",
         "hashicorp.terraform",
         "ms-azuretools.vscode-azure-github-copilot",

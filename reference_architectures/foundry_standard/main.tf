@@ -21,7 +21,7 @@ module "common_models" {
 module "naming" {
   # https://registry.terraform.io/modules/Azure/naming/azurerm/latest
   source        = "Azure/naming/azurerm"
-  version       = "0.4.2"
+  version       = "0.4.3"
   suffix        = [local.base_name] # Suffix ensures uniqueness while keeping a human-friendly base name
   unique-length = 5                 # Number of random characters appended to resource names
 }
@@ -69,19 +69,6 @@ module "ai_foundry" {
   tags = var.tags
 }
 
-# Foundry default project
-module "default_project" {
-  source = "../../modules/ai_foundry_project"
-
-  depends_on = [module.ai_foundry]
-
-  location      = var.location
-  ai_foundry_id = module.ai_foundry.ai_foundry_id
-
-  agent_capability_host_connections = module.capability_host_resources_1.connections
-  tags                              = var.tags
-}
-
 # This module provisions new resources for AI Foundry agent capability host.
 # If you prefer to use existing resources for the capability host, you can use the
 # existing_resources_agent_capability_host_connections module as a drop-in replacement.
@@ -99,21 +86,12 @@ module "capability_host_resources_1" {
   ai_search_name         = module.naming.search_service.name_unique
 }
 
-# Foundry secondary project
-module "secondary_project" {
-  source = "../../modules/ai_foundry_project"
+# This time sleep gives time for pending locked resources to be released,
+# before proceeding to destroy the next set of capability host resources.
+resource "time_sleep" "wait_after_project1_destroy" {
+  destroy_duration = "60s"
 
-  depends_on = [module.ai_foundry]
-
-  location      = var.location
-  ai_foundry_id = module.ai_foundry.ai_foundry_id
-
-  project_name         = "secondary-project"
-  project_display_name = "Secondary Project"
-  project_description  = "Secondary project"
-
-  agent_capability_host_connections = module.capability_host_resources_2.connections
-  tags                              = var.tags
+  depends_on = [module.capability_host_resources_1]
 }
 
 # Capability host resources for the secondary project.
@@ -127,4 +105,46 @@ module "capability_host_resources_2" {
   cosmos_db_account_name = "${module.naming.cosmosdb_account.name_unique}2"
   storage_account_name   = "${module.naming.storage_account.name_unique}2"
   ai_search_name         = "${module.naming.search_service.name_unique}2"
+}
+
+# This time sleep gives time for pending locked resources to be released,
+# before proceeding to destroy the next set of capability host resources.
+resource "time_sleep" "wait_after_project2_destroy" {
+  destroy_duration = "60s"
+
+  depends_on = [module.capability_host_resources_2]
+}
+
+# Foundry default project
+module "default_project" {
+  source = "../../modules/ai_foundry_project"
+
+  depends_on = [module.ai_foundry, time_sleep.wait_after_project1_destroy]
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+  agent_capability_host_connections = module.capability_host_resources_1.connections
+  tags                              = var.tags
+}
+
+# Foundry secondary project
+module "secondary_project" {
+  source = "../../modules/ai_foundry_project"
+
+  # Dependency to avoid race condition on Foundry project creation/destruction
+  # Ensure the default project (and its capability host resources) completes create/destroy
+  # before provisioning these resources so both projects do not concurrently modify the
+  # shared AI Foundry parent resource, which has previously resulted in conflicting updates.
+  depends_on = [module.ai_foundry, module.default_project, time_sleep.wait_after_project2_destroy]
+
+  location      = var.location
+  ai_foundry_id = module.ai_foundry.ai_foundry_id
+
+  project_name         = "secondary-project"
+  project_display_name = "Secondary Project"
+  project_description  = "Secondary project"
+
+  agent_capability_host_connections = module.capability_host_resources_2.connections
+  tags                              = var.tags
 }

@@ -11,11 +11,18 @@ tasks:
   install:mkdocs:
     desc: Install MkDocs
     cmds:
-      - for: [mkdocs]
-        task: internal:install:pipx
-        vars:
-          APP: "{{.ITEM}}"
-      - pipx inject --include-deps --force mkdocs $(mkdocs get-deps)
+      - uv tool install mkdocs
+      - |
+        set -euo pipefail
+        export PATH="$HOME/.local/bin:$PATH"
+        cmd=(uv tool install mkdocs --force)
+        # Append --with <dep> for every non-empty line from mkdocs get-deps
+        while IFS= read -r dep; do
+          [[ -z "$dep" ]] && continue
+          cmd+=(--with "$dep")
+        done < <(mkdocs get-deps)
+
+        "${cmd[@]}"
 
   # * Tools
   tools:
@@ -56,9 +63,5 @@ tasks:
     silent: true
     cmds:
       - cmd: |
-          find ./ -name "site" -type d -exec rm -rf {} \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "site" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-        platforms: [windows]
+          rm -rf ./site
     dir: "{{.ROOT_DIR}}"

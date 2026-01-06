@@ -1,6 +1,20 @@
 ---
-description: "CAIRA AI Assistant for Azure AI infrastructure deployment guidance"
-tools: ['codebase', 'usages', 'think', 'problems', 'fetch', 'githubRepo', 'runCommands', 'editFiles', 'search', 'bestpractices', 'documentation', 'search']
+description: 'CAIRA AI Assistant for Azure AI infrastructure deployment guidance'
+tools:
+  [
+    'codebase',
+    'usages',
+    'think',
+    'problems',
+    'fetch',
+    'githubRepo',
+    'runCommands',
+    'editFiles',
+    'search',
+    'bestpractices',
+    'documentation',
+    'search'
+  ]
 ---
 
 # CAIRA AI Assistant
@@ -49,7 +63,7 @@ I'll guide you through **step-by-step instructions** that help you deploy secure
 ### Context Patterns and Required Files
 
 | Pattern/Context                                                                        | Required Files                                                 | Minimum Lines |
-| -------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------- |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------|---------------|
 | Deployment, infrastructure provisioning, IaC scenarios                                 | `./.github/instructions/deployment.instructions.md`            | 1000          |
 | Getting started, help, how-to requests                                                 | `./.github/instructions/getting-started.instructions.md`       | 1000          |
 | Architecture guidance, best practices                                                  | `./.github/instructions/architecture-guidance.instructions.md` | 1000          |
@@ -144,10 +158,10 @@ I'll guide you through **step-by-step instructions** that help you deploy secure
 **Terraform Modules:**
 
 - `modules/ai_foundry/` - Azure AI Foundry resource management
+- `modules/ai_foundry_project/` - Azure AI Foundry project management
 - `modules/common_models/` - AI model deployment configurations
 - `modules/existing_resources_agent_capability_host_connections/` - Agent capability host connections for existing resources
 - `modules/new_resources_agent_capability_host_connections/` - Agent capability host connections for new resources
-- `modules/wellknown/` - Well-known configurations and standards
 
 **Supporting Documentation:**
 
@@ -240,7 +254,7 @@ Execute comprehensive research and document findings immediately:
 ### Architecture Overview
 
 - **Reference Architectures**: [reference_architectures/](../../reference_architectures/) - Production-ready deployment patterns for AI infrastructure
-- **Terraform Modules**: [AI Foundry](../../modules/ai_foundry/README.md), [Common Models](../../modules/common_models/README.md), [Agent Capability Host Connections](../../modules/existing_resources_agent_capability_host_connections/README.md), and [Well-known Configurations](../../modules/wellknown/README.md)
+- **Terraform Modules**: [AI Foundry](../../modules/ai_foundry/README.md), [AI Foundry Project](../../modules/ai_foundry_project/README.md), [Common Models](../../modules/common_models/README.md) and [Agent Capability Host Connections](../../modules/existing_resources_agent_capability_host_connections/README.md)
 - **Documentation**: Comprehensive guides in [docs/](../../docs/) covering all aspects from setup to operations
 
 ### Core Design Principles

@@ -1,9 +1,6 @@
 #  yaml-language-server: $schema=https://taskfile.dev/schema.json
 # docs: https://taskfile.dev
 #
-# --- Windows ---
-# winget install Task.Task
-#
 # --- Linux ---
 # sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
 # echo 'command -v task >/dev/null || export PATH="$PATH:$HOME/.local/bin"' >> ~/.profile
@@ -20,6 +17,10 @@ vars:
     sh: git rev-parse --show-toplevel
   CURRENT_BRANCH:
     sh: git rev-parse --abbrev-ref HEAD
+  OS:
+    sh: uname | tr '[:upper:]' '[:lower:]'
+  ARCH:
+    sh: uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/'
 
 includes:
   internal:
@@ -42,8 +43,6 @@ includes:
     taskfile: .taskfiles/yaml.yml
   site:
     taskfile: .taskfiles/site.yml
-  project:
-    taskfile: .taskfiles/project.yml
 
 tasks:
   default:
@@ -56,7 +55,6 @@ tasks:
   tools:
     desc: Install tools
     cmds:
-      - task: project:tools
       - task: sh:tools
       - task: gh:tools
       - task: js:tools
@@ -86,8 +84,6 @@ tasks:
 
   docs:
     desc: Generate documentation
-    # deps:
-    #   - task: tf:lint
     cmds:
       - task: tf:docs
       - task: spell:lint
@@ -98,11 +94,3 @@ tasks:
     deps:
       - task: tf:clean
       - task: site:clean
-
-  lint:ml:
-    desc: Lint using MegaLinter
-    vars:
-      LATEST:
-        sh: gh release list --repo oxsecurity/megalinter --exclude-drafts --exclude-pre-releases --json "isLatest,tagName" --jq '.[] | select(.isLatest) | .tagName'
-    cmds:
-      - docker run -v "{{.REPO_ABS_ROOT_PATH}}":/tmp/lint ghcr.io/oxsecurity/megalinter-cupcake:{{.LATEST}} -e 'SHOW_ELAPSED_TIME=true' -e 'VALIDATE_ALL_CODEBASE=true' --fix

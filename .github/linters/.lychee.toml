@@ -60,9 +60,6 @@ scheme = ["https", "http", "file"]
 # When links are available using HTTPS, treat HTTP links as errors.
 require_https = false
 
-# Custom request headers
-headers = ['Accept-Encoding: deflate, compress, gzip, br, zstd']
-
 #############################  Exclusions  ##########################
 
 # Check links inside `<code>` and `<pre>` blocks as well as Markdown code

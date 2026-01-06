@@ -154,6 +154,12 @@ Notes:
 - The module grants the Project identity RBAC on Cosmos DB (Cosmos DB Operator), Storage (Storage Blob Data Contributor + conditional Storage Blob Data Owner for project containers), and Search (Search Index Data Contributor, Search Service Contributor). It also creates Cosmos SQL data-plane role assignments on three collections used by agents.
 - The module uses timed waits to allow identity propagation and RBAC consistency before binding the capability host.
 
+## Agent Subnet Cleanup
+
+**Critical for Destroy Operations:**
+
+When using agent subnet injection (`agents_subnet_id`), Azure creates a Container App Environment that establishes service association links to the subnet. These links prevent subnet deletion until they are cleaned up by Azure. This process can take several minutes after the AI Foundry resource is deleted.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

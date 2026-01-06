@@ -47,8 +47,8 @@ CAIRA provides tailored guidance based on your role, experience level, and objec
    - **Choose based on needs**: Development/experimentation vs. enterprise/regulated workloads
 
 1. **Immediate Value**
-   - Access AI Foundry Studio through Azure Portal
-   - Choose and configure available, platform-managed model options in AI Foundry Studio; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
+   - Access AI Foundry Portal through Azure Portal
+   - Choose and configure available, platform-managed model options in AI Foundry Portal; available model choices may change over time—refer to the Studio or the architecture README for current defaults.
    - Ready for AI application development
    - Built-in monitoring with Application Insights
 
@@ -218,14 +218,14 @@ graph TD
 
 When comparing available architectures, consider these factors:
 
-| Consideration | Questions to Ask | Look For in README |
-|---------------|------------------|--------------------|
-| **Cost** | What's my budget? | Pricing tier information, resource optimization |
+| Consideration        | Questions to Ask                 | Look For in README                                    |
+|----------------------|----------------------------------|-------------------------------------------------------|
+| **Cost**             | What's my budget?                | Pricing tier information, resource optimization       |
 | **Data Sovereignty** | Do I need explicit data control? | Resource management capabilities, compliance features |
-| **Setup Complexity** | How quickly do I need to deploy? | Prerequisites, configuration requirements |
-| **Team Support** | Single team or multi-team? | Access control patterns, sharing capabilities |
-| **Compliance** | What regulations apply? | Security features, audit capabilities |
-| **Performance** | What are my throughput needs? | Resource allocation, scalability features |
+| **Setup Complexity** | How quickly do I need to deploy? | Prerequisites, configuration requirements             |
+| **Team Support**     | Single team or multi-team?       | Access control patterns, sharing capabilities         |
+| **Compliance**       | What regulations apply?          | Security features, audit capabilities                 |
+| **Performance**      | What are my throughput needs?    | Resource allocation, scalability features             |
 
 ## Quick Start Steps
 
@@ -280,14 +280,14 @@ Each reference architecture in the `reference_architectures/` directory is desig
 
 The components deployed by each architecture vary based on the architecture's purpose and target use cases. Common components across CAIRA architectures typically include:
 
-| Component Category | Purpose | Notes |
-|-------------------|---------|-------|
-| **AI Foundry Resources** | Central AI platform with model deployments | Core component in most architectures |
-| **AI Projects** | Workspace for organizing AI work | Project-based organization |
-| **Model Deployments** | Pre-deployed AI models | Architecture-specific model selections |
-| **Monitoring & Observability** | Application performance monitoring | Varies by architecture complexity |
-| **Data Services** | Database and storage services | Some architectures include dedicated services |
-| **Search Services** | Search capabilities for AI applications | Architecture-dependent |
+| Component Category             | Purpose                                    | Notes                                         |
+|--------------------------------|--------------------------------------------|-----------------------------------------------|
+| **AI Foundry Resources**       | Central AI platform with model deployments | Core component in most architectures          |
+| **AI Projects**                | Workspace for organizing AI work           | Project-based organization                    |
+| **Model Deployments**          | Pre-deployed AI models                     | Architecture-specific model selections        |
+| **Monitoring & Observability** | Application performance monitoring         | Varies by architecture complexity             |
+| **Data Services**              | Database and storage services              | Some architectures include dedicated services |
+| **Search Services**            | Search capabilities for AI applications    | Architecture-dependent                        |
 
 **To see specific components for each architecture**, review the individual README.md files in the `reference_architectures/` directory.
 

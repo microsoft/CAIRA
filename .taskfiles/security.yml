@@ -10,24 +10,23 @@ tasks:
   # * Install Gitleaks
   install:gitleaks:
     desc: Install Gitleaks
+    vars:
+      GITLEAKS_ARCH:
+        sh: |
+          arch="{{.ARCH}}"
+          if [[ "${arch}" == "amd64" ]]; then
+          echo "x64"
+          else
+          echo "${arch}"
+          fi
+      GITLEAKS_VERSION: "8.30.0"
+      GITLEAKS_URL: "https://github.com/gitleaks/gitleaks/releases/download/v{{.GITLEAKS_VERSION}}/gitleaks_{{.GITLEAKS_VERSION}}_{{.OS}}_{{.GITLEAKS_ARCH}}.tar.gz"
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: "Gitleaks.Gitleaks"
       - task: internal:install:brew
         vars:
           APP: gitleaks
       - cmd: |
-          arch=$(uname -m)
-          if [[ "${arch}" == "x86_64" ]]; then
-            arch="x64"
-          elif [[ "${arch}" == "aarch64" ]]; then
-            arch="arm64"
-          else
-            echo "Unsupported architecture: ${arch}"
-            exit 1
-          fi
-          download_url=$(curl {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"${arch}"'.*tar.gz"' | grep -o 'https://[^"]*')
+          download_url="{{.GITLEAKS_URL}}"
           curl --location -o ~/gitleaks.tar.gz "${download_url}" \
             && tar -xf ~/gitleaks.tar.gz --directory ~/ \
             && rm -f ~/gitleaks.tar.gz \
@@ -38,9 +37,6 @@ tasks:
   install:trivy:
     desc: Install Trivy
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: AquaSecurity.Trivy
       - task: internal:install:brew
         vars:
           APP: trivy

@@ -26,16 +26,17 @@ tasks:
   # * Install Lychee
   install:lychee:
     desc: Install Lychee
+    vars:
+      LYCHEE_ARCH:
+        sh: uname -m
+      LYCHEE_VERSION: "v0.22.0"
+      LYCHEE_URL: "https://github.com/lycheeverse/lychee/releases/download/lychee-{{.LYCHEE_VERSION}}/lychee-{{.LYCHEE_ARCH}}-unknown-linux-gnu.tar.gz"
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: lycheeverse.lychee
       - task: internal:install:brew
         vars:
           APP: lychee
       - cmd: |
-          arch=$(uname -m)
-          download_url=$(curl {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/lycheeverse/lychee/releases/latest" | grep 'browser_download_url.*lychee-'"${arch}"'.*gnu.*tar.gz' | grep -o 'https://[^"]*')
+          download_url="{{.LYCHEE_URL}}"
           curl --location -o ~/lychee.tar.gz "${download_url}" \
             && tar -xf ~/lychee.tar.gz --directory ~/ lychee \
             && rm -f ~/lychee.tar.gz \

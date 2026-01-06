@@ -23,7 +23,6 @@ keywords:
 - [Terraform](#terraform)
 - [Spelling](#spelling)
 - [YAML](#yaml)
-- [Go](#go)
 - [Security](#security)
 
 ## GitHub Actions
@@ -77,16 +76,6 @@ The command to execute is:
 
 ```sh
 task: yml:lint
-```
-
-## Go
-
-[golangci-lint](https://github.com/golangci/golangci-lint) and [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) are used to lint Go code.
-
-The command to execute is:
-
-```sh
-task: go:lint
 ```
 
 ## Security

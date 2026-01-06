@@ -32,16 +32,15 @@ To run on your machine with the cloned repo, follow [official getting started](h
 
 ### Local Environments
 
-Local development is possible on Windows, Linux and macOS.
+Local development is possible on Windows (with WSL 2), Linux and macOS.
 
 Prerequisites:
 
-- [Go](https://go.dev/doc/install) `>= 1.24.3`
-- [Python](https://www.python.org/downloads/) `>= 3.13` _OR_ [UV](https://docs.astral.sh/uv/getting-started/installation/)
 - [NodeJS](https://nodejs.org/en/download/) `v22.15.0` or whatever is `LTS` with npm
 
 Required tooling not included in the automated install:
 
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - [Git](https://git-scm.com/downloads)
 - [Task](https://taskfile.dev/installation)
 - [Azure CLI](https://learn.microsoft.com/en-us/dotnet/azure/install-azure-cli)
@@ -50,4 +49,22 @@ To install the remaining required tooling, execute the following:
 
 ```sh
 task tools
+```
+
+## Integration Tests
+
+Integration tests can be run locally or in a devcontainer/Codespace. Some integration tests require additional setup, such as existing Azure resources provided by infrastructure pools or specific environment variables.
+
+To create/verify the existence of the required Azure resources and run all integration tests, execute the following:
+
+```sh
+task tf:test:int:all:local
+```
+
+If this is the first time you are running the integration tests, you will be prompted to authenticate with Azure and select a subscription. It will be used to create the required infrastructure pools and resources during the tests.
+
+If you want to run only specific integration tests for a specific reference architecture, go to the corresponding folder under `reference_architectures` and run:
+
+```sh
+task tf:test:int:local
 ```

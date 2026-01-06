@@ -92,7 +92,7 @@ resource "azapi_resource" "ai_search" {
     properties = {
       replicaCount   = 1
       partitionCount = 1
-      hostingMode    = "default"
+      hostingMode    = "Default"
       semanticSearch = "disabled"
 
       disableLocalAuth = true

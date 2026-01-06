@@ -153,7 +153,7 @@ After successful deployment:
 
 1. **Verify Resources**: Check Azure Portal for created resources
 1. **Test Connectivity**:
-   - Access Azure AI Foundry Studio portal
+   - Access Azure AI Foundry Portal
    - Verify the AI project is accessible
 1. **Validate Configuration**: Confirm AI Foundry project and model deployments
 1. **Test AI Services**: Test deployed models (GPT-4.1 by default) through the AI Foundry interface

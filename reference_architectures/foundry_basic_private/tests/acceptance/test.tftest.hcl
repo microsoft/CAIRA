@@ -36,6 +36,10 @@ run "data" {
 run "testacc_foundry_basic_private_default_config" {
   command = plan
 
+  variables {
+    foundry_subnet_id = run.data.connection.id
+  }
+
   # Verify location variable is properly set
   assert {
     condition     = var.location == "swedencentral"

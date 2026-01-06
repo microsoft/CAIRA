@@ -11,9 +11,6 @@ tasks:
   install:terraform:
     desc: Install Terraform
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: HashiCorp.Terraform
       - task: internal:install:brew:tap
         vars:
           APP: hashicorp/tap
@@ -27,44 +24,18 @@ tasks:
             && sudo apt -o DPkg::Lock::Timeout=-1 install terraform -y
         platforms: [linux]
 
-  # * Install OpenTofu
-  install:opentofu:
-    desc: Install OpenTofu
-    cmds:
-      - task: internal:install:winget
-        vars:
-          APP: OpenTofu.Tofu
-      - task: internal:install:brew
-        vars:
-          APP: opentofu
-      - cmd: |
-          curl --proto '=https' --tlsv1.2 -fsSL https://get.opentofu.org/install-opentofu.sh -o install-opentofu.sh
-          chmod +x install-opentofu.sh \
-            && ./install-opentofu.sh --install-method standalone \
-            && rm -f install-opentofu.sh
-        platforms: [linux]
-
   # * Install Terraform-Docs
   install:terraform-docs:
     desc: Install Terraform-Docs
+    vars:
+      TERRAFORM_DOCS_VERSION: "v0.21.0"
+      TERRAFORM_DOCS_URL: "https://github.com/terraform-docs/terraform-docs/releases/download/{{.TERRAFORM_DOCS_VERSION}}/terraform-docs-{{.TERRAFORM_DOCS_VERSION}}-{{.OS}}-{{.ARCH}}.tar.gz"
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: Terraform-docs.Terraform-docs
       - task: internal:install:brew
         vars:
           APP: terraform-docs
       - cmd: |
-          arch=$(uname -m)
-          if [[ "${arch}" == "x86_64" ]]; then
-            arch="amd64"
-          elif [[ "${arch}" == "aarch64" ]]; then
-            arch="arm64"
-          else
-            echo "Unsupported architecture: ${arch}"
-            exit 1
-          fi
-          download_url=$(curl {{.GH_CURL_AUTH}} --location --silent "https://api.github.com/repos/terraform-docs/terraform-docs/releases/latest" | grep 'browser_download_url.*terraform-docs.*linux-'"${arch}"'.*tar.gz"' | grep -o 'https://[^"]*')
+          download_url="{{.TERRAFORM_DOCS_URL}}"
           curl --location -o ~/terraform-docs.tar.gz "${download_url}" \
             && tar -xf ~/terraform-docs.tar.gz --directory ~/ \
             && rm -f ~/terraform-docs.tar.gz \
@@ -76,55 +47,62 @@ tasks:
   install:tflint:
     desc: Install TFLint
     cmds:
-      - task: internal:install:winget
-        vars:
-          APP: TerraformLinters.TFLint
       - task: internal:install:brew
         vars:
           APP: tflint
       - cmd: |
-          curl {{.GH_CURL_AUTH}} -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+          curl -L {{.GH_CURL_AUTH}} -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
         platforms: [linux]
 
   # * Install Terrascan
   install:terrascan:
     desc: Install Terrascan
+    vars:
+      TERRASCAN_VERSION: "1.19.9"
+      TERRASCAN_OS:
+        sh: |
+          if [[ "{{.OS}}" == "darwin" ]]; then
+            echo "Darwin"
+          else
+            echo "Linux"
+          fi
+      TERRASCAN_ARCH:
+        sh: |
+          if [[ "{{.ARCH}}" == "amd64" ]]; then
+            echo "x86_64"
+          else
+            echo "{{.ARCH}}"
+          fi
+      TERRASCAN_URL: "https://github.com/tenable/terrascan/releases/download/v{{.TERRASCAN_VERSION}}/terrascan_{{.TERRASCAN_VERSION}}_{{.TERRASCAN_OS}}_{{.TERRASCAN_ARCH}}.tar.gz"
     cmds:
       - cmd: |
-          {{.PWSH}} 'Invoke-WebRequest -Uri ((Invoke-RestMethod https://api.github.com/repos/tenable/terrascan/releases/latest).assets | Where-Object { $_.browser_download_url -match "Windows_x86_64\.tar\.gz$" } | Select-Object -ExpandProperty browser_download_url) -OutFile "$env:TMP\terrascan.tar.gz"'
-          {{.PWSH}} 'tar -xzf "$env:TMP\terrascan.tar.gz" -C "$env:TMP" terrascan.exe'
-          {{.PWSH}} 'Remove-Item "$env:TMP\terrascan.tar.gz" -Force'
-        platforms: [windows]
-      - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Darwin_x86_64.tar.gz")" > ~/terrascan.tar.gz
+          curl -L "{{.TERRASCAN_URL}}" > ~/terrascan.tar.gz
           tar -xf ~/terrascan.tar.gz --directory ~/ terrascan \
             && rm -f ~/terrascan.tar.gz \
             && sudo install ~/terrascan /usr/local/bin/terrascan \
             && rm ~/terrascan
-        platforms: [darwin]
-      - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > ~/terrascan.tar.gz
-          tar -xf ~/terrascan.tar.gz --directory ~/ terrascan \
-            && rm -f ~/terrascan.tar.gz \
-            && sudo install ~/terrascan /usr/local/bin/terrascan \
-            && rm -f ~/terrascan
-        platforms: [linux]
 
   # * Install terrafmt
   install:terrafmt:
+    vars:
+      TERRAFMT_VERSION: "v0.5.4"
+      # NOTE: Using PabloZaiden/terrafmt-dist as the source for terrafmt prebuilt binaries instead of the original katbyte/terrafmt repository.
+      # This repository is a trusted mirror/distribution point for prebuilt binaries, as the original does not provide them for all platforms.
+      TERRAFMT_URL: "https://github.com/PabloZaiden/terrafmt-dist/releases/download/{{.TERRAFMT_VERSION}}/terrafmt-{{.TERRAFMT_VERSION}}-{{.OS}}-{{.ARCH}}"
+
     desc: Install terrafmt
-    cmds:
-      - for: [github.com/katbyte/terrafmt@latest]
-        task: internal:install:go
-        vars:
-          APP: "{{.ITEM}}"
+    cmd: |
+      download_url="{{.TERRAFMT_URL}}"
+      echo "Downloading terrafmt from ${download_url}"
+      curl -L {{.GH_CURL_AUTH}} -o ~/terrafmt "${download_url}" \
+        && chmod +x ~/terrafmt \
+        && sudo mv ~/terrafmt /usr/local/bin/
 
   # * Tools
   tools:
     desc: Install Terraform tools
     cmds:
       - task: install:terraform
-      - task: install:opentofu
       - task: install:terraform-docs
       - task: install:tflint
       - task: install:terrafmt
@@ -138,36 +116,17 @@ tasks:
           terraform fmt -recursive
           tflint --init --config "$(pwd)/.github/linters/.tflint.hcl"
           tflint --recursive --fix --config "$(pwd)/.github/linters/.tflint.hcl"
-        platforms: [linux, darwin, windows]
       - cmd: |
           find . -type f -name "*.md" -not -path "*/.terraform/*" -exec terrafmt fmt {} --fix-finish-lines --quiet \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\.terraform\\' } | ForEach-Object { terrafmt fmt $_.FullName --fix-finish-lines --quiet}'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
   # * Docs
   docs:
     desc: Generate Terraform documentation
-    # vars:
-    #   ITEMS:
-    #     sh: "task tf:get:modules"
     cmds:
       - terraform-docs -c ./.github/configs/.terraform-docs.yml modules
       - terraform-docs -c ./.github/configs/.terraform-docs.yml reference_architectures
       - terraform-docs -c ./.github/configs/.terraform-docs.yml testing
-      # - for: { var: ITEMS }
-      #   cmd: terraform-docs -c ./.terraform-docs.yml "{{osClean .ITEM}}"
-      # - for: { var: ITEMS }
-      #   cmd: |
-      #     {{.PWSH}} '$name = Split-Path "{{osClean .ITEM}}" -Leaf; (Get-Content "./{{osClean .ITEM}}/README.md") -replace "__NAME__", $name | Set-Content "./{{osClean .ITEM}}/README.md"'
-      #   platforms: [windows]
-      # - for: { var: ITEMS }
-      #   cmd: |
-      #     sed -i "s/__NAME__/$(basename "{{osClean .ITEM}}")/g" "./{{osClean .ITEM}}/README.md"
-      #     sed -i -e '$a\' "./{{osClean .ITEM}}/README.md"
-      #   platforms: [linux, darwin]
     dir: "{{.ROOT_DIR}}"
 
   # * Clean
@@ -179,39 +138,108 @@ tasks:
           find ./ -name ".terraform" -type d -exec rm -rf {} \;
           find ./ -name "*.terraform.lock.*" -type f -exec rm -f {} \;
           find ./ -name "*.tfstate*" -type f -exec rm -f {} \;
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include ".external_modules" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include ".terraform" -Directory -Recurse | Remove-Item -Recurse -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "*.terraform.lock.*" -File -Recurse | Remove-Item -Force -Confirm:$false'
-          {{.PWSH}} 'Get-ChildItem -Path ./ -Include "*.tfstate*" -File -Recurse | Remove-Item -Force -Confirm:$false'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"
 
-  # * Run Unit Test
-  test:unit:
-    desc: Run terraform unit tests
+  env:login:
+    desc: Login to Azure for Terraform tests
     silent: true
-    status:
-      - test ! -d "tests/unit"
-    cmds:
-      - terraform init -upgrade -test-directory="tests/unit"
-      - terraform test -test-directory="tests/unit" -junit-xml="testunit-results.xml" -verbose
-    dir: "{{.USER_WORKING_DIR}}"
+    cmd: |
+      # ensure az login
+      if ! az account show &> /dev/null; then
+        az login
+      fi
 
-  test:unit:all:
-    desc: Run terraform unit tests on all modules
+  env:setup:
+    desc: Set up Terraform test environment
+    preconditions:
+      - sh: |
+          # verify az is logged in or ARM_SUBSCRIPTION_ID is set
+          if [[ -z "${ARM_SUBSCRIPTION_ID:-}" ]]; then
+            if ! az account show &> /dev/null; then
+              exit 1
+            fi
+          fi
+        msg: "Azure CLI is not logged in. Run task tf:env:login to authenticate."
     silent: true
-    vars:
-      ITEMS:
-        sh: "task tf:get:modules -- ."
-    cmds:
-      - for: { var: ITEMS }
-        cmd: |
-          pushd "{{osClean .ITEM}}"
-          task tf:test:unit
-          popd
-    dir: "{{.ROOT_DIR}}"
+    cmd: |
+      # set ARM_SUBSCRIPTION_ID if not set
+      if [[ -z "${ARM_SUBSCRIPTION_ID:-}" ]]; then
+        echo "export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)"
+      fi
+
+  test:pools:deploy:
+    desc: Deploy infrastructure pools for integration tests
+    deps:
+      - env:login
+    silent: true
+    cmd: |
+      set -e
+
+      export_azure_sub=$(task tf:env:setup)
+
+      eval "$export_azure_sub"
+
+      echo "Deploying Foundry Basic Private Pool..."
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+
+      # if there is a terraform.tfstate file, skip init/apply
+      if [[ -f "terraform.tfstate" ]]; then
+        echo "Found existing terraform.tfstate file, skipping deployment."
+      else
+        terraform init
+        terraform apply -auto-approve
+      fi
+
+      popd > /dev/null
+
+      echo "Deploying Foundry Standard Private Pool..."
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+
+      # if there is a terraform.tfstate file, skip init/apply
+      if [[ -f "terraform.tfstate" ]]; then
+        echo "Found existing terraform.tfstate file, skipping deployment."
+      else
+        terraform init
+        terraform apply -auto-approve
+      fi
+      popd > /dev/null
+
+  test:pools:outputs:
+    desc: Output infrastructure pools for integration tests
+    silent: true
+    cmd: |
+      set -e
+
+      echo "Foundry Basic Private Pool outputs:"
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+      terraform output
+      popd > /dev/null
+
+      echo "Foundry Standard Private Pool outputs:"
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+      terraform output
+      popd > /dev/null
+
+  test:pools:outputs:env:
+    desc: Export infrastructure pool outputs as environment variables
+    silent: true
+    cmd: |
+      set -e
+
+      # Durable Infrastructure Pools - Foundry Standard Private
+      pushd testing/infrastructure_pools/foundry_standard_private > /dev/null
+      echo "export TF_VAR_fsp_resource_group_name=\"$(terraform output -raw resource_group_name)\""
+      echo "export TF_VAR_fsp_vnet_name=\"$(terraform output -json connection | jq -r '.virtual_network_name')\""
+      echo "export TF_VAR_fsp_cosmosdb_account_name=\"$(terraform output -raw cosmosdb_account_name)\""
+      echo "export TF_VAR_fsp_storage_account_name=\"$(terraform output -raw storage_account_name)\""
+      echo "export TF_VAR_fsp_search_service_name=\"$(terraform output -raw search_service_name)\""
+      popd > /dev/null
+
+      # Durable Infrastructure Pools - Foundry Basic Private (Pool 1)
+      pushd testing/infrastructure_pools/foundry_basic_private > /dev/null
+      echo "export TF_VAR_fbp_resource_group_name=\"$(terraform output -raw resource_group_name)\""
+      echo "export TF_VAR_fbp_vnet_name=\"$(terraform output -json connection | jq -r '.virtual_network_name')\""
+      popd > /dev/null
 
   # * Run Acceptance Test
   test:acc:
@@ -225,7 +253,7 @@ tasks:
     dir: "{{.USER_WORKING_DIR}}"
 
   test:acc:all:
-    desc: Run terraform unit tests on all modules
+    desc: Run terraform acceptance tests on all modules
     silent: true
     vars:
       ITEMS:
@@ -249,6 +277,27 @@ tasks:
       - terraform test -test-directory="tests/integration" -junit-xml="testint-results.xml" -verbose
     dir: "{{.USER_WORKING_DIR}}"
 
+  test:int:local:
+    desc: Run terraform integration tests in local mode
+    deps:
+      - test:pools:deploy
+    silent: true
+    status:
+      - test ! -d "tests/integration"
+    cmd: |
+      export_azure_sub=$(task tf:env:setup)
+
+      eval "$export_azure_sub"
+
+      export_pool_vars=$(task tf:test:pools:outputs:env)
+
+      eval "$export_pool_vars"
+
+      terraform init -upgrade -test-directory="tests/integration"
+      terraform test -test-directory="tests/integration" -verbose
+
+    dir: "{{.USER_WORKING_DIR}}"
+
   test:int:all:
     desc: Run terraform integration on all modules
     silent: true
@@ -263,12 +312,24 @@ tasks:
           popd
     dir: "{{.ROOT_DIR}}"
 
+  test:int:all:local:
+    desc: Run terraform integration on all modules in local mode
+    silent: true
+    vars:
+      ITEMS:
+        sh: "task tf:get:modules -- ."
+    cmds:
+      - for: { var: ITEMS }
+        cmd: |
+          pushd "{{osClean .ITEM}}"
+          task tf:test:int:local
+          popd
+    dir: "{{.ROOT_DIR}}"
+
   # * Run All Tests
   test:
-    desc: Run all terraform tests (unit, integration, acceptance) on all modules
+    desc: Run all terraform tests (integration, acceptance) on all modules
     cmds:
-      - echo "🧪 Running Unit Tests..."
-      - task: test:unit:all
       - echo "🔗 Running Integration Tests..."
       - task: test:int:all
       - echo "✅ Running Acceptance Tests..."
@@ -283,8 +344,4 @@ tasks:
     silent: true
     cmds:
       - cmd: find "{{osClean .PATH}}" -mindepth 2 -not -path "*/.*" -type f -name "*.tf" -exec dirname {} \; | sort -u
-        platforms: [linux, darwin]
-      - cmd: |
-          {{.PWSH}} '(Get-ChildItem "{{osClean .PATH}}" *.tf -Recurse).DirectoryName | Where-Object {$_ -notmatch "\\(\..*)\\" } | Select-Object -Unique | ForEach-Object { Resolve-Path -Relative $_ }'
-        platforms: [windows]
     dir: "{{.ROOT_DIR}}"

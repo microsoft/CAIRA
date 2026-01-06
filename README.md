@@ -1,14 +1,37 @@
 # CAIRA
 
-CAIRA (Composable AI Reference Architecture) is an infrastructure-as-code baseline that can accelerate the deployment of secure, observable AI-related environments in Azure. CAIRA is not a turnkey solution but an accelerator designed to reduce the setup time of different AI environments. It enables engineering teams to spin up AI environments which are observable and secure by design.
+CAIRA (Composable AI Reference Architectures) provides a modular, composable foundation that accelerates the setup of AI environments using infrastructure as code. CAIRA is not a turnkey solution, but a suite of assets designed to accelerate the creation of secure, observable, and repeatable enterprise environments.
 
-## Baseline Configurations
+## CAIRA Assets
 
-CAIRA provides several baseline configurations for Azure AI Foundry based solutions, so users can have a consistent, scalable, reliable deployment of Azure AI Foundry and supporting infrastructure in an accelerated time frame in support of agentic workloads.
+There are several acceleration assets within the CAIRA suite.
+
+| Asset                                             | Purpose                                                                                                     | What it offers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Link                                                                                                        |
+|---------------------------------------------------|-------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| **AI Foundry Acceleration**                       | For organizations building modern AI solutions in the cloud                                                 | • Faster time to value: Deploy enterprise AI solutions with minimal upfront investment using reliable accelerator components<br>• Enterprise-grade security and observability acceleration: Baseline configurations with private networking, security controls, and compliance patterns<br>• Infrastructure as Code: Repeatable, version-controlled deployments with composable Terraform modules for Azure AI Foundry and supporting infrastructure<br>• Agentic acceleration: Deploy and configure through natural language, with seamless agent communication | [Current repository](https://github.com/microsoft/CAIRA)                                                    |
+| **Copilot Studio + Azure AI Search Acceleration** | For customers building enterprise solutions involving the low-code platform Copilot Studio (Power Platform) | • Rapid provisioning: Deploy a full Copilot Studio + Azure AI Search environment<br>• Enterprise-ready baseline: Preconfigured networking (VNets, private endpoints) and secure authentication patterns<br>• CI/CD friendly: Modular Terraform templates for repeatable, automated deployments<br>• Faster time-to-value: Move from proof-of-concept to production quickly and confidently<br>• Extensible architecture: Supports bring-your-own networking and Application Lifecycle Management (ALM) patterns for dev/test/prod environments                   | [Copilot Studio with Azure AI Search](https://github.com/Azure-Samples/Copilot-Studio-with-Azure-AI-Search) |
+
+## AI Foundry Acceleration
+
+This CAIRA asset provides several baseline configurations for Azure AI Foundry based solutions, so users can have a consistent, scalable, reliable deployment of Azure AI Foundry and supporting infrastructure in an accelerated time frame in support of agentic workloads.
 
 Look [here for documentation](https://github.com/microsoft/CAIRA/tree/main/reference_architectures) that details the available configurations.
 
+Foundry-only use case: If you only need Azure AI Foundry (account, project, model deployments, observability) and do NOT plan to use Azure AI Agent Service, choose one of the `_basic` reference architectures (`foundry_basic` for public endpoints or `foundry_basic_private` for private networking). The `_standard` variants add agent-focused dependent resources (Cosmos DB, Storage, AI Search) and capability host connection wiring that are unnecessary for a Foundry-only environment.
+
 ## Getting Started
+
+### Quick Start
+
+Try the ['CAIRA Assistant' chat mode](./docs/chat_modes.md) for guided deployment assistance. After cloning the repo and starting the devcontainer, simply select "caira-assistant" chatmode in copilot and start chatting.
+
+![Caira Assistant](./docs/images/caira_assistant.gif)
+
+The CAIRA assistant will walk you through the entire deployment experience of all four reference architectures, validate any necessary prerequisite resources, and even help verify resources post-deployment.
+
+![Caira Assistant](./docs/images/caira_assistant_long.gif)
+
+### Getting Started
 
 To use CAIRA, you'll need to set up your development environment with the required tools and dependencies. The easiest way to do it is using the devcontainer provided in with the repository. If you rather configure the environment manually, follow the directions outlined in [Environment Setup](./docs/environment_setup.md)
 
@@ -16,19 +39,9 @@ Want to jump right into CAIRA? Here are the details on getting started!
 
 1. Clone the repo: `git clone https://github.com/microsoft/CAIRA.git`
 1. Start the devcontainer.
-1. Explore and choose a configuration: Check the `/reference_architectures/` folder in this repository for a configuration that matches the baseline for your scenario. For example: `cd reference_architectures/foundry_basic`.
-1. Explore the configuration and customize as needed. Installation steps can be found in the nested README.md file.
+1. Explore and choose a configuration: either **ask the caira-assistant**, or check the `/reference_architectures/` folder in this repository for a configuration that matches the baseline for your scenario. For example: `cd reference_architectures/foundry_basic`.
+1. Explore the configuration and customize as needed. Installation steps can be found in the nested README.md file, or through the caira-assistant.
 1. Happy AI-ing!
-
-### New to CAIRA, Terraform or AI Foundry?
-
-Try the 🤖 [CAIRA Assistant chat mode](./docs/chat_modes.md) for guided deployment assistance! After cloning the repo and starting the devcontainer, simply select "caira-assistant" chatmode in copilot and start chatting.
-
-![Caira Assistant](./docs/images/caira_assistant.gif)
-
-The CAIRA assistant will walk you through the entire deployment experience of all four reference architectures, validate any necessary prerequisite resources, and even help verify resources post-deployment.
-
-![Caira Assistant](./docs/images/caira_assistant_long.gif)
 
 ## Contributing
 

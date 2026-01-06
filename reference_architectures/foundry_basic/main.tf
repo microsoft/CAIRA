@@ -20,7 +20,7 @@ module "common_models" {
 module "naming" {
   # https://registry.terraform.io/modules/Azure/naming/azurerm/latest
   source        = "Azure/naming/azurerm"
-  version       = "0.4.2"
+  version       = "0.4.3"
   suffix        = [local.base_name] # Suffix ensures uniqueness while keeping a human-friendly base name
   unique-length = 5                 # Number of random characters appended to resource names
 }

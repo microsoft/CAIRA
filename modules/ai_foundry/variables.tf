@@ -67,4 +67,3 @@ variable "application_insights" {
   nullable  = false
   sensitive = true
 }
-

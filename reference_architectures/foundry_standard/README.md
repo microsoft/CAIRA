@@ -32,6 +32,8 @@ The Standard configuration is suited for:
 
 For these scenarios, we recommend you use the [foundry_standard_private](../foundry_standard_private/README.md) reference architecture. For a full set of other security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
 
+Foundry-only use case: If you are not planning to use the Agent Service, consider the `_basic` variants (`foundry_basic` / `foundry_basic_private`) instead; this standard configuration includes extra agent-focused dependent resources (Cosmos DB, Storage, AI Search) you may not require.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
@@ -131,55 +133,23 @@ Note: The architecture diagram is similar in shape to the basic configuration wi
 
 ## Controlling Dependent Services (Data Sovereignty)
 
-This configuration wires agent capability host connections to Cosmos DB, Storage, and AI Search. You have two paths:
+By default, new resources will be created for the AI Foundry agent capability host. To bring your own resources, you must update the `capability_host_resources_1` module in `main.tf` to use the `existing_resources_agent_capability_host_connections` module.
 
-1. **Default** (create new dependent resources)
-   - The file `dependant_resources.tf` provisions Cosmos DB, Storage, and AI Search in the same resource group/region.
-   - The module input `agent_capability_host_connections` in `main.tf` connects the agent to these newly created resources.
-
-1. **Bring Your Own** (use existing, compliant resources)
-   - Replace the resources in `dependant_resources.tf` with data sources that reference approved/shared services, and wire those into `agent_capability_host_connections` in `main.tf`.
-   - Example (replace names/ids accordingly):
+**Default configuration**
 
 ```terraform
-data "azurerm_cosmosdb_account" "cosmosdb" {
-  name                = "<existing-cosmos-name>"
-  resource_group_name = "<existing-rg>"
+module "capability_host_resources_1" {
+  source = "../../modules/new_resources_agent_capability_host_connections"
+  # ... other required inputs ...
 }
+```
 
-data "azurerm_storage_account" "sa" {
-  name                = "<existing-storage-name>"
-  resource_group_name = "<existing-rg>"
-}
+**Bring your own AI Foundry agent capability host configuration**
 
-data "azapi_resource" "search" {
-  type      = "Microsoft.Search/searchServices@2025-05-01"
-  name      = "<existing-search-name>"
-  parent_id = "/subscriptions/<subId>/resourceGroups/<existing-rg>"
-}
-
-module "ai_foundry" {
-  # ...existing inputs...
-  agent_capability_host_connections = {
-    cosmos_db = {
-      resource_id         = data.azurerm_cosmosdb_account.cosmosdb.id
-      name                = data.azurerm_cosmosdb_account.cosmosdb.name
-      endpoint            = data.azurerm_cosmosdb_account.cosmosdb.endpoint
-      location            = var.location
-      resource_group_name = "<existing-rg>"
-    }
-    storage_account = {
-      resource_id           = data.azurerm_storage_account.sa.id
-      name                  = data.azurerm_storage_account.sa.name
-      location              = var.location
-      primary_blob_endpoint = data.azurerm_storage_account.sa.primary_blob_endpoint
-    }
-    ai_search = {
-      resource_id = data.azapi_resource.search.id
-      name        = data.azapi_resource.search.name
-      location    = var.location
-    }
-  }
+```terraform
+module "capability_host_resources_1" {
+  source = "../../modules/existing_resources_agent_capability_host_connections"
+  # ... other required inputs ...
 }
 ```
 
@@ -214,12 +184,14 @@ module "ai_foundry" {
 | terraform | >= 1.13, < 2.0 |
 | azapi     | ~> 2.6         |
 | azurerm   | ~> 4.40        |
+| time      | ~> 0.13        |
 
 ## Providers
 
 | Name    | Version |
 |---------|---------|
 | azurerm | ~> 4.40 |
+| time    | ~> 0.13 |
 
 ## Modules
 
@@ -231,7 +203,7 @@ module "ai_foundry" {
 | capability\_host\_resources\_2 | ../../modules/new_resources_agent_capability_host_connections | n/a     |
 | common\_models                 | ../../modules/common_models                                   | n/a     |
 | default\_project               | ../../modules/ai_foundry_project                              | n/a     |
-| naming                         | Azure/naming/azurerm                                          | 0.4.2   |
+| naming                         | Azure/naming/azurerm                                          | 0.4.3   |
 | secondary\_project             | ../../modules/ai_foundry_project                              | n/a     |
 
 ## Resources
@@ -240,6 +212,8 @@ module "ai_foundry" {
 |-------------------------------------------------------------------------------------------------------------------------------------------------|----------|
 | [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
 | [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group)                   | resource |
+| [time_sleep.wait_after_project1_destroy](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                    | resource |
+| [time_sleep.wait_after_project2_destroy](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep)                    | resource |
 
 ## Inputs
 

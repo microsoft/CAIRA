@@ -46,5 +46,3 @@ ignorePaths:
   - .venv
   - venv
   - .terraform
-  - .changes/**/*.md
-  - ./**/CHANGELOG.md

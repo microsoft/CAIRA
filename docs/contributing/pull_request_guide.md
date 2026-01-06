@@ -24,8 +24,6 @@ This guide provides comprehensive instructions for creating, reviewing, and mana
 
 ### Prerequisites Checklist
 
-- [ ] **Issue exists and is linked** - All PRs must reference an issue
-- [ ] **Branch is properly named** - Follows our [naming conventions](development_workflow.md#branch-naming-conventions)
 - [ ] **Development environment is set up** - See [Developer Guide](../developer.md)
 - [ ] **Tests pass locally** - Run `task test` successfully
 - [ ] **Code is linted** - Run `task lint` without errors
@@ -69,7 +67,7 @@ Use our pull request template (automatically populated). Include:
 #### Description
 
 - **Clear summary** of what was changed
-- **Why the change was needed** (link to issue)
+- **Why the change was needed**
 - **How it was implemented** (high-level approach)
 
 #### Type of Change
@@ -83,7 +81,6 @@ Use our pull request template (automatically populated). Include:
 
 #### Testing
 
-- [ ] Unit tests pass
 - [ ] Integration tests pass
 - [ ] Manual testing completed
 
@@ -96,7 +93,7 @@ Use our pull request template (automatically populated). Include:
 
 ### Linking Issues
 
-Always link your PR to the relevant issue using GitHub keywords:
+Link your PR to relevant issues using GitHub keywords:
 
 ```markdown
 Closes #123
@@ -118,25 +115,16 @@ Related to #101
   - Inline comments for complex logic
 
 - [ ] **No hardcoded values**
-  - Use variables for all configurable values
+  - Use variables for configurable values when relevant
   - Sensitive data handled securely
   - Environment-specific configurations are parameterized
 
 ### Testing Requirements
 
-- [ ] **Unit tests included for new functionality**
-  - Test both positive and negative scenarios
-  - Edge cases are covered
-  - Tests are deterministic and reliable
-
 - [ ] **Integration tests included for infrastructure changes**
   - Tests deploy actual Azure resources
   - Cleanup procedures are implemented
   - Tests validate resource configurations
-
-- [ ] **Test coverage meets requirements**
-  - Critical paths are fully tested
-  - Coverage report shows no major gaps
 
 ### Security & Compliance
 

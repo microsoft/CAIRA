@@ -13,6 +13,8 @@ This configuration is designed as a simple development environment for common AI
 - Microsoft-managed file storage
 - Microsoft-managed resources for storing Agents threads and messages
 
+See the reference architecture at `reference_architectures/foundry_basic`.
+
 ## Basic AI Foundry (Private)
 
 This provides the same features of basic but exposes the Foundry APIs via private endpoints.
@@ -23,6 +25,8 @@ This provides the same features of basic but exposes the Foundry APIs via privat
 - Bring-your-own private networking
 - Microsoft-managed file storage
 - Microsoft-managed resources for storing Agents threads and messages
+
+See the reference architecture at `reference_architectures/foundry_basic_private`.
 
 ## Standard AI Foundry with Capability Host
 
@@ -35,6 +39,8 @@ This configuration includes everything in the Basic setup and adds explicit capa
 - Bring-your-own or module-provisioned dependent services
 - Identity-first defaults (RBAC), ready for enterprise hardening
 - Built-in observability via Log Analytics and Application Insights
+
+See the reference architecture at `reference_architectures/foundry_standard`.
 
 ## Standard AI Foundry with Capability Host (Private)
 
@@ -49,7 +55,7 @@ This configuration includes everything in the standard setup but exposes the Fou
 - Identity-first defaults (RBAC), ready for enterprise hardening
 - Built-in observability via Log Analytics and Application Insights
 
-See the reference architecture at `reference_architectures/foundry_standard`.
+See the reference architecture at `reference_architectures/foundry_standard_private`.
 
 ## Available Reference Architectures
 
@@ -57,6 +63,8 @@ See the reference architecture at `reference_architectures/foundry_standard`.
 - **foundry_basic_private** - Basic configuration with network isolation
 - **foundry_standard** - Enterprise features with Bring Your Own Resource (BYOR) approach
 - **foundry_standard_private** - Enterprise configuration with protected agent support
+
+Foundry-only use case: If you only need Azure AI Foundry (account, project, model deployments, observability) and do NOT plan to use the Agent Service, choose one of the `_basic` reference architectures (`foundry_basic` for public endpoints or `foundry_basic_private` for private networking). The `_standard` variants add agent-focused dependent resources (Cosmos DB, Storage, AI Search) and capability host connection wiring that are not required when not using the Agent service.
 
 ## Deployment Decision Matrix
 

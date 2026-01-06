@@ -31,6 +31,8 @@ The Basic AI Foundry configuration creates a minimal but complete AI development
 
 For these scenarios, we recommend you use the [foundry_basic_private](../foundry_basic_private/README.md) reference architecture. For a full set of other security posture considerations, please review [CAIRA's security posture](../../docs/security_posture.md).
 
+Foundry-only use case: If you are not planning to use the Agent Service, this basic architecture (or its private networking counterpart) is recommended; the standard architectures add agent-focused dependent resources (Cosmos DB, Storage, AI Search) you can omit.
+
 ## Architecture
 
 ![Architecture Diagram](./images/architecture.drawio.svg)
@@ -134,7 +136,7 @@ For these scenarios, we recommend you use the [foundry_basic_private](../foundry
 After deployment, you can access your AI Foundry environment through:
 
 1. **Azure Portal**: Navigate to your Cognitive Services account
-1. **AI Foundry Studio**: Use the web interface for model management
+1. **AI Foundry Portal**: Use the web interface for model management
 1. **Azure CLI**: Interact programmatically with your deployments
 1. **SDKs**: Connect from your applications using Azure AI SDKs
 
@@ -206,7 +208,7 @@ For issues and questions:
 | application\_insights | Azure/avm-res-insights-component/azurerm | 0.2.0   |
 | common\_models        | ../../modules/common_models              | n/a     |
 | default\_project      | ../../modules/ai_foundry_project         | n/a     |
-| naming                | Azure/naming/azurerm                     | 0.4.2   |
+| naming                | Azure/naming/azurerm                     | 0.4.3   |
 
 ## Resources
 

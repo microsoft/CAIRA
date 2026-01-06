@@ -11,11 +11,6 @@ tasks:
   install:shellcheck:
     desc: Install shellcheck
     cmds:
-      - for: [koalaman.shellcheck]
-        task: internal:install:winget
-        vars:
-          APP: "{{.ITEM}}"
-        platforms: [windows]
       - for: [shellcheck]
         task: internal:install:brew
         vars:
@@ -29,20 +24,13 @@ tasks:
   # * Install shfmt
   install:shfmt:
     desc: Install shfmt
+    vars:
+      SHFMT_VERSION: "v3.12.0"
+      SHFMT_URL: "https://github.com/mvdan/sh/releases/download/{{.SHFMT_VERSION}}/shfmt_{{.SHFMT_VERSION}}_{{.OS}}_{{.ARCH}}"
     cmds:
-      - for: [mvdan.shfmt]
-        task: internal:install:winget
-        vars:
-          APP: "{{.ITEM}}"
-        platforms: [windows]
       - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_linux_amd64")" > ~/shfmt
+          curl -L "{{.SHFMT_URL}}" > ~/shfmt
           sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
-        platforms: [linux]
-      - cmd: |
-          curl -L "$(curl {{.GH_CURL_AUTH}} -s https://api.github.com/repos/mvdan/sh/releases/latest | grep -o -E "https://.+?_darwin_arm64")" > ~/shfmt
-          sudo install ~/shfmt /usr/local/bin/shfmt && rm -f ~/shfmt
-        platforms: [darwin]
 
   # * Tools
   tools:
@@ -57,18 +45,10 @@ tasks:
     vars:
       SHELL_FILES:
         sh: |
-          {{if eq OS "windows"}}
-            {{.PWSH}} 'shfmt --find . | Where-Object { $_ -notmatch "\\(.git|node_modules|\\.terraform|\\.venv|\\.dev)\\" }'
-          {{else}}
-            shfmt --find . | grep -v -E '\./\.git/|\./node_modules/|/\.terraform/|\.terraform/|\./\.venv/|\./\.dev/'
-          {{end}}
+          shfmt --find . | grep -v -E '\./\.git/|\./node_modules/|/\.terraform/|\.terraform/|\./\.venv/|\./\.dev/'
       ITEMS:
         sh: |
-          {{if eq OS "windows"}}
-            {{.PWSH}} 'Get-ChildItem -Path . -Filter "*.sh" -Recurse | Where-Object { $_.FullName -notmatch "\\(.git|node_modules|.terraform|.venv|.dev)\\" } | ForEach-Object { $_.FullName | Resolve-Path -Relative }'
-          {{else}}
-            find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "*/.venv/*" -not -path "*/.dev/*" -not -path "*/.terraform/*" -not -path ".terraform/*"
-          {{end}}
+          find . -type f -name "*.sh" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "*/.venv/*" -not -path "*/.dev/*" -not -path "*/.terraform/*" -not -path ".terraform/*"
     cmds:
       - for: { var: SHELL_FILES }
         cmd: shfmt -w -i 2 -ci -bn "{{osClean .ITEM}}"
