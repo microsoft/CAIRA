@@ -38,7 +38,7 @@ resource "azurerm_resource_group" "this" {
 
 # Local values centralize the computed naming and resource group id.
 locals {
-  base_name                  = "standard" # Used as the semantic prefix for naming resources
+  base_name                  = var.base_name # Used as the semantic prefix for naming resources
   resource_group_resource_id = var.resource_group_resource_id != null ? var.resource_group_resource_id : azurerm_resource_group.this[0].id
   resource_group_name        = var.resource_group_resource_id != null ? provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.resource_group_resource_id).resource_group_name : azurerm_resource_group.this[0].name
 }

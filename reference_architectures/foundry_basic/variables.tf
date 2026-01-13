@@ -2,6 +2,13 @@
 # Copyright (c) Microsoft Corporation. Licensed under the MIT license.
 # ---------------------------------------------------------------------
 
+variable "base_name" {
+  type        = string
+  description = "Base name used as suffix in the naming module."
+  default     = "basic"
+  nullable    = false
+}
+
 variable "location" {
   type        = string
   description = "Azure region where the resource should be deployed."
