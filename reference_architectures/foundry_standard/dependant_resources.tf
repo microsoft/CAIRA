@@ -19,7 +19,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 # Application Insights
 module "application_insights" {
   source  = "Azure/avm-res-insights-component/azurerm"
-  version = "0.2.0"
+  version = "0.3.0"
 
   location            = var.location
   name                = module.naming.application_insights.name_unique
