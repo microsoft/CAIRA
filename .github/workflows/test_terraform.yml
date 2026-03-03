@@ -132,7 +132,7 @@ jobs:
           repo-token: ${{ github.token }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
 
       - name: Terraform Version
         id: version
@@ -195,7 +195,7 @@ jobs:
 
       - name: Upload out
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: out-${{ matrix.src.name }}-${{ github.run_id }}
           path: |
@@ -204,7 +204,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: tests-results-${{ matrix.src.name }}-${{ github.run_id }}
           path: |
@@ -214,7 +214,7 @@ jobs:
       - name: Publish test results
         id: test_results
         if: always()
-        uses: dorny/test-reporter@b082adf0eced0765477756c2a610396589b8c637 # v2.5.0
+        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f # v2.6.0
         with:
           working-directory: ${{ matrix.src.path }}
           name: Test results (${{ matrix.src.name }})
