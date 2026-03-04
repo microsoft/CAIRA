@@ -12,7 +12,6 @@ keywords:
     - CAIRA
     - automation
     - copilot instructions
-    - task implementation
     - commit messages
 ---
 
@@ -66,15 +65,6 @@ Provides getting started, quick start, and how-to instructions for CAIRA project
 - **Scope**: Project onboarding, quick start guides, how-to procedures
 - **Coverage**: Getting started guidance, quick start procedures, established practices
 
-### [Task Implementation Instructions](task-implementation.instructions.md)
-
-Comprehensive guidance for implementing task plans located in `.copilot-tracking/plans/` directories.
-
-- **Purpose**: Systematic task implementation and progress tracking
-- **Scope**: Plan analysis, context gathering, quality standards, release documentation
-- **Applied to**: `**/.copilot-tracking/{plans,changes}/*.md` files
-- **Coverage**: Implementation process, quality standards, progress tracking, documentation
-
 ### [Terraform Instructions](terraform.instructions.md)
 
 Infrastructure as Code implementation guidance for HashiCorp Terraform development.
@@ -117,7 +107,6 @@ Instructions are automatically applied based on their `applyTo` scope when the c
 - **Single Context**: Use one primary instruction file per conversation for focus
 - **Relevant Scope**: Choose instructions that match your current development task
 - **Combined Context**: Add project files and folders alongside instructions
-- **Progressive Application**: Apply task implementation instructions for complex work
 
 ## Related Resources
 

@@ -1,5 +1,7 @@
 ---
+name: CAIRA ADR Creation Coach
 description: 'ADR Creation Coach - Interactive AI coaching for collaborative architectural decision record creation with guided discovery, research integration, and progressive documentation building'
+disable-model-invocation: true
 ---
 
 # ADR Creation Coach

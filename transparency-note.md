@@ -10,7 +10,7 @@ Microsoft’s Transparency Notes are part of a broader effort at Microsoft to pu
 
 ### Introduction
 
-CAIRA (Composable AI Reference Architecture) provides a modular, composable foundation that accelerates the setup of AI environments on Azure using Infrastructure as Code (IaC). It offers baseline configurations for AI development and production environments, proven in enterprise scenarios, allowing for consistent, scalable, and reliable deployments in a fraction of the time. The system takes the form of Terraform templates and includes an AI-powered chat mode to guide users through deployment, architecture decisions, and troubleshooting. The output is provisioned resources in an Azure environment.
+CAIRA (Composable AI Reference Architecture) provides a modular, composable foundation that accelerates the setup of AI environments on Azure using Infrastructure as Code (IaC). It offers baseline configurations for AI development and production environments, proven in enterprise scenarios, allowing for consistent, scalable, and reliable deployments in a fraction of the time. The system takes the form of Terraform templates and includes AI-powered agents to guide users through deployment, architecture decisions, and troubleshooting. The output is provisioned resources in an Azure environment.
 
 ### Key terms
 
@@ -20,7 +20,7 @@ CAIRA (Composable AI Reference Architecture) provides a modular, composable foun
 | **Infrastructure as Code (IaC)** | The management of infrastructure (networks, virtual machines, load balancers, and connection topology) in a descriptive model, using the same versioning as DevOps team uses for source code. CAIRA uses Terraform for its IaC.    |
 | **Azure AI Foundry**             | A service that provides a comprehensive and collaborative environment for building, training, and deploying machine learning models and AI applications on Azure.                                                                  |
 | **Reference Architecture (RA)**  | A collection of templates, patterns, and best practices that serve as a starting point for designing and deploying a solution. CAIRA provides several reference architectures (e.g., `foundry_basic`, `foundry_standard_private`). |
-| **CAIRA chat mode**              | An AI guide integrated into the development environment that assists with deploying CAIRA, making architecture decisions, and troubleshooting.                                                                                     |
+| **CAIRA agents**                 | AI agents integrated into the development environment that assist with deploying CAIRA, making architecture decisions, and troubleshooting.                                                                                        |
 
 ## Capabilities
 
@@ -28,7 +28,7 @@ CAIRA (Composable AI Reference Architecture) provides a modular, composable foun
 
 CAIRA's core functionality is providing pre-built, tested, and modular Infrastructure as Code for deploying complex AI environments on Azure. It simplifies the process of setting up services like Azure AI Foundry, networking, and other dependent resources. The system's behavior is deterministic based on the chosen reference architecture and user-provided configuration.
 
-An integrated AI chat mode enhances the user experience. This chat mode draws from the repository's documentation and best practices to provide step-by-step guidance, explain architectural choices based on the Azure Well-Architected Framework, and help troubleshoot deployment issues. This is not a free-form conversational AI; its purpose is scoped to assisting with the discovery, deployment, and maintenance of the CAIRA templates.
+Integrated AI agents enhance the user experience. These agents draw from the repository's documentation and best practices to provide step-by-step guidance, explain architectural choices based on the Azure Well-Architected Framework, and help troubleshoot deployment issues. These are not free-form conversational AI; their purpose is scoped to assisting with the discovery, deployment, and maintenance of the CAIRA templates.
 
 ### Use cases
 
@@ -48,7 +48,7 @@ We encourage teams to leverage CAIRA in their innovative solutions. However, her
 
 ##### Unsupported uses
 
-* **Running as a Live AI System:** CAIRA is an accelerator for deploying infrastructure. The "AI chat mode" component is for developer guidance and does not constitute a persistent, interactive AI system for end-users.
+* **Running as a Live AI System:** CAIRA is an accelerator for deploying infrastructure. The AI agents component is for developer guidance and does not constitute a persistent, interactive AI system for end-users.
 
 Legal and regulatory considerations. Organizations need to evaluate potential specific legal and regulatory obligations when using any AI services and solutions, which may not be appropriate for use in every industry or scenario. Restrictions may vary based on regional or local regulatory requirements. Additionally, AI services or solutions are not designed for and may not be used in ways prohibited in applicable terms of service and relevant codes of conduct.
 
@@ -64,15 +64,15 @@ Legal and regulatory considerations. Organizations need to evaluate potential sp
 
 ## System performance
 
-As CAIRA is primarily Infrastructure as Code, "performance" refers to the reliability, security, and correctness of the deployed Azure infrastructure, as well as the accuracy and helpfulness of the AI chat mode. The IaC is built on best practices from enterprise work to ensure high-quality deployments.
+As CAIRA is primarily Infrastructure as Code, "performance" refers to the reliability, security, and correctness of the deployed Azure infrastructure, as well as the accuracy and helpfulness of the AI agents. The IaC is built on best practices from enterprise work to ensure high-quality deployments.
 
-The AI chat mode's performance is measured by its ability to correctly interpret user intent and provide relevant, accurate guidance based on the repository's documentation. Errors in the chat mode's guidance might include suggesting an inappropriate architecture or failing to find a solution for a troubleshooting query.
+The AI agents' performance is measured by their ability to correctly interpret user intent and provide relevant, accurate guidance based on the repository's documentation. Errors in agent guidance might include suggesting an inappropriate architecture or failing to find a solution for a troubleshooting query.
 
 ### Best practices for improving system performance
 
 * **Select the Right Architecture:** For enterprise or production use, start with the `foundry_standard` or `foundry_standard_private` architectures to ensure a higher baseline of security and observability.
 * **Review Terraform Plans:** Before applying any changes, carefully review the output of the `terraform plan` command to understand what resources will be created, modified, or destroyed.
-* **Provide Clear Prompts:** When interacting with the CAIRA chat mode, provide clear and specific prompts related to your goals (e.g., "Help me choose an architecture for a production environment with private networking" instead of "How do I start?").
+* **Provide Clear Prompts:** When interacting with the CAIRA agents, provide clear and specific prompts related to your goals (e.g., "Help me choose an architecture for a production environment with private networking" instead of "How do I start?").
 * **Keep Environments Tidy:** Decommission experimentation environments created with `foundry_basic` once they are no longer needed to avoid security risks and unnecessary costs.
 
 ## Evaluation of CAIRA (Composable AI Reference Architecture)
@@ -91,7 +91,7 @@ The results of ongoing evaluation and real-world use influence decisions about t
 
 #### Fairness considerations
 
-Since CAIRA is an Infrastructure as Code accelerator and not an AI system that makes decisions or predictions about people, fairness harms related to allocation, quality of service, or stereotyping are not directly applicable in the same way they would be for a user-facing AI model. The primary consideration is ensuring that the guidance and documentation are clear and accessible to all users, regardless of their background or level of expertise with IaC or Azure. The CAIRA chat mode is designed to democratize access to complex cloud architecture knowledge.
+Since CAIRA is an Infrastructure as Code accelerator and not an AI system that makes decisions or predictions about people, fairness harms related to allocation, quality of service, or stereotyping are not directly applicable in the same way they would be for a user-facing AI model. The primary consideration is ensuring that the guidance and documentation are clear and accessible to all users, regardless of their background or level of expertise with IaC or Azure. The CAIRA agents are designed to democratize access to complex cloud architecture knowledge.
 
 ## Evaluating and integrating CAIRA for your use
 

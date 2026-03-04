@@ -49,7 +49,6 @@ When user queries match these patterns, **immediately** load the corresponding g
 | Architecture decisions, best practices, design guidance        | `.github/instructions/architecture-guidance.instructions.md` | Critical      |
 | Terraform files (.tf), IaC configuration, modules              | `.github/instructions/terraform.instructions.md`             | Critical      |
 | Configuration parameters, SKUs, pricing, variables, validation | `.github/instructions/configuration.instructions.md`         | Critical      |
-| Task implementation, .copilot-tracking files                   | `.github/instructions/task-implementation.instructions.md`   | Critical      |
 
 **Pattern Matching Rules:**
 

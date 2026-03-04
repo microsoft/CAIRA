@@ -23,7 +23,7 @@ Foundry-only use case: If you only need Azure AI Foundry (account, project, mode
 
 ### Quick Start
 
-Try the ['CAIRA Assistant' chat mode](./docs/chat_modes.md) for guided deployment assistance. After cloning the repo and starting the devcontainer, simply select "caira-assistant" chatmode in copilot and start chatting.
+Try the ['CAIRA Assistant' agent](./docs/custom_agents.md) for guided deployment assistance. After cloning the repo and starting the devcontainer, simply select the "CAIRA AI Assistant" agent in Copilot and start chatting.
 
 ![Caira Assistant](./docs/images/caira_assistant.gif)
 
@@ -39,8 +39,8 @@ Want to jump right into CAIRA? Here are the details on getting started!
 
 1. Clone the repo: `git clone https://github.com/microsoft/CAIRA.git`
 1. Start the devcontainer.
-1. Explore and choose a configuration: either **ask the caira-assistant**, or check the `/reference_architectures/` folder in this repository for a configuration that matches the baseline for your scenario. For example: `cd reference_architectures/foundry_basic`.
-1. Explore the configuration and customize as needed. Installation steps can be found in the nested README.md file, or through the caira-assistant.
+1. Explore and choose a configuration: either **ask the CAIRA Assistant agent**, or check the `/reference_architectures/` folder in this repository for a configuration that matches the baseline for your scenario. For example: `cd reference_architectures/foundry_basic`.
+1. Explore the configuration and customize as needed. Installation steps can be found in the nested README.md file, or through the CAIRA Assistant agent.
 1. Happy AI-ing!
 
 ## Contributing

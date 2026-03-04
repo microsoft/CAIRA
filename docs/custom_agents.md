@@ -1,13 +1,13 @@
 <!-- META
-title: CAIRA Chat Modes Guide
-description: Complete guide for new users to understand CAIRA's AI assistants and deploy Azure AI infrastructure with ease.
+title: CAIRA Agents Guide
+description: Complete guide for new users to understand CAIRA's AI agents and deploy Azure AI infrastructure with ease.
 author: CAIRA Team
-ms.date: 09/25/2025
+ms.date: 03/03/2026
 ms.topic: guide
 estimated_reading_time: 3
 keywords:
     - caira assistant
-    - chat modes
+    - agents
     - deployment guide
     - reference architectures
     - azure ai foundry
@@ -15,22 +15,20 @@ keywords:
     - user guide
 -->
 
-# CAIRA Chat Modes Guide
+# CAIRA Agents Guide
 
-## 🧠 CAIRA's AI Assistant System
+## CAIRA's AI Agent System
 
-CAIRA includes a number of [chat modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes#_custom-chat-modes) that make working with Azure AI infrastructure as simple as having a conversation.
+CAIRA includes a number of [custom agents](https://code.visualstudio.com/docs/copilot/chat/chat-agents) that make working with Azure AI infrastructure as simple as having a conversation.
 
-## Available AI Assistants (Chat modes)
+## Available AI Agents
 
-| Assistant              | Purpose                              | Best For                                        |
+| Agent                  | Purpose                              | Best For                                        |
 |------------------------|--------------------------------------|-------------------------------------------------|
 | **CAIRA Assistant**    | Deploy and manage AI infrastructure  | New users, architecture selection, deployments  |
-| **Task Planner**       | Create implementation plans          | Project planning, complex implementations       |
-| **Prompt Builder**     | Engineer high-quality prompts        | AI application development, prompt optimization |
 | **ADR Creation Coach** | Architectural decision documentation | Enterprise governance, decision tracking        |
 
-This page will focus primarily on the CAIRA Assistant chatmode.
+This page will focus primarily on the CAIRA Assistant agent.
 
 ## The CAIRA Assistant - Your Deployment Guide
 
@@ -63,7 +61,7 @@ What's your primary use case - development, production, or enterprise compliance
 
 ### Step 1: Access CAIRA Assistant
 
-In your development environment, select the `caira-assistant` chat mode.
+In your development environment, select the `CAIRA AI Assistant` agent.
 
 **Example ways to start:**
 
