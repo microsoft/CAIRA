@@ -16,7 +16,7 @@ keywords:
 
 # CAIRA Custom Agents
 
-This directory contains custom AI [agent](https://code.visualstudio.com/docs/copilot/chat/chat-agents) configurations designed to enhance your experience when working with the CAIRA project. Each agent provides tailored guidance and assistance for specific types of tasks.
+This directory contains custom AI [agent](https://code.visualstudio.com/docs/copilot/customization/custom-agents) configurations designed to enhance your experience when working with the CAIRA project. Each agent provides tailored guidance and assistance for specific types of tasks.
 
 ## AI Usage Disclaimer
 

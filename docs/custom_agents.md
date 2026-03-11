@@ -19,7 +19,7 @@ keywords:
 
 ## CAIRA's AI Agent System
 
-CAIRA includes a number of [custom agents](https://code.visualstudio.com/docs/copilot/chat/chat-agents) that make working with Azure AI infrastructure as simple as having a conversation.
+CAIRA includes a number of [custom agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents) that make working with Azure AI infrastructure as simple as having a conversation.
 
 ## Available AI Agents
 
