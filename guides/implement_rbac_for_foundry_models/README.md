@@ -96,6 +96,43 @@ Or run the helper script:
 ./scripts/deploy.sh
 ```
 
+## Testing Process
+
+Run tests from the Terraform directory:
+
+```bash
+cd terraform
+terraform test
+```
+
+Run a single test file:
+
+```bash
+terraform test -filter=tests/acceptance.tftest.hcl
+terraform test -filter=tests/integration.tftest.hcl
+```
+
+Validate the private networking toggle behavior:
+
+- Disabled mode (`should_enable_foundry_private_networking = false`): tests are active and assert no private networking resources are planned.
+- Enabled mode (`should_enable_foundry_private_networking = true`): plan-mode tests are currently commented out due to external module behavior.
+- Disabled-mode tests also assert the `ai_foundry_endpoint` output declaration remains present to catch core output regressions.
+
+### Known Test Limitation
+
+Enabled-mode plan tests are commented out in [terraform/tests/acceptance.tftest.hcl](terraform/tests/acceptance.tftest.hcl) and [terraform/tests/integration.tftest.hcl](terraform/tests/integration.tftest.hcl).
+
+Reason:
+
+- In [modules/ai_foundry/private_networking.tf](../../modules/ai_foundry/private_networking.tf), private DNS `data` resources use `count = var.foundry_subnet_id != null ? 1 : 0`.
+- In this guide, `foundry_subnet_id` is derived from a subnet created in the same plan, so the value is unknown at plan time for enabled mode.
+- Terraform fails with `Invalid count argument` before enabled-mode assertions can run.
+
+Current test behavior:
+
+- `terraform test` passes for active disabled-mode runs.
+- Enabled-mode runs remain documented but commented out until the external module is refactored for plan-time determinism.
+
 ## Authorization Flow
 
 1. A client app requests a token for `api://<api_application_client_id>`.
