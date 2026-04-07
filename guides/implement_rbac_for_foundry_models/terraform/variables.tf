@@ -20,10 +20,29 @@ variable "location" {
   nullable    = false
 }
 
+variable "private_endpoint_subnet_address_prefixes" {
+  type        = list(string)
+  description = "Address prefixes for the subnet that hosts AI Foundry private endpoints. Otherwise, '[\"172.16.0.0/24\"]'."
+  default     = ["172.16.0.0/24"]
+}
+
+variable "private_network_address_space" {
+  type        = list(string)
+  description = "Address space for the optional virtual network used by AI Foundry private endpoints. Otherwise, '[\"172.16.0.0/16\"]'."
+  default     = ["172.16.0.0/16"]
+}
+
 variable "resource_group_resource_id" {
   type        = string
   description = "Resource group resource ID where the architecture resources will be deployed. Otherwise, a new resource group is created."
   default     = null
+}
+
+variable "should_enable_foundry_private_networking" {
+  type        = bool
+  description = "Controls whether the architecture creates a virtual network and private endpoints for AI Foundry model traffic. Otherwise, 'false'."
+  default     = false
+  nullable    = false
 }
 
 variable "sku" {

@@ -44,6 +44,82 @@ resource "azurerm_resource_group" "this" {
   tags     = var.tags
 }
 
+resource "azurerm_virtual_network" "foundry_private" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                = module.naming.virtual_network.name
+  location            = var.location
+  resource_group_name = local.resource_group_name
+  address_space       = var.private_network_address_space
+  tags                = var.tags
+}
+
+resource "azurerm_subnet" "foundry_private_endpoint" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                 = "foundry-private-endpoints"
+  resource_group_name  = local.resource_group_name
+  virtual_network_name = azurerm_virtual_network.foundry_private[0].name
+  address_prefixes     = var.private_endpoint_subnet_address_prefixes
+
+  # Required to allow private endpoint resources in the subnet.
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_private_dns_zone" "cognitive" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                = "privatelink.cognitiveservices.azure.com"
+  resource_group_name = local.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "cognitive" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                  = "${module.naming.private_dns_zone.name}-cognitive-link"
+  resource_group_name   = local.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.cognitive[0].name
+  virtual_network_id    = azurerm_virtual_network.foundry_private[0].id
+  tags                  = var.tags
+}
+
+resource "azurerm_private_dns_zone" "ai_services" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                = "privatelink.services.ai.azure.com"
+  resource_group_name = local.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "ai_services" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                  = "${module.naming.private_dns_zone.name}-ai-services-link"
+  resource_group_name   = local.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.ai_services[0].name
+  virtual_network_id    = azurerm_virtual_network.foundry_private[0].id
+  tags                  = var.tags
+}
+
+resource "azurerm_private_dns_zone" "openai" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                = "privatelink.openai.azure.com"
+  resource_group_name = local.resource_group_name
+  tags                = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "openai" {
+  count = var.should_enable_foundry_private_networking ? 1 : 0
+
+  name                  = "${module.naming.private_dns_zone.name}-openai-link"
+  resource_group_name   = local.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.openai[0].name
+  virtual_network_id    = azurerm_virtual_network.foundry_private[0].id
+  tags                  = var.tags
+}
+
 resource "azurerm_log_analytics_workspace" "this" {
   location            = var.location
   name                = module.naming.log_analytics_workspace.name_unique
@@ -70,6 +146,7 @@ module "ai_foundry" {
   source = "../../../modules/ai_foundry"
 
   application_insights = module.application_insights
+  foundry_subnet_id    = var.should_enable_foundry_private_networking ? azurerm_subnet.foundry_private_endpoint[0].id : null
   location             = var.location
   name                 = module.naming.cognitive_account.name_unique
   resource_group_id    = local.resource_group_resource_id
@@ -80,6 +157,12 @@ module "ai_foundry" {
     module.common_models.gpt_4o_mini,
     module.common_models.gpt_5_nano,
     module.common_models.text_embedding_3_large
+  ]
+
+  depends_on = [
+    azurerm_private_dns_zone_virtual_network_link.ai_services,
+    azurerm_private_dns_zone_virtual_network_link.cognitive,
+    azurerm_private_dns_zone_virtual_network_link.openai
   ]
 }
 

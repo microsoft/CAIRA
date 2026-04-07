@@ -1,10 +1,15 @@
-`# Core configuration
+# Core configuration
 base_name            = "foundry-authz"
 location             = "swedencentral"
 apim_publisher_email = "platform@example.com"
 
 # Optional: deploy into an existing resource group
 # resource_group_resource_id = "/subscriptions/<sub-id>/resourceGroups/<rg-name>"
+
+# Optional: private networking for Foundry model endpoints
+should_enable_foundry_private_networking = false
+private_network_address_space            = ["172.16.0.0/16"]
+private_endpoint_subnet_address_prefixes = ["172.16.0.0/24"]
 
 # APIM and route authorization rules
 apim_sku_name      = "Developer_1"
