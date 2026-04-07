@@ -9,7 +9,7 @@
   ],
   "servers": {
     // GitHub MCP Server: https://github.com/github/github-mcp-server
-    "GitHub MCP Server": {
+    "GitHub-MCP-Server": {
       "command": "docker",
       "args": [
         "run",
@@ -24,7 +24,7 @@
       }
     },
     // Azure MCP Server https://learn.microsoft.com/azure/developer/azure-mcp-server
-    "Azure MCP Server": {
+    "Azure-MCP-Server": {
       "command": "npx",
       "args": [
         "-y",
@@ -34,7 +34,7 @@
       ]
     },
     // Terraform MCP Server: https://github.com/hashicorp/terraform-mcp-server
-    "Terraform MCP Server": {
+    "Terraform-MCP-Server": {
       "command": "docker",
       "args": [
         "run",

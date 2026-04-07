@@ -1,0 +1,8 @@
+flowchart LR
+    C1[Client App A<br/>role: model.gpt4o-mini.invoke] --> APIM
+    C2[Client App B<br/>role: model.gpt5-nano.invoke] --> APIM
+    Entra[Microsoft Entra ID<br/>app registrations + app roles] --> APIM
+
+    APIM[Azure API Management<br/>validate-jwt + role check] --> Foundry[Azure AI Foundry]
+    APIM --> ModelA[gpt4o-mini deployment]
+    APIM --> ModelB[gpt5-nano deployment]

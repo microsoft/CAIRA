@@ -1,0 +1,42 @@
+`# Core configuration
+base_name            = "foundry-authz"
+location             = "swedencentral"
+apim_publisher_email = "platform@example.com"
+
+# Optional: deploy into an existing resource group
+# resource_group_resource_id = "/subscriptions/<sub-id>/resourceGroups/<rg-name>"
+
+# APIM and route authorization rules
+apim_sku_name      = "Developer_1"
+foundry_api_version = "2024-10-21"
+
+model_authorization_rules = [
+  {
+    deployment_name = "gpt-4o-mini"
+    method          = "POST"
+    required_role   = "model.gpt4o-mini.invoke"
+    route           = "/gpt4o-mini/chat/completions"
+  },
+  {
+    deployment_name = "gpt-5-nano"
+    method          = "POST"
+    required_role   = "model.gpt5-nano.invoke"
+    route           = "/gpt5-nano/chat/completions"
+  }
+]
+
+client_applications = {
+  app_a = {
+    display_name   = "caira-client-a"
+    assigned_roles = ["model.gpt4o-mini.invoke"]
+  }
+  app_b = {
+    display_name   = "caira-client-b"
+    assigned_roles = ["model.gpt5-nano.invoke"]
+  }
+}
+
+tags = {
+  environment = "dev"
+  workload    = "caira-foundry-authz"
+}
