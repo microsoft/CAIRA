@@ -105,6 +105,14 @@ variable "client_applications" {
       assigned_roles = ["model.gpt5-nano.invoke"]
     }
   }
+
+  validation {
+    condition = length(setsubtract(
+      toset(flatten([for client in values(var.client_applications) : client.assigned_roles])),
+      toset([for rule in var.model_authorization_rules : rule.required_role])
+    )) == 0
+    error_message = "All assigned_roles in client_applications must match a required_role defined in model_authorization_rules."
+  }
 }
 
 variable "model_authorization_rules" {
