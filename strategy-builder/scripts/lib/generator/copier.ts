@@ -4,7 +4,7 @@
  */
 
 import { constants } from 'node:fs';
-import { readdir, readFile, mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { readdir, readFile, mkdir, open, copyFile } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { toPortablePath, pathIsInside } from './utils.ts';
@@ -44,7 +44,12 @@ export interface CopyOptions {
 }
 
 async function writeNewFile(path: string, content: string): Promise<void> {
-  await writeFile(path, content, { flag: 'wx' });
+  const file = await open(path, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY, 0o600);
+  try {
+    await file.writeFile(content);
+  } finally {
+    await file.close();
+  }
 }
 
 function toPortableRelativePath(fromPath: string, toPath: string): string {

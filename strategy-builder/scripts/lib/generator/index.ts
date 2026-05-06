@@ -3,8 +3,9 @@
  * generators to produce self-contained deployment strategies.
  */
 
+import { constants } from 'node:fs';
 import type { Dirent } from 'node:fs';
-import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
+import { readFile, mkdir, readdir, rm, open } from 'node:fs/promises';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { discoverComponents } from './discovery.ts';
 import { discoverReferenceArchitectures } from './reference-architectures.ts';
@@ -47,7 +48,12 @@ export interface SampleDetail {
 }
 
 async function writeNewFile(path: string, content: string): Promise<void> {
-  await writeFile(path, content, { flag: 'wx' });
+  const file = await open(path, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY, 0o600);
+  try {
+    await file.writeFile(content);
+  } finally {
+    await file.close();
+  }
 }
 
 function hasCode(error: unknown, code: string): boolean {
