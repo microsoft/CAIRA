@@ -35,12 +35,16 @@ jobs:
     needs: [approval]
     name: Dependency Review
     runs-on: ubuntu-24.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: Run Dependency Review
-        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          show-openssf-scorecard: false
 
   check_semantic_pr_title:
     needs: [approval]
