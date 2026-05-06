@@ -8,8 +8,7 @@ internal static class TelemetryExtensions
 {
     public static void AddCairaTelemetry(this WebApplicationBuilder builder, string serviceName, string? connectionString)
     {
-        // lgtm[cs/local-not-disposed] The DI container owns this singleton for the application lifetime.
-        builder.Services.AddSingleton(new ActivitySource(serviceName));
+        builder.Services.AddSingleton(_ => new ActivitySource(serviceName));
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {

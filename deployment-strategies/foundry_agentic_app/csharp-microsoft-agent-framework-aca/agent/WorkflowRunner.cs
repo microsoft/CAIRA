@@ -195,9 +195,7 @@ public class WorkflowRunner
                         if (checkpoint != null)
                         {
                             record.LastCheckpoint = checkpoint;
-                            _logger.LogDebug(
-                                "Checkpoint stored (conversationId={ConversationId}, checkpointId={CheckpointId})",
-                                conversationId, checkpoint.CheckpointId);
+                            _logger.LogDebug("Checkpoint stored for conversation");
                         }
                     }
                 }

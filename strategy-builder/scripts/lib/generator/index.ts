@@ -46,6 +46,14 @@ export interface SampleDetail {
   readonly extraFilesCopied: number;
 }
 
+async function writeNewFile(path: string, content: string): Promise<void> {
+  await writeFile(path, content, { flag: 'wx' });
+}
+
+function hasCode(error: unknown, code: string): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
+}
+
 // ---------------------------------------------------------------------------
 // Generate
 // ---------------------------------------------------------------------------
@@ -151,7 +159,7 @@ async function generateSample(
   let generatedFilesWritten = 0;
 
   for (const [filename, content] of generatedFiles) {
-    await writeFile(join(sampleDir, filename), content);
+    await writeNewFile(join(sampleDir, filename), content);
     generatedFilesWritten++;
   }
 
@@ -164,9 +172,12 @@ async function generateSample(
     const src = join(repoRoot, 'contracts', contractFile);
     try {
       const content = await readFile(src, 'utf-8');
-      await writeFile(join(contractsDir, contractFile), content);
+      await writeNewFile(join(contractsDir, contractFile), content);
       extraFilesCopied++;
-    } catch {
+    } catch (err) {
+      if (!hasCode(err, 'ENOENT')) {
+        throw err;
+      }
       // Contract file not found — skip gracefully
     }
   }

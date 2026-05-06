@@ -3,6 +3,7 @@
  * filtering out build artifacts and adjusting tsconfig extends paths.
  */
 
+import { constants } from 'node:fs';
 import { readdir, readFile, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -40,6 +41,10 @@ export interface CopyOptions {
   readonly sharedTerraformModulesRoot?: string | undefined;
   /** Absolute path to the vendored modules directory inside the generated strategy. */
   readonly vendoredTerraformModulesDir?: string | undefined;
+}
+
+async function writeNewFile(path: string, content: string): Promise<void> {
+  await writeFile(path, content, { flag: 'wx' });
 }
 
 function toPortableRelativePath(fromPath: string, toPath: string): string {
@@ -214,13 +219,13 @@ async function copyDir(
             terraformModuleDependencies
           );
         }
-        await writeFile(targetPath, rewritten);
+        await writeNewFile(targetPath, rewritten);
         files.push(relPath);
         if (rewritten !== content) {
           transformed.push(relPath);
         }
       } else {
-        await copyFile(sourcePath, targetPath);
+        await copyFile(sourcePath, targetPath, constants.COPYFILE_EXCL);
         files.push(relPath);
       }
     }
