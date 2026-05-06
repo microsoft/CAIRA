@@ -6,7 +6,7 @@
  * from the CLI (validate-strategies.ts) and from test-all.ts (L7).
  */
 
-import { readdir, readFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
 import type { Dirent } from 'node:fs';
 import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -68,8 +68,8 @@ export async function validateSamples(repoRoot: string): Promise<DriftResult> {
     };
   }
 
-  // Generate into a temp directory
-  const tempSamplesDir = join(tmpdir(), `caira-validate-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  // Generate into a securely-created temp directory.
+  const tempSamplesDir = await mkdtemp(join(tmpdir(), 'caira-validate-'));
 
   await generate({
     repoRoot,
