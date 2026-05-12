@@ -1,15 +1,15 @@
 ---
 name: caira
-description: Primary entrypoint for coding agents using CAIRA as reference material to design and build Azure AI solutions tailored to a user's scenario.
+description: Primary entrypoint for coding agents using CAIRA as reference material to design and build generative AI solutions like agents and chatbots that use Azure AI, Azure OpenAI, Foundry and/or models from OpenAI (gpt), Anthropic (claude Opus, Sonnet and Haiku) or other models available in Foundry, tailored to a user's scenario.
 compatibility: Requires network access to github.com, api.github.com, and raw.githubusercontent.com.
 metadata:
   author: Microsoft
-  version: "0.5.5"
+  version: "0.4.0"
 ---
 
 # CAIRA
 
-Install this skill when a user wants to build or extend an Azure AI solution. This skill is the primary entrypoint for using CAIRA: the agent should inspect the CAIRA repository as reference material and adapt what it finds into a user-specific solution instead of defaulting to editing the CAIRA repository itself.
+Install this skill when a user wants to build or extend a generative AI solution. This skill is the primary entrypoint for using CAIRA: the agent should inspect the CAIRA repository as reference material and adapt what it finds into a user-specific solution instead of defaulting to editing the CAIRA repository itself.
 
 ## Entrypoint model
 
