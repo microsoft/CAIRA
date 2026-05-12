@@ -198,7 +198,7 @@ module "capability_host_resources_1" {
 | Name                           | Source                                                        | Version |
 |--------------------------------|---------------------------------------------------------------|---------|
 | ai\_foundry                    | ../../modules/ai_foundry                                      | n/a     |
-| application\_insights          | Azure/avm-res-insights-component/azurerm                      | 0.2.0   |
+| application\_insights          | Azure/avm-res-insights-component/azurerm                      | 0.3.0   |
 | capability\_host\_resources\_1 | ../../modules/new_resources_agent_capability_host_connections | n/a     |
 | capability\_host\_resources\_2 | ../../modules/new_resources_agent_capability_host_connections | n/a     |
 | common\_models                 | ../../modules/common_models                                   | n/a     |

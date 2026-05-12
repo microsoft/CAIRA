@@ -228,7 +228,7 @@ existing_search_service_name               = "my-search-service"
 | Name                        | Source                                                             | Version |
 |-----------------------------|--------------------------------------------------------------------|---------|
 | ai\_foundry                 | ../../modules/ai_foundry                                           | n/a     |
-| application\_insights       | Azure/avm-res-insights-component/azurerm                           | 0.2.0   |
+| application\_insights       | Azure/avm-res-insights-component/azurerm                           | 0.3.0   |
 | capability\_host\_resources | ../../modules/existing_resources_agent_capability_host_connections | n/a     |
 | common\_models              | ../../modules/common_models                                        | n/a     |
 | default\_project            | ../../modules/ai_foundry_project                                   | n/a     |
