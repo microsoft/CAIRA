@@ -20,7 +20,7 @@ CAIRA (Composable AI Reference Architecture) provides a modular, composable foun
 | **Infrastructure as Code (IaC)** | The management of infrastructure (networks, virtual machines, load balancers, and connection topology) in a descriptive model, using the same versioning as DevOps team uses for source code. CAIRA uses Terraform for its IaC.    |
 | **Azure AI Foundry**             | A service that provides a comprehensive and collaborative environment for building, training, and deploying machine learning models and AI applications on Azure.                                                                  |
 | **Reference Architecture (RA)**  | A collection of templates, patterns, and best practices that serve as a starting point for designing and deploying a solution. CAIRA provides several reference architectures (e.g., `foundry_basic`, `foundry_standard_private`). |
-| **CAIRA agent**              | An AI guide integrated into the development environment that assists with deploying CAIRA, making architecture decisions, and troubleshooting.                                                                                     |
+| **CAIRA agent**                  | An AI guide integrated into the development environment that assists with deploying CAIRA, making architecture decisions, and troubleshooting.                                                                                     |
 
 ## Capabilities
 
