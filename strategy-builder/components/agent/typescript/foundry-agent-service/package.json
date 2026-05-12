@@ -29,5 +29,11 @@
   },
   "engines": {
     "node": ">=24.0.0"
+  },
+  "overrides": {
+    "@opentelemetry/sdk-node": "0.217.0",
+    "@opentelemetry/exporter-prometheus": "0.217.0",
+    "fast-uri": "3.1.2",
+    "protobufjs": "8.0.3"
   }
 }
