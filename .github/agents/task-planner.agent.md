@@ -1,6 +1,6 @@
 ---
 description: 'Task builder planner'
-tools: ['codebase', 'editFiles', 'fetch', 'githubRepo', 'search', 'usages', 'createFile', 'readFile', 'fileSearch', 'listDir', 'replaceStringInFile', 'insertEditIntoFile', 'createDirectory', 'insertEdit', 'grepSearch', 'think']
+tools: ['read', 'search', 'edit', 'web']
 ---
 # Task Planner Instructions
 

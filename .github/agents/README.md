@@ -1,6 +1,6 @@
-# CAIRA Chatmodes Documentation
+# CAIRA Custom Agents Documentation
 
-This directory contains specialized AI chatmode configurations designed to enhance your experience when working with the CAIRA (Composable AI Reference Architecture) project. Each chatmode provides tailored guidance and assistance for specific types of tasks.
+This directory contains specialized AI agent configurations designed to enhance your experience when working with the CAIRA (Composable AI Reference Architecture) project. Each agent provides tailored guidance and assistance for specific types of tasks.
 
 ## AI Usage Disclaimer
 
@@ -8,18 +8,18 @@ This directory contains specialized AI chatmode configurations designed to enhan
 
 _Copilot is powered by AI, so mistakes are possible. Review output carefully before use._
 
-**When using these chatmodes, you must**:
+**When using these agents, you must**:
 
 - Review and test all AI-generated code, configurations, and recommendations
 - Verify decisions against official documentation and best practices
 - Follow your organization's security and compliance requirements
 - Be cautious when sharing sensitive information in AI conversations
 
-## Available Chatmodes
+## Available Agents
 
-### 1. CAIRA Assistant (`caira-assistant.chatmode.md`)
+### 1. CAIRA Assistant (`caira-assistant.agent.md`)
 
-**Description**: Your comprehensive AI guide for Azure AI infrastructure deployment, development, and architecture decisions. This chatmode provides step-by-step guidance with concise, actionable answers while following the Azure Well-Architected Framework principles.
+**Description**: Your comprehensive AI guide for Azure AI infrastructure deployment, development, and architecture decisions. This agent provides step-by-step guidance with concise, actionable answers while following the Azure Well-Architected Framework principles.
 
 **Intended Use**:
 
@@ -30,7 +30,7 @@ _Copilot is powered by AI, so mistakes are possible. Review output carefully bef
 
 **Usage Instructions**:
 
-1. Activate this chatmode when working with CAIRA deployment or architecture questions
+1. Activate this agent when working with CAIRA deployment or architecture questions
 1. Ask questions about deployment steps, configuration options, or best practices
 1. Request guidance on choosing the right reference architecture for your needs
 1. Seek help with troubleshooting deployment issues or errors
@@ -42,7 +42,7 @@ _Copilot is powered by AI, so mistakes are possible. Review output carefully bef
 - Choice-based interaction (manual execution vs. guided assistance)
 - Integration with Azure Well-Architected Framework guidance
 
-### 2. ADR Creation Coach (`adr-creation.chatmode.md`)
+### 2. ADR Creation Coach (`adr-creation.agent.md`)
 
 **Description**: An expert coaching assistant that guides teams through collaborative architectural decision record (ADR) creation using Socratic methods and progressive documentation building.
 
@@ -67,7 +67,7 @@ _Copilot is powered by AI, so mistakes are possible. Review output carefully bef
 - Real-time collaborative research and documentation
 - Socratic coaching methodology for decision confidence
 
-### 3. Task Planner (`task-planner.chatmode.md`)
+### 3. Task Planner (`task-planner.agent.md`)
 
 **Description**: A comprehensive task planning system that creates actionable implementation plans through iterative research and progressive planning methodology.
 
@@ -92,7 +92,7 @@ _Copilot is powered by AI, so mistakes are possible. Review output carefully bef
 - Documentation of dependencies and success criteria
 - Integration with existing project conventions and standards
 
-### 4. Prompt Builder (`prompt-builder.chatmode.md`)
+### 4. Prompt Builder (`prompt-builder.agent.md`)
 
 **Description**: An expert prompt engineering and validation system with dual personas (Prompt Builder and Prompt Tester) that collaborate to create and validate high-quality prompts.
 
@@ -119,4 +119,4 @@ _Copilot is powered by AI, so mistakes are possible. Review output carefully bef
 
 ---
 
-_For technical issues with chatmodes or to contribute improvements, please refer to the project's [contributing guidelines](./../../CONTRIBUTING.md) and create appropriate issues or pull requests._
+_For technical issues with agents or to contribute improvements, please refer to the project's [contributing guidelines](./../../CONTRIBUTING.md) and create appropriate issues or pull requests._

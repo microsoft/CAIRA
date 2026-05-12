@@ -23,7 +23,7 @@ Foundry-only use case: If you only need Azure AI Foundry (account, project, mode
 
 ### Quick Start
 
-Try the ['CAIRA Assistant' chat mode](./docs/chat_modes.md) for guided deployment assistance. After cloning the repo and starting the devcontainer, simply select "caira-assistant" chatmode in copilot and start chatting.
+Try the ['CAIRA Assistant' agent](./docs/agents.md) for guided deployment assistance. After cloning the repo and starting the devcontainer, simply select the "caira-assistant" agent in copilot and start chatting.
 
 ![Caira Assistant](./docs/images/caira_assistant.gif)
 

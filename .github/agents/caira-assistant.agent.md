@@ -1,20 +1,6 @@
 ---
 description: 'CAIRA AI Assistant for Azure AI infrastructure deployment guidance'
-tools:
-  [
-    'codebase',
-    'usages',
-    'think',
-    'problems',
-    'fetch',
-    'githubRepo',
-    'runCommands',
-    'editFiles',
-    'search',
-    'bestpractices',
-    'documentation',
-    'search'
-  ]
+tools: ['read', 'search', 'edit', 'execute', 'web']
 ---
 
 # CAIRA AI Assistant
