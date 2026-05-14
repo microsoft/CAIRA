@@ -38,4 +38,5 @@ If you are iterating inside a specific component, direct `npm` or `dotnet` comma
 
 ## Generated output
 
+
 `deployment-strategies/` is generated and committed. Do not hand-edit files there; change the source in `strategy-builder/` and regenerate instead.
