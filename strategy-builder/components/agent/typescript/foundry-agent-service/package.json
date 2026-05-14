@@ -14,13 +14,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@azure/ai-projects": "^2.0.0-beta.4",
+    "@azure/ai-projects": "^2.1.1",
     "@azure/identity": "^4",
-    "@azure/monitor-opentelemetry": "^1.15.1",
-    "@opentelemetry/api": "^1.9.0",
+    "@microsoft/opentelemetry": "^1.0.2",
+    "@opentelemetry/api": "^1.9.1",
     "fastify": "^5",
-    "jose": "^6.1.0",
-    "openai": "^6.20"
+    "jose": "^6.2.3",
+    "openai": "^6.37"
+  },
+  "overrides": {
+    "@opentelemetry/sdk-node": "0.218.0"
   },
   "devDependencies": {
     "@types/node": "^22",
@@ -29,11 +32,5 @@
   },
   "engines": {
     "node": ">=24.0.0"
-  },
-  "overrides": {
-    "@opentelemetry/sdk-node": "0.217.0",
-    "@opentelemetry/exporter-prometheus": "0.217.0",
-    "fast-uri": "3.1.2",
-    "protobufjs": "8.0.3"
   }
 }

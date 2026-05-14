@@ -11,7 +11,7 @@
  * Both configurations use the same code path for conversations and responses.
  *
  * Mocks the OpenAI, @azure/ai-projects, @azure/identity, and
- * @azure/monitor-opentelemetry modules at the import boundary using vi.mock()
+ * @microsoft/opentelemetry modules at the import boundary using vi.mock()
  * so that the production code runs its real setupClient() logic.
  */
 
@@ -20,9 +20,9 @@ import type { Config } from '../src/config.ts';
 
 // ---------- Module-level mocks ----------
 
-const { mockUseAzureMonitor, mockShutdownAzureMonitor } = vi.hoisted(() => ({
-  mockUseAzureMonitor: vi.fn(),
-  mockShutdownAzureMonitor: vi.fn()
+const { mockUseMicrosoftOpenTelemetry, mockShutdownMicrosoftOpenTelemetry } = vi.hoisted(() => ({
+  mockUseMicrosoftOpenTelemetry: vi.fn(),
+  mockShutdownMicrosoftOpenTelemetry: vi.fn()
 }));
 
 // Mock OpenAI — intercepted by dynamic import('openai') in setupClient()
@@ -85,10 +85,10 @@ vi.mock('@azure/identity', () => {
   return { DefaultAzureCredential: MockDefaultAzureCredential };
 });
 
-// Mock @azure/monitor-opentelemetry — useAzureMonitor is called in setupClient()
-vi.mock('@azure/monitor-opentelemetry', () => ({
-  shutdownAzureMonitor: mockShutdownAzureMonitor,
-  useAzureMonitor: mockUseAzureMonitor
+// Mock @microsoft/opentelemetry — useMicrosoftOpenTelemetry is called in setupClient()
+vi.mock('@microsoft/opentelemetry', () => ({
+  shutdownMicrosoftOpenTelemetry: mockShutdownMicrosoftOpenTelemetry,
+  useMicrosoftOpenTelemetry: mockUseMicrosoftOpenTelemetry
 }));
 
 // ---------- Import FoundryClient AFTER mocks are set up ----------
@@ -254,8 +254,8 @@ function resetAllMocks(): void {
   mockAgentsUpdate.mockReset();
   mockGetOpenAIClient.mockReset();
   mockGetTelemetryConnectionString.mockReset().mockResolvedValue('InstrumentationKey=fake');
-  mockShutdownAzureMonitor.mockReset();
-  mockUseAzureMonitor.mockReset();
+  mockShutdownMicrosoftOpenTelemetry.mockReset();
+  mockUseMicrosoftOpenTelemetry.mockReset();
 }
 
 /** Configure agent mocks for the "agents don't exist" path (get → 404, create succeeds). */
@@ -748,7 +748,7 @@ describe('FoundryClient (without agent registration)', () => {
       const streamResult = makeStreamEvents(['Streamed text'], 'resp_stream');
       mockResponsesStream.mockReturnValue(streamResult);
 
-      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => {});
+      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => { });
 
       const detail = await client.getConversation(conv.id);
       expect(detail).toBeDefined();
@@ -943,7 +943,7 @@ describe('FoundryClient (with agent registration)', () => {
       const noTelemetryClient = new FoundryClient({ config: AZURE_CONFIG });
       await noTelemetryClient.initialise();
 
-      expect(mockUseAzureMonitor).not.toHaveBeenCalled();
+      expect(mockUseMicrosoftOpenTelemetry).not.toHaveBeenCalled();
       expect(mockGetOpenAIClient).toHaveBeenCalledTimes(1);
     });
   });
@@ -1173,7 +1173,7 @@ describe('FoundryClient (with agent registration)', () => {
       const streamResult = makeStreamEvents(['Streamed text'], 'resp_stream');
       mockResponsesStream.mockReturnValue(streamResult);
 
-      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => {});
+      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => { });
 
       const detail = await client.getConversation(conv.id);
       expect(detail).toBeDefined();

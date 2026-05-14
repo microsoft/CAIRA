@@ -120,4 +120,5 @@
       "text": "Use the imperative mood, keep the subject concise, and include a scope when it helps explain the change."
     }
   ],
+  "git.ignoreLimitWarning": true,
 }
