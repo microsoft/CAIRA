@@ -1,8 +1,5 @@
 import { context, propagation, trace } from '@opentelemetry/api';
-import {
-  shutdownMicrosoftOpenTelemetry,
-  useMicrosoftOpenTelemetry
-} from '@microsoft/opentelemetry';
+import { shutdownMicrosoftOpenTelemetry, useMicrosoftOpenTelemetry } from '@microsoft/opentelemetry';
 
 let telemetryInitialised = false;
 

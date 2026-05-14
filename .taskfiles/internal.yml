@@ -62,3 +62,5 @@ tasks:
         msg: "uv is not installed."
     cmds:
       - uv tool install --force --upgrade {{.APP}}
+      - cmd: sudo ln -sf "$HOME/.local/bin/{{.APP}}" "/usr/local/bin/{{.APP}}"
+        platforms: [linux]

@@ -748,7 +748,7 @@ describe('FoundryClient (without agent registration)', () => {
       const streamResult = makeStreamEvents(['Streamed text'], 'resp_stream');
       mockResponsesStream.mockReturnValue(streamResult);
 
-      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => { });
+      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => {});
 
       const detail = await client.getConversation(conv.id);
       expect(detail).toBeDefined();
@@ -1173,7 +1173,7 @@ describe('FoundryClient (with agent registration)', () => {
       const streamResult = makeStreamEvents(['Streamed text'], 'resp_stream');
       mockResponsesStream.mockReturnValue(streamResult);
 
-      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => { });
+      await client.sendMessageStream(conv.id, 'Hi', (/* chunk */) => {});
 
       const detail = await client.getConversation(conv.id);
       expect(detail).toBeDefined();
