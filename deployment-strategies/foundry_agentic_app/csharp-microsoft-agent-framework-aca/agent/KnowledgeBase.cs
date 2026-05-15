@@ -15,7 +15,7 @@ public static class KnowledgeBase
     [
         new("planning-ruby", "Account Priority Map", "Anchor the plan on business outcomes, active stakeholders, delivery risks, and the next committed milestone.", ["account", "priority", "stakeholders", "risk", "milestone"]),
         new("planning-atlas", "Engagement Motion Guide", "Choose among executive alignment, technical validation, or adoption recovery based on the account signal the user provides.", ["engagement", "executive", "technical", "adoption", "motion"]),
-        new("planning-idol", "Risk Review Prompts", "Surface timeline risk, unclear ownership, low sponsor engagement, and missing success criteria before recommending a plan.", ["risk", "timeline", "ownership", "sponsor", "success"])
+        new("planning-risk", "Risk Review Prompts", "Surface timeline risk, unclear ownership, low sponsor engagement, and missing success criteria before recommending a plan.", ["risk", "timeline", "ownership", "sponsor", "success"])
     ];
 
     private static readonly IReadOnlyList<KnowledgeEntry> StaffingRoles =

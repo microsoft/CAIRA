@@ -206,7 +206,7 @@ export class AgentClient {
    *
    * Returns the conversation ID, creation timestamp, and the agent's opening response.
    */
-  async startAdventure(
+  async startActivityConversation(
     syntheticMessage: string,
     metadata?: Record<string, unknown> | undefined,
     traceId?: string | undefined
@@ -217,14 +217,14 @@ export class AgentClient {
       openingMessage: AgentMessage;
     }>
   > {
-    this.log.info({ traceId, mode: metadata?.['mode'] }, 'startAdventure begin');
+    this.log.info({ traceId, mode: metadata?.['mode'] }, 'startActivityConversation begin');
 
     // Step 1: Create conversation
     const createResult = await this.createConversation(metadata, traceId);
     if (!createResult.ok || !createResult.data) {
       this.log.error(
         { traceId, errorCode: createResult.error?.code, statusCode: createResult.status },
-        'startAdventure failed — could not create conversation'
+        'startActivityConversation failed — could not create conversation'
       );
       return {
         ok: false,
@@ -241,7 +241,7 @@ export class AgentClient {
     if (!msgResult.ok || !msgResult.data) {
       this.log.error(
         { traceId, conversationId, errorCode: msgResult.error?.code, statusCode: msgResult.status },
-        'startAdventure failed — could not send opening message'
+        'startActivityConversation failed — could not send opening message'
       );
       return {
         ok: false,
@@ -250,7 +250,10 @@ export class AgentClient {
       };
     }
 
-    this.log.info({ traceId, conversationId, contentLength: msgResult.data.content.length }, 'startAdventure complete');
+    this.log.info(
+      { traceId, conversationId, contentLength: msgResult.data.content.length },
+      'startActivityConversation complete'
+    );
 
     return {
       ok: true,

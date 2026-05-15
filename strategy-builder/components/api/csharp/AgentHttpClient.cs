@@ -108,18 +108,18 @@ public sealed class AgentHttpClient
     /// Compound operation: create conversation + send first message.
     /// Used by business operation endpoints (discovery, planning, staffing).
     /// </summary>
-    public async Task<AgentResult<StartAdventureResult>> StartAdventureAsync(
+    public async Task<AgentResult<StartActivityConversationResult>> StartActivityConversationAsync(
         string syntheticMessage, Dictionary<string, object>? metadata = null, string? traceId = null)
     {
-        _logger.LogInformation("startAdventure begin (traceId={TraceId}, mode={Mode})",
+        _logger.LogInformation("startActivityConversation begin (traceId={TraceId}, mode={Mode})",
             traceId, metadata?.GetValueOrDefault("mode"));
 
         var createResult = await CreateConversationAsync(metadata, traceId);
         if (!createResult.Ok || createResult.Data == null)
         {
-            _logger.LogError("startAdventure failed — could not create conversation (traceId={TraceId}, error={Error})",
+            _logger.LogError("startActivityConversation failed — could not create conversation (traceId={TraceId}, error={Error})",
                 traceId, createResult.Error?.Code);
-            return new AgentResult<StartAdventureResult>
+            return new AgentResult<StartActivityConversationResult>
             {
                 Ok = false,
                 Status = createResult.Status,
@@ -133,9 +133,9 @@ public sealed class AgentHttpClient
         var msgResult = await SendMessageAsync(conversationId, syntheticMessage, traceId);
         if (!msgResult.Ok || msgResult.Data == null)
         {
-            _logger.LogError("startAdventure failed — could not send opening message (traceId={TraceId}, error={Error})",
+            _logger.LogError("startActivityConversation failed — could not send opening message (traceId={TraceId}, error={Error})",
                 traceId, msgResult.Error?.Code);
-            return new AgentResult<StartAdventureResult>
+            return new AgentResult<StartActivityConversationResult>
             {
                 Ok = false,
                 Status = msgResult.Status,
@@ -143,14 +143,14 @@ public sealed class AgentHttpClient
             };
         }
 
-        _logger.LogInformation("startAdventure complete (traceId={TraceId}, contentLength={Len})",
+        _logger.LogInformation("startActivityConversation complete (traceId={TraceId}, contentLength={Len})",
             traceId, msgResult.Data.Content.Length);
 
-        return new AgentResult<StartAdventureResult>
+        return new AgentResult<StartActivityConversationResult>
         {
             Ok = true,
             Status = 201,
-            Data = new StartAdventureResult(conversationId, createdAt, msgResult.Data),
+            Data = new StartActivityConversationResult(conversationId, createdAt, msgResult.Data),
         };
     }
 
@@ -452,8 +452,8 @@ public sealed class AgentHttpClient
     }
 }
 
-/// <summary>Result from the compound startAdventure operation.</summary>
-public sealed record StartAdventureResult(
+/// <summary>Result from the compound startActivityConversation operation.</summary>
+public sealed record StartActivityConversationResult(
     string ConversationId,
     string CreatedAt,
     AgentMessage OpeningMessage);

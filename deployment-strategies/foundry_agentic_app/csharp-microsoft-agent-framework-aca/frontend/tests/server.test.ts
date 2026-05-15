@@ -28,7 +28,7 @@ beforeAll(async () => {
   apiMock = Fastify({ logger: false });
 
   // lgtm[js/missing-rate-limiting] This loopback-only Fastify server is a unit-test fixture.
-  apiMock.get('/api/activities/adventures', async (request, reply) => {
+  apiMock.get('/api/activities/conversations', async (request, reply) => {
     lastAuthorizationHeader = readAuthorizationHeader(request.headers['authorization']);
     if (lastAuthorizationHeader !== 'Bearer test-api-token' && lastAuthorizationHeader !== undefined) {
       await reply.status(401).send({
@@ -39,7 +39,7 @@ beforeAll(async () => {
     }
 
     await reply.send({
-      adventures: [],
+      conversations: [],
       offset: 0,
       limit: 20,
       total: 0
@@ -104,7 +104,7 @@ afterAll(async () => {
 
 describe('BFF server inter-service auth', () => {
   it('injects Authorization when proxying /api requests', async () => {
-    const response = await fetch(`${bffBaseUrl}/api/activities/adventures`);
+    const response = await fetch(`${bffBaseUrl}/api/activities/conversations`);
     expect(response.status).toBe(200);
     expect(lastAuthorizationHeader).toBe('Bearer test-api-token');
   });
@@ -126,7 +126,7 @@ describe('BFF server inter-service auth', () => {
   });
 
   it('omits Authorization when auth bypass is enabled', async () => {
-    const response = await fetch(`${bffSkipAuthBaseUrl}/api/activities/adventures`);
+    const response = await fetch(`${bffSkipAuthBaseUrl}/api/activities/conversations`);
     expect(response.status).toBe(200);
     expect(lastAuthorizationHeader).toBeUndefined();
   });

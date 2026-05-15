@@ -5,10 +5,10 @@
  *   POST /api/activities/discovery              -> create conv + send synthetic first msg
  *   POST /api/activities/planning            -> create conv + send synthetic first msg
  *   POST /api/activities/staffing                -> create conv + send synthetic first msg
- *   GET  /api/activities/adventures          -> GET  /conversations (enriched)
- *   GET  /api/activities/adventures/:id      -> GET  /conversations/:id (enriched)
- *   POST /api/activities/adventures/:id/parley -> POST /conversations/:id/messages (SSE parsed)
- *   GET  /api/activities/stats               -> computed from adventures
+ *   GET  /api/activities/conversations          -> GET  /conversations (enriched)
+ *   GET  /api/activities/conversations/:id      -> GET  /conversations/:id (enriched)
+ *   POST /api/activities/conversations/:id/messages -> POST /conversations/:id/messages (SSE parsed)
+ *   GET  /api/activities/stats               -> computed from conversations
  *   GET  /health                         -> checks agent /health
  *   GET  /health/deep                    -> auth-required check of agent business endpoint
  */
@@ -19,46 +19,46 @@ import { mapAgentStatus } from './agent-client.ts';
 import { randomUUID } from 'node:crypto';
 import { createAzureCredential } from './azure-credential.ts';
 import type {
-  Adventure,
-  AdventureDetail,
-  AdventureList,
-  AdventureMode,
-  AdventureOutcome,
-  AdventureStarted,
-  AdventureStatus,
+  ActivityConversation,
+  ActivityConversationDetail,
+  ActivityConversationList,
+  ActivityMode,
+  ActivityOutcome,
+  ActivityConversationStarted,
+  ActivityStatus,
   ActivityStats,
   ErrorResponse,
   HealthResponse,
-  ParleyMessage,
+  ActivityMessage,
   AgentConversation,
   AgentConversationDetail,
   AgentMessage
 } from './types.ts';
 
-// ---------- In-memory adventure state ----------
+// ---------- In-memory conversation state ----------
 
 /**
- * Stores adventure metadata (mode, status, outcome) keyed by conversation ID.
+ * Stores conversation metadata (mode, status, outcome) keyed by conversation ID.
  * In a real deployment this would be a database — here we use a simple Map.
  *
  * Exported for testing.
  */
-export interface AdventureRecord {
-  mode: AdventureMode;
-  status: AdventureStatus;
-  outcome?: AdventureOutcome | undefined;
+export interface ActivityConversationRecord {
+  mode: ActivityMode;
+  status: ActivityStatus;
+  outcome?: ActivityOutcome | undefined;
 }
 
-export const adventureStore = new Map<string, AdventureRecord>();
+export const activityConversationStore = new Map<string, ActivityConversationRecord>();
 
-/** Reset adventure store (for testing). */
-export function resetAdventureStore(): void {
-  adventureStore.clear();
+/** Reset conversation store (for testing). */
+export function resetActivityConversationStore(): void {
+  activityConversationStore.clear();
 }
 
 // ---------- Synthetic first messages ----------
 
-const SYNTHETIC_MESSAGES: Record<AdventureMode, string> = {
+const SYNTHETIC_MESSAGES: Record<ActivityMode, string> = {
   discovery:
     'I am qualifying a new customer opportunity. Lead a short discovery conversation, ask targeted questions, and conclude with a concise qualification summary.',
   planning:
@@ -69,11 +69,11 @@ const SYNTHETIC_MESSAGES: Record<AdventureMode, string> = {
 
 // ---------- Helpers ----------
 
-function conversationToAdventure(
+function conversationToActivityConversation(
   conv: AgentConversation,
-  record: AdventureRecord | undefined,
+  record: ActivityConversationRecord | undefined,
   messageCount?: number | undefined
-): Adventure {
+): ActivityConversation {
   const mode = record?.mode ?? extractModeFromMetadata(conv.metadata);
   const status = record?.status ?? 'active';
   return {
@@ -82,12 +82,12 @@ function conversationToAdventure(
     status,
     ...(record?.outcome ? { outcome: record.outcome } : {}),
     createdAt: conv.createdAt,
-    lastParleyAt: conv.updatedAt,
+    lastMessageAt: conv.updatedAt,
     messageCount: messageCount ?? 0
   };
 }
 
-function agentMessageToParley(msg: AgentMessage): ParleyMessage {
+function agentMessageToActivityMessage(msg: AgentMessage): ActivityMessage {
   return {
     id: msg.id,
     role: msg.role,
@@ -98,10 +98,10 @@ function agentMessageToParley(msg: AgentMessage): ParleyMessage {
   };
 }
 
-function conversationDetailToAdventureDetail(
+function conversationDetailToActivityConversationDetail(
   detail: AgentConversationDetail,
-  record: AdventureRecord | undefined
-): AdventureDetail {
+  record: ActivityConversationRecord | undefined
+): ActivityConversationDetail {
   const mode = record?.mode ?? extractModeFromMetadata(detail.metadata);
   const status = record?.status ?? 'active';
   return {
@@ -110,13 +110,13 @@ function conversationDetailToAdventureDetail(
     status,
     ...(record?.outcome ? { outcome: record.outcome } : {}),
     createdAt: detail.createdAt,
-    lastParleyAt: detail.updatedAt,
+    lastMessageAt: detail.updatedAt,
     messageCount: detail.messages.length,
-    parleys: detail.messages.map(agentMessageToParley)
+    messages: detail.messages.map(agentMessageToActivityMessage)
   };
 }
 
-function extractModeFromMetadata(metadata: Record<string, unknown> | undefined): AdventureMode {
+function extractModeFromMetadata(metadata: Record<string, unknown> | undefined): ActivityMode {
   const mode = metadata?.['mode'];
   if (mode === 'discovery' || mode === 'planning' || mode === 'staffing') return mode;
   return 'discovery'; // fallback
@@ -177,9 +177,9 @@ function generateTraceId(): string {
 async function pipeSSEAndCaptureOutcome(
   reader: ReadableStreamDefaultReader<Uint8Array>,
   reply: FastifyReply
-): Promise<AdventureOutcome | undefined> {
+): Promise<ActivityOutcome | undefined> {
   const decoder = new TextDecoder();
-  let captured: AdventureOutcome | undefined;
+  let captured: ActivityOutcome | undefined;
   let buffer = '';
 
   try {
@@ -280,17 +280,21 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
     await reply.status(statusCode).send(health);
   });
 
-  // ---- Business operation: start adventure ----
+  // ---- Business operation: start conversation ----
 
-  async function handleStartAdventure(mode: AdventureMode, req: FastifyRequest, reply: FastifyReply): Promise<void> {
+  async function handleStartActivityConversation(
+    mode: ActivityMode,
+    req: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<void> {
     const traceId = generateTraceId();
     const syntheticMessage = SYNTHETIC_MESSAGES[mode];
     const metadata = { mode };
 
-    req.log.info({ traceId, mode }, 'startAdventure request');
+    req.log.info({ traceId, mode }, 'startActivityConversation request');
 
     // Only create the conversation — do NOT send the first message.
-    // The frontend will send syntheticMessage via the streaming parley endpoint.
+    // The frontend will send syntheticMessage via the streaming message endpoint.
     const start = Date.now();
     const createResult = await agentClient.createConversation(metadata, traceId);
     const durationMs = Date.now() - start;
@@ -299,26 +303,26 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
       const status = mapAgentStatus(createResult.status);
       req.log.error(
         { traceId, mode, statusCode: status, durationMs, errorCode: createResult.error?.code },
-        'startAdventure failed'
+        'startActivityConversation failed'
       );
       errorReply(
         reply,
         status,
         createResult.error?.code ?? 'agent_error',
-        createResult.error?.message ?? 'Failed to start adventure'
+        createResult.error?.message ?? 'Failed to start activity conversation'
       );
       return;
     }
 
     const { id: conversationId, createdAt } = createResult.data;
 
-    // Store adventure state
-    const record: AdventureRecord = { mode, status: 'active' };
-    adventureStore.set(conversationId, record);
+    // Store conversation state
+    const record: ActivityConversationRecord = { mode, status: 'active' };
+    activityConversationStore.set(conversationId, record);
 
-    req.log.info({ traceId, mode, conversationId, durationMs }, 'startAdventure complete');
+    req.log.info({ traceId, mode, conversationId, durationMs }, 'startActivityConversation complete');
 
-    const response: AdventureStarted = {
+    const response: ActivityConversationStarted = {
       id: conversationId,
       mode,
       status: record.status,
@@ -331,21 +335,21 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
 
   // POST /api/activities/discovery
   app.post('/api/activities/discovery', async (req, reply) => {
-    await handleStartAdventure('discovery', req, reply);
+    await handleStartActivityConversation('discovery', req, reply);
   });
 
   // POST /api/activities/planning
   app.post('/api/activities/planning', async (req, reply) => {
-    await handleStartAdventure('planning', req, reply);
+    await handleStartActivityConversation('planning', req, reply);
   });
 
   // POST /api/activities/staffing
   app.post('/api/activities/staffing', async (req, reply) => {
-    await handleStartAdventure('staffing', req, reply);
+    await handleStartActivityConversation('staffing', req, reply);
   });
 
-  // ---- GET /api/activities/adventures ----
-  app.get('/api/activities/adventures', async (req, reply) => {
+  // ---- GET /api/activities/conversations ----
+  app.get('/api/activities/conversations', async (req, reply) => {
     const query = req.query as Record<string, string | undefined>;
     const offset = query['offset'] !== undefined ? parseInt(query['offset'], 10) : undefined;
     const limit = query['limit'] !== undefined ? parseInt(query['limit'], 10) : undefined;
@@ -357,15 +361,17 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
         reply,
         status,
         result.error?.code ?? 'agent_error',
-        result.error?.message ?? 'Failed to list adventures'
+        result.error?.message ?? 'Failed to list conversations'
       );
       return;
     }
 
-    const adventures = result.data.items.map((c) => conversationToAdventure(c, adventureStore.get(c.id)));
+    const conversations = result.data.items.map((c) =>
+      conversationToActivityConversation(c, activityConversationStore.get(c.id))
+    );
 
-    const list: AdventureList = {
-      adventures,
+    const list: ActivityConversationList = {
+      conversations,
       offset: result.data.offset,
       limit: result.data.limit,
       total: result.data.total
@@ -374,165 +380,171 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
     await reply.send(list);
   });
 
-  // ---- GET /api/activities/adventures/:adventureId ----
-  app.get('/api/activities/adventures/:adventureId', async (req, reply) => {
-    const { adventureId } = req.params as { adventureId: string };
+  // ---- GET /api/activities/conversations/:conversationId ----
+  app.get('/api/activities/conversations/:conversationId', async (req, reply) => {
+    const { conversationId } = req.params as { conversationId: string };
 
-    const result = await agentClient.getConversation(adventureId);
+    const result = await agentClient.getConversation(conversationId);
     if (!result.ok || !result.data) {
       const status = mapAgentStatus(result.status);
       errorReply(
         reply,
         status,
         result.error?.code ?? 'agent_error',
-        result.error?.message ?? 'Failed to get adventure'
+        result.error?.message ?? 'Failed to get activity conversation'
       );
       return;
     }
 
-    const detail = conversationDetailToAdventureDetail(result.data, adventureStore.get(adventureId));
+    const detail = conversationDetailToActivityConversationDetail(
+      result.data,
+      activityConversationStore.get(conversationId)
+    );
     await reply.send(detail);
   });
 
-  // ---- POST /api/activities/adventures/:adventureId/parley ----
-  app.post('/api/activities/adventures/:adventureId/parley', async (req: FastifyRequest, reply: FastifyReply) => {
-    const { adventureId } = req.params as { adventureId: string };
-    const body = req.body as Record<string, unknown> | null;
-    const traceId = generateTraceId();
+  // ---- POST /api/activities/conversations/:conversationId/messages ----
+  app.post(
+    '/api/activities/conversations/:conversationId/messages',
+    async (req: FastifyRequest, reply: FastifyReply) => {
+      const { conversationId } = req.params as { conversationId: string };
+      const body = req.body as Record<string, unknown> | null;
+      const traceId = generateTraceId();
 
-    const message = body?.['message'];
-    if (typeof message !== 'string' || message.length === 0) {
-      errorReply(reply, 400, 'bad_request', 'Missing required field: message');
-      return;
-    }
-
-    const acceptHeader = req.headers['accept'] ?? '';
-    const wantsStream = acceptHeader.includes('text/event-stream');
-
-    req.log.info(
-      {
-        traceId,
-        adventureId,
-        mode: wantsStream ? 'stream' : 'json',
-        contentLength: message.length
-      },
-      'parley request'
-    );
-    const start = Date.now();
-
-    if (wantsStream) {
-      // SSE streaming with outcome capture
-      try {
-        const agentResp = await agentClient.sendMessageStream(adventureId, message, undefined, traceId);
-
-        if (!agentResp.ok) {
-          // Agent returned an error — forward it
-          let errorBody: { code?: string; message?: string; error?: { code?: string; message?: string } } | undefined;
-          try {
-            errorBody = (await agentResp.json()) as {
-              code?: string;
-              message?: string;
-              error?: { code?: string; message?: string };
-            };
-          } catch {
-            // Not JSON
-          }
-          const status = mapAgentStatus(agentResp.status);
-          req.log.error(
-            { traceId, adventureId, statusCode: status, durationMs: Date.now() - start },
-            'parley SSE failed — agent error'
-          );
-          errorReply(
-            reply,
-            status,
-            errorBody?.error?.code ?? errorBody?.code ?? 'agent_error',
-            errorBody?.error?.message ?? errorBody?.message ?? `Agent returned status ${String(agentResp.status)}`
-          );
-          return;
-        }
-
-        if (!agentResp.body) {
-          req.log.error({ traceId, adventureId }, 'parley SSE failed — no response body');
-          errorReply(reply, 502, 'agent_error', 'Agent returned no response body for SSE stream');
-          return;
-        }
-
-        // Hijack the response and pipe SSE events through while capturing outcomes
-        void reply.hijack();
-
-        reply.raw.writeHead(200, {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          Connection: 'keep-alive'
-        });
-
-        const reader = agentResp.body.getReader();
-        const outcome = await pipeSSEAndCaptureOutcome(reader, reply);
-
-        // If we captured a resolution, update adventure state
-        if (outcome) {
-          const record = adventureStore.get(adventureId);
-          if (record) {
-            record.status = 'resolved';
-            record.outcome = outcome;
-          }
-        }
-
-        req.log.info(
-          { traceId, adventureId, durationMs: Date.now() - start, resolved: !!outcome },
-          'parley SSE complete'
-        );
-
-        reply.raw.end();
-      } catch (err) {
-        req.log.error(
-          { traceId, adventureId, error: err instanceof Error ? err.message : String(err) },
-          'parley SSE failed — connection error'
-        );
-        errorReply(reply, 502, 'agent_unreachable', 'Failed to connect to agent container for streaming');
-      }
-    } else {
-      // JSON response
-      const result = await agentClient.sendMessage(adventureId, message, traceId);
-      if (!result.ok || !result.data) {
-        const status = mapAgentStatus(result.status);
-        req.log.error(
-          { traceId, adventureId, statusCode: status, durationMs: Date.now() - start },
-          'parley JSON failed'
-        );
-        errorReply(
-          reply,
-          status,
-          result.error?.code ?? 'agent_error',
-          result.error?.message ?? 'Failed to send message'
-        );
+      const message = body?.['message'];
+      if (typeof message !== 'string' || message.length === 0) {
+        errorReply(reply, 400, 'bad_request', 'Missing required field: message');
         return;
       }
 
-      // Check for resolution in JSON response
-      if (result.data.resolution) {
-        const record = adventureStore.get(adventureId);
-        if (record) {
-          record.status = 'resolved';
-          record.outcome = result.data.resolution;
-        }
-      }
+      const acceptHeader = req.headers['accept'] ?? '';
+      const wantsStream = acceptHeader.includes('text/event-stream');
 
       req.log.info(
         {
           traceId,
-          adventureId,
-          durationMs: Date.now() - start,
-          resolved: !!result.data.resolution,
-          contentLength: result.data.content.length
+          conversationId,
+          mode: wantsStream ? 'stream' : 'json',
+          contentLength: message.length
         },
-        'parley JSON complete'
+        'message request'
       );
+      const start = Date.now();
 
-      const parley: ParleyMessage = agentMessageToParley(result.data);
-      await reply.send(parley);
+      if (wantsStream) {
+        // SSE streaming with outcome capture
+        try {
+          const agentResp = await agentClient.sendMessageStream(conversationId, message, undefined, traceId);
+
+          if (!agentResp.ok) {
+            // Agent returned an error — forward it
+            let errorBody: { code?: string; message?: string; error?: { code?: string; message?: string } } | undefined;
+            try {
+              errorBody = (await agentResp.json()) as {
+                code?: string;
+                message?: string;
+                error?: { code?: string; message?: string };
+              };
+            } catch {
+              // Not JSON
+            }
+            const status = mapAgentStatus(agentResp.status);
+            req.log.error(
+              { traceId, conversationId, statusCode: status, durationMs: Date.now() - start },
+              'message SSE failed — agent error'
+            );
+            errorReply(
+              reply,
+              status,
+              errorBody?.error?.code ?? errorBody?.code ?? 'agent_error',
+              errorBody?.error?.message ?? errorBody?.message ?? `Agent returned status ${String(agentResp.status)}`
+            );
+            return;
+          }
+
+          if (!agentResp.body) {
+            req.log.error({ traceId, conversationId }, 'message SSE failed — no response body');
+            errorReply(reply, 502, 'agent_error', 'Agent returned no response body for SSE stream');
+            return;
+          }
+
+          // Hijack the response and pipe SSE events through while capturing outcomes
+          void reply.hijack();
+
+          reply.raw.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive'
+          });
+
+          const reader = agentResp.body.getReader();
+          const outcome = await pipeSSEAndCaptureOutcome(reader, reply);
+
+          // If we captured a resolution, update conversation state
+          if (outcome) {
+            const record = activityConversationStore.get(conversationId);
+            if (record) {
+              record.status = 'resolved';
+              record.outcome = outcome;
+            }
+          }
+
+          req.log.info(
+            { traceId, conversationId, durationMs: Date.now() - start, resolved: !!outcome },
+            'message SSE complete'
+          );
+
+          reply.raw.end();
+        } catch (err) {
+          req.log.error(
+            { traceId, conversationId, error: err instanceof Error ? err.message : String(err) },
+            'message SSE failed — connection error'
+          );
+          errorReply(reply, 502, 'agent_unreachable', 'Failed to connect to agent container for streaming');
+        }
+      } else {
+        // JSON response
+        const result = await agentClient.sendMessage(conversationId, message, traceId);
+        if (!result.ok || !result.data) {
+          const status = mapAgentStatus(result.status);
+          req.log.error(
+            { traceId, conversationId, statusCode: status, durationMs: Date.now() - start },
+            'message JSON failed'
+          );
+          errorReply(
+            reply,
+            status,
+            result.error?.code ?? 'agent_error',
+            result.error?.message ?? 'Failed to send message'
+          );
+          return;
+        }
+
+        // Check for resolution in JSON response
+        if (result.data.resolution) {
+          const record = activityConversationStore.get(conversationId);
+          if (record) {
+            record.status = 'resolved';
+            record.outcome = result.data.resolution;
+          }
+        }
+
+        req.log.info(
+          {
+            traceId,
+            conversationId,
+            durationMs: Date.now() - start,
+            resolved: !!result.data.resolution,
+            contentLength: result.data.content.length
+          },
+          'message JSON complete'
+        );
+
+        const activityMessage: ActivityMessage = agentMessageToActivityMessage(result.data);
+        await reply.send(activityMessage);
+      }
     }
-  });
+  );
 
   // ---- GET /api/activities/stats ----
   app.get('/api/activities/stats', async (_req, reply) => {
@@ -544,7 +556,7 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
         reply,
         status,
         result.error?.code ?? 'agent_error',
-        result.error?.message ?? 'Failed to get adventure stats'
+        result.error?.message ?? 'Failed to get conversation stats'
       );
       return;
     }
@@ -556,32 +568,32 @@ export function registerRoutes(app: FastifyInstance, agentClient: AgentClient): 
       staffing: modeInit()
     };
 
-    let totalAdventures = 0;
-    let activeAdventures = 0;
-    let resolvedAdventures = 0;
+    let totalConversations = 0;
+    let activeConversations = 0;
+    let resolvedConversations = 0;
 
     for (const conv of result.data.items) {
-      const record = adventureStore.get(conv.id);
+      const record = activityConversationStore.get(conv.id);
       const mode = record?.mode ?? extractModeFromMetadata(conv.metadata);
       const status = record?.status ?? 'active';
 
-      totalAdventures++;
+      totalConversations++;
       const modeStats = counts[mode];
 
       modeStats.total++;
       if (status === 'resolved') {
-        resolvedAdventures++;
+        resolvedConversations++;
         modeStats.resolved++;
       } else {
-        activeAdventures++;
+        activeConversations++;
         modeStats.active++;
       }
     }
 
     const stats: ActivityStats = {
-      totalAdventures,
-      activeAdventures,
-      resolvedAdventures,
+      totalConversations,
+      activeConversations,
+      resolvedConversations,
       byMode: counts
     };
 

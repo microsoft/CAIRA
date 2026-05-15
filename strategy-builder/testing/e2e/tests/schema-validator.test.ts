@@ -17,13 +17,13 @@ describe('validateSchema', () => {
   // ─── Valid objects ──────────────────────────────────────────────────
 
   describe('valid objects', () => {
-    it('validates a valid Adventure', async () => {
-      const result = await validateSchema(SCHEMAS.Adventure, {
-        id: 'adv_001',
+    it('validates a valid ActivityConversation', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversation, {
+        id: 'conv_001',
         mode: 'discovery',
         status: 'active',
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T10:30:00.000Z',
+        lastMessageAt: '2026-01-15T10:30:00.000Z',
         messageCount: 0
       });
 
@@ -31,9 +31,9 @@ describe('validateSchema', () => {
       expect(result.errors).toEqual([]);
     });
 
-    it('validates an Adventure with optional outcome', async () => {
-      const result = await validateSchema(SCHEMAS.Adventure, {
-        id: 'adv_002',
+    it('validates an ActivityConversation with optional outcome', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversation, {
+        id: 'conv_002',
         mode: 'planning',
         status: 'resolved',
         outcome: {
@@ -45,16 +45,16 @@ describe('validateSchema', () => {
           }
         },
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T11:00:00.000Z',
+        lastMessageAt: '2026-01-15T11:00:00.000Z',
         messageCount: 5
       });
 
       expect(result.valid).toBe(true);
     });
 
-    it('validates a valid AdventureStarted', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureStarted, {
-        id: 'adv_003',
+    it('validates a valid ActivityConversationStarted', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversationStarted, {
+        id: 'conv_003',
         mode: 'staffing',
         status: 'active',
         syntheticMessage: 'Recommend the right team staffing coverage for this account.',
@@ -64,9 +64,9 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates a valid AdventureDetail', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureDetail, {
-        id: 'adv_004',
+    it('validates a valid ActivityConversationDetail', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversationDetail, {
+        id: 'conv_004',
         mode: 'discovery',
         status: 'resolved',
         outcome: {
@@ -78,9 +78,9 @@ describe('validateSchema', () => {
           }
         },
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T10:35:00.000Z',
+        lastMessageAt: '2026-01-15T10:35:00.000Z',
         messageCount: 2,
-        parleys: [
+        messages: [
           {
             id: 'msg_1',
             role: 'user',
@@ -100,15 +100,15 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates a valid AdventureList', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureList, {
-        adventures: [
+    it('validates a valid ActivityConversationList', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversationList, {
+        conversations: [
           {
-            id: 'adv_001',
+            id: 'conv_001',
             mode: 'discovery',
             status: 'active',
             createdAt: '2026-01-15T10:30:00.000Z',
-            lastParleyAt: '2026-01-15T10:30:00.000Z',
+            lastMessageAt: '2026-01-15T10:30:00.000Z',
             messageCount: 0
           }
         ],
@@ -120,8 +120,8 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates a valid ParleyMessage', async () => {
-      const result = await validateSchema(SCHEMAS.ParleyMessage, {
+    it('validates a valid ActivityMessage', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityMessage, {
         id: 'msg_123',
         role: 'assistant',
         content: 'Welcome to the workspace!',
@@ -132,8 +132,8 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates a ParleyMessage with optional resolution', async () => {
-      const result = await validateSchema(SCHEMAS.ParleyMessage, {
+    it('validates a ActivityMessage with optional resolution', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityMessage, {
         id: 'msg_456',
         role: 'assistant',
         content: 'The opportunity looks qualified.',
@@ -154,9 +154,9 @@ describe('validateSchema', () => {
 
     it('validates a valid ActivityStats', async () => {
       const result = await validateSchema(SCHEMAS.ActivityStats, {
-        totalAdventures: 42,
-        activeAdventures: 7,
-        resolvedAdventures: 35,
+        totalConversations: 42,
+        activeConversations: 7,
+        resolvedConversations: 35,
         byMode: {
           discovery: { total: 15, active: 3, resolved: 12 },
           planning: { total: 20, active: 2, resolved: 18 },
@@ -189,7 +189,7 @@ describe('validateSchema', () => {
     it('validates a valid ErrorResponse', async () => {
       const result = await validateSchema(SCHEMAS.ErrorResponse, {
         code: 'not_found',
-        message: 'Adventure not found'
+        message: 'ActivityConversation not found'
       });
 
       expect(result.valid).toBe(true);
@@ -199,44 +199,44 @@ describe('validateSchema', () => {
   // ─── Invalid objects ────────────────────────────────────────────────
 
   describe('invalid objects', () => {
-    it('rejects an Adventure missing required fields', async () => {
-      const result = await validateSchema(SCHEMAS.Adventure, {
-        id: 'adv_001'
-        // missing mode, status, createdAt, lastParleyAt, messageCount
+    it('rejects an ActivityConversation missing required fields', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversation, {
+        id: 'conv_001'
+        // missing mode, status, createdAt, lastMessageAt, messageCount
       });
 
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
-    it('rejects an Adventure with invalid mode enum', async () => {
-      const result = await validateSchema(SCHEMAS.Adventure, {
-        id: 'adv_001',
+    it('rejects an ActivityConversation with invalid mode enum', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversation, {
+        id: 'conv_001',
         mode: 'duel', // not in enum: [discovery, planning, staffing]
         status: 'active',
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T10:30:00.000Z',
+        lastMessageAt: '2026-01-15T10:30:00.000Z',
         messageCount: 0
       });
 
       expect(result.valid).toBe(false);
     });
 
-    it('rejects an Adventure with invalid status enum', async () => {
-      const result = await validateSchema(SCHEMAS.Adventure, {
-        id: 'adv_001',
+    it('rejects an ActivityConversation with invalid status enum', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversation, {
+        id: 'conv_001',
         mode: 'discovery',
         status: 'finished', // not in enum: [active, resolved]
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T10:30:00.000Z',
+        lastMessageAt: '2026-01-15T10:30:00.000Z',
         messageCount: 0
       });
 
       expect(result.valid).toBe(false);
     });
 
-    it('rejects a ParleyMessage with invalid role', async () => {
-      const result = await validateSchema(SCHEMAS.ParleyMessage, {
+    it('rejects a ActivityMessage with invalid role', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityMessage, {
         id: 'msg_123',
         role: 'manager', // Not in enum: [user, assistant, system]
         content: 'Thanks.',
@@ -263,17 +263,17 @@ describe('validateSchema', () => {
 
     it('rejects ActivityStats missing byMode', async () => {
       const result = await validateSchema(SCHEMAS.ActivityStats, {
-        totalAdventures: 10,
-        activeAdventures: 5,
-        resolvedAdventures: 5
+        totalConversations: 10,
+        activeConversations: 5,
+        resolvedConversations: 5
         // missing byMode
       });
 
       expect(result.valid).toBe(false);
     });
 
-    it('rejects AdventureOutcome missing tool field', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureOutcome, {
+    it('rejects ActivityOutcome missing tool field', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityOutcome, {
         result: { fit: 'qualified' }
         // missing tool
       });
@@ -292,9 +292,9 @@ describe('validateSchema', () => {
       expect(result.errors[0]).toContain('not found');
     });
 
-    it('validates an empty adventure list', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureList, {
-        adventures: [],
+    it('validates an empty conversation list', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversationList, {
+        conversations: [],
         offset: 0,
         limit: 20,
         total: 0
@@ -303,8 +303,8 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates ParleyMessage without optional usage', async () => {
-      const result = await validateSchema(SCHEMAS.ParleyMessage, {
+    it('validates ActivityMessage without optional usage', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityMessage, {
         id: 'msg_123',
         role: 'user',
         content: 'Hello!',
@@ -314,15 +314,15 @@ describe('validateSchema', () => {
       expect(result.valid).toBe(true);
     });
 
-    it('validates AdventureDetail without optional outcome', async () => {
-      const result = await validateSchema(SCHEMAS.AdventureDetail, {
-        id: 'adv_005',
+    it('validates ActivityConversationDetail without optional outcome', async () => {
+      const result = await validateSchema(SCHEMAS.ActivityConversationDetail, {
+        id: 'conv_005',
         mode: 'planning',
         status: 'active',
         createdAt: '2026-01-15T10:30:00.000Z',
-        lastParleyAt: '2026-01-15T10:30:00.000Z',
+        lastMessageAt: '2026-01-15T10:30:00.000Z',
         messageCount: 1,
-        parleys: [
+        messages: [
           {
             id: 'msg_1',
             role: 'user',

@@ -72,58 +72,58 @@ export interface AgentErrorResponse {
 
 // ---------- Business API types (what we return to the frontend) ----------
 
-export type AdventureMode = 'discovery' | 'planning' | 'staffing';
+export type ActivityMode = 'discovery' | 'planning' | 'staffing';
 
-export type AdventureStatus = 'active' | 'resolved';
+export type ActivityStatus = 'active' | 'resolved';
 
-export interface AdventureOutcome {
+export interface ActivityOutcome {
   readonly tool: string;
   readonly result: Record<string, unknown>;
 }
 
-export interface Adventure {
+export interface ActivityConversation {
   readonly id: string;
-  readonly mode: AdventureMode;
-  readonly status: AdventureStatus;
-  readonly outcome?: AdventureOutcome | undefined;
+  readonly mode: ActivityMode;
+  readonly status: ActivityStatus;
+  readonly outcome?: ActivityOutcome | undefined;
   readonly createdAt: string;
-  readonly lastParleyAt: string;
+  readonly lastMessageAt: string;
   readonly messageCount: number;
 }
 
-export interface AdventureStarted {
+export interface ActivityConversationStarted {
   readonly id: string;
-  readonly mode: AdventureMode;
-  readonly status: AdventureStatus;
+  readonly mode: ActivityMode;
+  readonly status: ActivityStatus;
   readonly syntheticMessage: string;
   readonly createdAt: string;
 }
 
-export interface AdventureDetail {
+export interface ActivityConversationDetail {
   readonly id: string;
-  readonly mode: AdventureMode;
-  readonly status: AdventureStatus;
-  readonly outcome?: AdventureOutcome | undefined;
+  readonly mode: ActivityMode;
+  readonly status: ActivityStatus;
+  readonly outcome?: ActivityOutcome | undefined;
   readonly createdAt: string;
-  readonly lastParleyAt: string;
+  readonly lastMessageAt: string;
   readonly messageCount: number;
-  readonly parleys: readonly ParleyMessage[];
+  readonly messages: readonly ActivityMessage[];
 }
 
-export interface AdventureList {
-  readonly adventures: readonly Adventure[];
+export interface ActivityConversationList {
+  readonly conversations: readonly ActivityConversation[];
   readonly offset: number;
   readonly limit: number;
   readonly total: number;
 }
 
-export interface ParleyMessage {
+export interface ActivityMessage {
   readonly id: string;
   readonly role: 'user' | 'assistant' | 'system';
   readonly content: string;
   readonly createdAt: string;
   readonly usage?: TokenUsage | undefined;
-  readonly resolution?: AdventureOutcome | undefined;
+  readonly resolution?: ActivityOutcome | undefined;
 }
 
 export interface ModeStats {
@@ -133,9 +133,9 @@ export interface ModeStats {
 }
 
 export interface ActivityStats {
-  readonly totalAdventures: number;
-  readonly activeAdventures: number;
-  readonly resolvedAdventures: number;
+  readonly totalConversations: number;
+  readonly activeConversations: number;
+  readonly resolvedConversations: number;
   readonly byMode: {
     readonly discovery: ModeStats;
     readonly planning: ModeStats;

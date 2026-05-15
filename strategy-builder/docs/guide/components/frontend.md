@@ -27,7 +27,7 @@ components/frontend/react-typescript/
 │   ├── hooks/
 │   │   ├── useConversations.ts    # List/create/select conversations, auto-loads on mount
 │   │   ├── useChat.ts             # Send messages via SSE streaming, manages messages + state
-│   │   └── useAdventures.ts       # Start activities, manage adventure state
+│   │   └── useActivityConversations.ts       # Start activities, manage conversation state
 │   └── styles/
 │       └── index.css              # Tailwind CSS v4 setup (@import 'tailwindcss', @theme, base styles)
 ├── tests/
@@ -45,7 +45,7 @@ components/frontend/react-typescript/
 │   └── hooks/
 │       ├── useConversations.test.tsx # Conversation hook tests
 │       ├── useChat.test.tsx        # Chat hook tests
-│       └── useAdventures.test.tsx  # Adventures hook tests
+│       └── useActivityConversations.test.tsx  # ActivityConversations hook tests
 ├── index.html                     # HTML shell for Vite
 ├── vite.config.ts                 # Vite config with dev proxy
 ├── vitest.config.ts               # jsdom environment for tests
@@ -63,21 +63,21 @@ components/frontend/react-typescript/
 
 A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business API endpoints:
 
-> **WS-12 rework:** These methods replace the previous `recruit()`, `listStaffing()`, `getStaffingMember()`, `parley()`, `parleyStream()`, and `getPlanning()` methods.
+> **WS-12 rework:** These methods replace the previous `recruit()`, `listStaffing()`, `getStaffingMember()`, `message()`, `messageStream()`, and `getPlanning()` methods.
 
 | Method                               | Endpoint                                      | Returns                                        |
 |--------------------------------------|-----------------------------------------------|------------------------------------------------|
-| `startDiscovery()`                   | `POST /api/activities/discovery`              | `AdventureStarted` (`id` + `syntheticMessage`) |
-| `startPlanning()`                    | `POST /api/activities/planning`               | `AdventureStarted` (`id` + `syntheticMessage`) |
-| `startStaffing()`                    | `POST /api/activities/staffing`               | `AdventureStarted` (`id` + `syntheticMessage`) |
-| `listAdventures(offset?, limit?)`    | `GET /api/activities/adventures`              | `AdventureList`                                |
-| `getAdventure(id)`                   | `GET /api/activities/adventures/{id}`         | `AdventureDetail`                              |
-| `parley(adventureId, message)`       | `POST /api/activities/adventures/{id}/parley` | `ParleyMessage` (JSON)                         |
-| `parleyStream(adventureId, message)` | `POST /api/activities/adventures/{id}/parley` | `AsyncGenerator<SSEEvent>` (SSE)               |
+| `startDiscovery()`                   | `POST /api/activities/discovery`              | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `startPlanning()`                    | `POST /api/activities/planning`               | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `startStaffing()`                    | `POST /api/activities/staffing`               | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `listActivityConversations(offset?, limit?)`    | `GET /api/activities/conversations`              | `ActivityConversationList`                                |
+| `getActivityConversation(id)`                   | `GET /api/activities/conversations/{id}`         | `ActivityConversationDetail`                              |
+| `message(conversationId, message)`       | `POST /api/activities/conversations/{id}/messages` | `ActivityMessage` (JSON)                         |
+| `messageStream(conversationId, message)` | `POST /api/activities/conversations/{id}/messages` | `AsyncGenerator<SSEEvent>` (SSE)               |
 | `getStats()`                         | `GET /api/activities/stats`                   | `ActivityStats`                                |
 | `checkHealth()`                      | `GET /health`                                 | `HealthResponse`                               |
 
-**SSE implementation:** The `parleyStream()` method uses `fetch()` with `ReadableStream` (not `EventSource`) because the parley endpoint is a POST request. It is an async generator that parses SSE event blocks and yields typed `SSEEvent` discriminated unions (`SSEMessageDelta | SSEMessageComplete | SSEActivityResolved | SSEToolCalled | SSEToolDone | SSEError`).
+**SSE implementation:** The `messageStream()` method uses `fetch()` with `ReadableStream` (not `EventSource`) because the message endpoint is a POST request. It is an async generator that parses SSE event blocks and yields typed `SSEEvent` discriminated unions (`SSEMessageDelta | SSEMessageComplete | SSEActivityResolved | SSEToolCalled | SSEToolDone | SSEError`).
 
 ### React components
 
@@ -85,7 +85,7 @@ A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business
 |--------------------|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | `App`              | --                                                               | Root: wires hooks to components, manages layout, renders activity picker, streaming toggle    |
 | `ActivityPicker`   | onStartDiscovery, onStartPlanning, onStartStaffing, loadingMode  | Three-button picker for choosing a sample activity; shows spinner + "Starting..." during load |
-| `ConversationList` | conversations, selected, onSelect                                | Sidebar with adventure list, shows mode badge and relative time (e.g., "2 min ago")           |
+| `ConversationList` | conversations, selected, onSelect                                | Sidebar with conversation list, shows mode badge and relative time (e.g., "2 min ago")           |
 | `ChatArea`         | messages, isStreaming, streamingContent, error, activeSpecialist | Displays messages with auto-scroll, specialist-specific loading text, and error state         |
 | `OutcomeCard`      | outcome, mode                                                    | Displays resolution outcome as a styled card/banner in the chat area                          |
 | `MessageInput`     | onSend, disabled, resolved                                       | Text input with send button, Enter key submission; shows "Activity complete" when resolved    |
@@ -96,9 +96,9 @@ A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business
 
 | Hook               | Returns                                                                      | Behavior                                                                                                                                                                                                                                                                                                               |
 |--------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `useConversations` | `{ conversations, selected, loading, error, select }`                        | Fetches adventure list on mount, selects adventures (no longer creates -- business operations handle creation)                                                                                                                                                                                                         |
-| `useChat`          | `{ messages, isStreaming, streamingContent, error, send, activeSpecialist }` | Sends messages via `parleyStream()` (SSE) or `parley()` (JSON), controlled by `streaming` option. In streaming mode, accumulates SSE deltas, tracks `activeSpecialist` via `tool.called`/`tool.done` events. Filters empty assistant messages. In JSON mode, sends a single request and appends the complete response. |
-| `useAdventures`    | `{ startDiscovery, startPlanning, startStaffing, loading, loadingMode }`     | Calls business operation endpoints, receives `syntheticMessage`, then uses parley to obtain assistant responses. Tracks `loadingMode` per activity type for button loading states.                                                                                                                                     |
+| `useConversations` | `{ conversations, selected, loading, error, select }`                        | Fetches conversation list on mount, selects conversations (no longer creates -- business operations handle creation)                                                                                                                                                                                                         |
+| `useChat`          | `{ messages, isStreaming, streamingContent, error, send, activeSpecialist }` | Sends messages via `messageStream()` (SSE) or `message()` (JSON), controlled by `streaming` option. In streaming mode, accumulates SSE deltas, tracks `activeSpecialist` via `tool.called`/`tool.done` events. Filters empty assistant messages. In JSON mode, sends a single request and appends the complete response. |
+| `useActivityConversations`    | `{ startDiscovery, startPlanning, startStaffing, loading, loadingMode }`     | Calls business operation endpoints, receives `syntheticMessage`, then uses message to obtain assistant responses. Tracks `loadingMode` per activity type for button loading states.                                                                                                                                     |
 
 ## Configuration
 
@@ -151,7 +151,7 @@ Tests are organized by concern:
 - **API client**: all HTTP methods, SSE parsing (including `tool.called`/`tool.done`), error handling
 - **Components**: rendering, user interaction, loading/error states, activity picker with `loadingMode`, outcome card, stream toggle, specialist-specific loading text in ChatArea, resolved state in MessageInput
 - **App integration**: full app wiring, activity flows, error banners, stream toggle integration
-- **Hooks**: data fetching, state management, streaming, adventures with `loadingMode`, `activeSpecialist` tracking, empty message filtering, non-streaming mode
+- **Hooks**: data fetching, state management, streaming, conversations with `loadingMode`, `activeSpecialist` tracking, empty message filtering, non-streaming mode
 
 ### Test environment notes
 

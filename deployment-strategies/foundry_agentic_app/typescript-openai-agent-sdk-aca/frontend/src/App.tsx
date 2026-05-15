@@ -5,7 +5,7 @@ import { ConversationList } from './components/ConversationList.tsx';
 import { ChatArea } from './components/ChatArea.tsx';
 import { MessageInput } from './components/MessageInput.tsx';
 import { StreamToggle } from './components/StreamToggle.tsx';
-import { useAdventures } from './hooks/useAdventures.ts';
+import { useActivityConversations } from './hooks/useActivityConversations.ts';
 import { useConversationStates } from './hooks/useConversationStates.ts';
 import { useChat } from './hooks/useChat.ts';
 import './styles/index.css';
@@ -20,16 +20,16 @@ export function App() {
   );
 
   const {
-    adventures,
+    conversations,
     selectedId,
     isLoading: isListLoading,
     loadingMode,
-    error: adventureError,
+    error: conversationError,
     pendingFirstMessage,
-    selectAdventure,
-    startAdventure,
+    selectActivityConversation,
+    startActivityConversation,
     clearPendingFirstMessage
-  } = useAdventures(client);
+  } = useActivityConversations(client);
 
   const [streaming, setStreaming] = useState(() => import.meta.env['VITE_USE_STREAMING'] !== 'false');
 
@@ -62,26 +62,26 @@ export function App() {
         <h1 className='text-lg font-semibold tracking-wide text-zinc-100'>Account Team Workspace</h1>
         <StreamToggle streaming={streaming} onChange={setStreaming} />
       </header>
-      {adventureError && (
+      {conversationError && (
         <div
           className='border-b border-red-800 bg-red-950 px-5 py-2 text-sm text-red-300'
-          data-testid='adventure-error'
+          data-testid='conversation-error'
           role='alert'
         >
-          {adventureError}
+          {conversationError}
         </div>
       )}
       <div className='flex flex-1 overflow-hidden'>
         <div className='flex w-72 flex-col border-r border-zinc-800 bg-zinc-900'>
           <ActivityPicker
-            onStart={(mode) => void startAdventure(mode)}
+            onStart={(mode) => void startActivityConversation(mode)}
             disabled={isListLoading}
             loadingMode={loadingMode}
           />
           <ConversationList
-            conversations={adventures}
+            conversations={conversations}
             selectedId={selectedId}
-            onSelect={selectAdventure}
+            onSelect={selectActivityConversation}
             isLoading={isListLoading}
           />
         </div>

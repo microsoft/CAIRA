@@ -1,27 +1,27 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { Adventure, AdventureMode } from '../types.ts';
+import type { ActivityConversation, ActivityMode } from '../types.ts';
 import type { ActivityClient } from '../api/activity-client.ts';
 
-interface UseAdventuresResult {
-  readonly adventures: readonly Adventure[];
+interface UseActivityConversationsResult {
+  readonly conversations: readonly ActivityConversation[];
   readonly selectedId: string | null;
   readonly isLoading: boolean;
   /** The mode currently being started, or null if idle. */
-  readonly loadingMode: AdventureMode | null;
+  readonly loadingMode: ActivityMode | null;
   readonly error: string | null;
-  /** Synthetic message for a newly started adventure (cleared after consumption). */
+  /** Synthetic message for a newly started conversation (cleared after consumption). */
   readonly pendingFirstMessage: string | null;
-  readonly selectAdventure: (id: string) => void;
-  readonly startAdventure: (mode: AdventureMode) => Promise<void>;
+  readonly selectActivityConversation: (id: string) => void;
+  readonly startActivityConversation: (mode: ActivityMode) => Promise<void>;
   readonly clearPendingFirstMessage: () => void;
   readonly refresh: () => Promise<void>;
 }
 
-export function useAdventures(client: ActivityClient): UseAdventuresResult {
-  const [adventures, setAdventures] = useState<readonly Adventure[]>([]);
+export function useActivityConversations(client: ActivityClient): UseActivityConversationsResult {
+  const [conversations, setActivityConversations] = useState<readonly ActivityConversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingMode, setLoadingMode] = useState<AdventureMode | null>(null);
+  const [loadingMode, setLoadingMode] = useState<ActivityMode | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingFirstMessage, setPendingFirstMessage] = useState<string | null>(null);
 
@@ -29,18 +29,18 @@ export function useAdventures(client: ActivityClient): UseAdventuresResult {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await client.listAdventures(0, 50);
-      setAdventures(result.adventures);
+      const result = await client.listActivityConversations(0, 50);
+      setActivityConversations(result.conversations);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to load adventures';
+      const msg = err instanceof Error ? err.message : 'Failed to load conversations';
       setError(msg);
     } finally {
       setIsLoading(false);
     }
   }, [client]);
 
-  const startAdventure = useCallback(
-    async (mode: AdventureMode) => {
+  const startActivityConversation = useCallback(
+    async (mode: ActivityMode) => {
       setIsLoading(true);
       setLoadingMode(mode);
       setError(null);
@@ -57,21 +57,21 @@ export function useAdventures(client: ActivityClient): UseAdventuresResult {
             started = await client.startStaffing();
             break;
         }
-        const adventure: Adventure = {
+        const conversation: ActivityConversation = {
           id: started.id,
           mode: started.mode,
           status: started.status,
           createdAt: started.createdAt,
-          lastParleyAt: started.createdAt,
+          lastMessageAt: started.createdAt,
           messageCount: 0
         };
-        setAdventures((prev) => [adventure, ...prev]);
+        setActivityConversations((prev) => [conversation, ...prev]);
         // Set the pending first message BEFORE setting selectedId so that
         // useChat can pick it up when it reacts to the conversationId change.
         setPendingFirstMessage(started.syntheticMessage);
         setSelectedId(started.id);
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Failed to start adventure';
+        const msg = err instanceof Error ? err.message : 'Failed to start activity conversation';
         setError(msg);
       } finally {
         setIsLoading(false);
@@ -81,7 +81,7 @@ export function useAdventures(client: ActivityClient): UseAdventuresResult {
     [client]
   );
 
-  const selectAdventure = useCallback((id: string) => {
+  const selectActivityConversation = useCallback((id: string) => {
     setSelectedId(id);
   }, []);
 
@@ -89,20 +89,20 @@ export function useAdventures(client: ActivityClient): UseAdventuresResult {
     setPendingFirstMessage(null);
   }, []);
 
-  // Load adventures on mount
+  // Load conversations on mount
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   return {
-    adventures,
+    conversations,
     selectedId,
     isLoading,
     loadingMode,
     error,
     pendingFirstMessage,
-    selectAdventure,
-    startAdventure,
+    selectActivityConversation,
+    startActivityConversation,
     clearPendingFirstMessage,
     refresh
   };

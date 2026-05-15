@@ -2,18 +2,18 @@
  * HTTP/SSE client for the business activity API.
  *
  * Calls the business API endpoints defined in contracts/backend-api.openapi.yaml.
- * Supports both JSON responses and SSE streaming for parley.
+ * Supports both JSON responses and SSE streaming for message.
  */
 
 import type {
   ActivityStats,
-  AdventureDetail,
-  AdventureList,
-  AdventureMode,
-  AdventureStarted,
+  ActivityConversationDetail,
+  ActivityConversationList,
+  ActivityMode,
+  ActivityConversationStarted,
   ErrorResponse,
   HealthResponse,
-  ParleyMessage,
+  ActivityMessage,
   SSEEvent
 } from '../types.ts';
 
@@ -40,86 +40,92 @@ export class ActivityClient {
     this.baseUrl = config.baseUrl.replace(/\/+$/, '');
   }
 
-  // ---- Business operations: start adventures ----
+  // ---- Business operations: start conversations ----
 
   /**
    * POST /api/activities/discovery — Start an opportunity discovery activity.
    */
-  async startDiscovery(): Promise<AdventureStarted> {
-    return this.startAdventure('discovery');
+  async startDiscovery(): Promise<ActivityConversationStarted> {
+    return this.startActivityConversation('discovery');
   }
 
   /**
    * POST /api/activities/planning — Start an account planning activity.
    */
-  async startPlanning(): Promise<AdventureStarted> {
-    return this.startAdventure('planning');
+  async startPlanning(): Promise<ActivityConversationStarted> {
+    return this.startActivityConversation('planning');
   }
 
   /**
    * POST /api/activities/staffing — Start a staffing activity.
    */
-  async startStaffing(): Promise<AdventureStarted> {
-    return this.startAdventure('staffing');
+  async startStaffing(): Promise<ActivityConversationStarted> {
+    return this.startActivityConversation('staffing');
   }
 
-  // ---- Adventure management ----
+  // ---- ActivityConversation management ----
 
   /**
-   * GET /api/activities/adventures — List adventures.
+   * GET /api/activities/conversations — List conversations.
    */
-  async listAdventures(offset?: number, limit?: number): Promise<AdventureList> {
+  async listActivityConversations(offset?: number, limit?: number): Promise<ActivityConversationList> {
     const params = new URLSearchParams();
     if (offset !== undefined) params.set('offset', String(offset));
     if (limit !== undefined) params.set('limit', String(limit));
 
     const query = params.toString();
-    const url = `${this.baseUrl}/activities/adventures${query ? `?${query}` : ''}`;
+    const url = `${this.baseUrl}/activities/conversations${query ? `?${query}` : ''}`;
     const response = await fetch(url);
-    return this.handleJson<AdventureList>(response);
+    return this.handleJson<ActivityConversationList>(response);
   }
 
   /**
-   * GET /api/activities/adventures/{adventureId} — Get adventure detail with messages.
+   * GET /api/activities/conversations/{conversationId} — Get conversation detail with messages.
    */
-  async getAdventure(adventureId: string): Promise<AdventureDetail> {
-    const response = await fetch(`${this.baseUrl}/activities/adventures/${encodeURIComponent(adventureId)}`);
-    return this.handleJson<AdventureDetail>(response);
+  async getActivityConversation(conversationId: string): Promise<ActivityConversationDetail> {
+    const response = await fetch(`${this.baseUrl}/activities/conversations/${encodeURIComponent(conversationId)}`);
+    return this.handleJson<ActivityConversationDetail>(response);
   }
 
-  // ---- Parley (send message) ----
+  // ---- Message (send message) ----
 
   /**
-   * POST /api/activities/adventures/{adventureId}/parley — Send a message (JSON response).
+   * POST /api/activities/conversations/{conversationId}/messages — Send a message (JSON response).
    */
-  async parley(adventureId: string, message: string): Promise<ParleyMessage> {
-    const response = await fetch(`${this.baseUrl}/activities/adventures/${encodeURIComponent(adventureId)}/parley`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
-    });
-    return this.handleJson<ParleyMessage>(response);
+  async message(conversationId: string, message: string): Promise<ActivityMessage> {
+    const response = await fetch(
+      `${this.baseUrl}/activities/conversations/${encodeURIComponent(conversationId)}/messages`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      }
+    );
+    return this.handleJson<ActivityMessage>(response);
   }
 
   /**
-   * POST /api/activities/adventures/{adventureId}/parley — Send a message (SSE streaming).
+   * POST /api/activities/conversations/{conversationId}/messages — Send a message (SSE streaming).
    *
    * Returns an async generator that yields SSE events as they arrive.
-   * Uses fetch + ReadableStream (not EventSource, since parley is POST).
+   * Uses fetch + ReadableStream (not EventSource, since message is POST).
    *
    * Pass an `AbortSignal` to cancel the in-flight request (e.g. on unmount
    * or when the conversation is deleted).
    */
-  async *parleyStream(adventureId: string, message: string, signal?: AbortSignal): AsyncGenerator<SSEEvent> {
-    const response = await fetch(`${this.baseUrl}/activities/adventures/${encodeURIComponent(adventureId)}/parley`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream'
-      },
-      body: JSON.stringify({ message }),
-      ...(signal ? { signal } : {})
-    });
+  async *messageStream(conversationId: string, message: string, signal?: AbortSignal): AsyncGenerator<SSEEvent> {
+    const response = await fetch(
+      `${this.baseUrl}/activities/conversations/${encodeURIComponent(conversationId)}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'text/event-stream'
+        },
+        body: JSON.stringify({ message }),
+        ...(signal ? { signal } : {})
+      }
+    );
 
     if (!response.ok) {
       await this.throwApiError(response);
@@ -190,10 +196,10 @@ export class ActivityClient {
 
   // ---------- Private helpers ----------
 
-  private async startAdventure(mode: AdventureMode): Promise<AdventureStarted> {
+  private async startActivityConversation(mode: ActivityMode): Promise<ActivityConversationStarted> {
     const endpoint = `${this.baseUrl}/activities/${mode}`;
     const response = await fetch(endpoint, { method: 'POST' });
-    return this.handleJson<AdventureStarted>(response);
+    return this.handleJson<ActivityConversationStarted>(response);
   }
 
   private async handleJson<T>(response: Response): Promise<T> {

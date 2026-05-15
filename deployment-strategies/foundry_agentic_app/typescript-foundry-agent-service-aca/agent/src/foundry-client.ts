@@ -543,7 +543,7 @@ export class FoundryClient {
 
       const response = await tracer.startActiveSpan('agent.send_message', async (span) => {
         span.setAttribute('conversation.id', conversationId);
-        span.setAttribute('adventure.mode', mode);
+        span.setAttribute('conversation.mode', mode);
         try {
           return await context.with(trace.setSpan(context.active(), span), async () =>
             openai.responses.create(createParams)
@@ -722,7 +722,7 @@ export class FoundryClient {
 
         const stream = await tracer.startActiveSpan('agent.send_message_stream', async (span) => {
           span.setAttribute('conversation.id', conversationId);
-          span.setAttribute('adventure.mode', mode);
+          span.setAttribute('conversation.mode', mode);
           try {
             return await context.with(trace.setSpan(context.active(), span), async () =>
               openai.responses.stream(createParams)

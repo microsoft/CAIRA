@@ -3,11 +3,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ActivityClient, ActivityApiError } from '../../src/api/activity-client.ts';
 import type {
-  Adventure,
-  AdventureList,
-  AdventureDetail,
-  AdventureStarted,
-  ParleyMessage,
+  ActivityConversation,
+  ActivityConversationList,
+  ActivityConversationDetail,
+  ActivityConversationStarted,
+  ActivityMessage,
   ActivityStats
 } from '../../src/types.ts';
 
@@ -15,25 +15,25 @@ import type {
 
 const BASE_URL = 'http://localhost:4000/api';
 
-const ADVENTURE: Adventure = {
-  id: 'adv-1',
+const CONVERSATION: ActivityConversation = {
+  id: 'conv-1',
   mode: 'discovery',
   status: 'active',
   createdAt: '2026-01-01T00:00:00Z',
-  lastParleyAt: '2026-01-02T00:00:00Z',
+  lastMessageAt: '2026-01-02T00:00:00Z',
   messageCount: 3
 };
 
-const ADVENTURE_LIST: AdventureList = {
-  adventures: [ADVENTURE],
+const CONVERSATION_LIST: ActivityConversationList = {
+  conversations: [CONVERSATION],
   offset: 0,
   limit: 20,
   total: 1
 };
 
-const ADVENTURE_DETAIL: AdventureDetail = {
-  ...ADVENTURE,
-  parleys: [
+const CONVERSATION_DETAIL: ActivityConversationDetail = {
+  ...CONVERSATION,
+  messages: [
     {
       id: 'msg-1',
       role: 'user',
@@ -49,8 +49,8 @@ const ADVENTURE_DETAIL: AdventureDetail = {
   ]
 };
 
-const ADVENTURE_STARTED: AdventureStarted = {
-  id: 'adv-new',
+const STARTED_CONVERSATION: ActivityConversationStarted = {
+  id: 'conv-new',
   mode: 'discovery',
   status: 'active',
   syntheticMessage:
@@ -58,7 +58,7 @@ const ADVENTURE_STARTED: AdventureStarted = {
   createdAt: '2026-01-01T00:00:00Z'
 };
 
-const PARLEY_MESSAGE: ParleyMessage = {
+const ACTIVITY_MESSAGE: ActivityMessage = {
   id: 'msg-3',
   role: 'assistant',
   content: 'Thanks for the update!',
@@ -66,9 +66,9 @@ const PARLEY_MESSAGE: ParleyMessage = {
 };
 
 const STATS: ActivityStats = {
-  totalAdventures: 10,
-  activeAdventures: 7,
-  resolvedAdventures: 3,
+  totalConversations: 10,
+  activeConversations: 7,
+  resolvedConversations: 3,
   byMode: {
     discovery: { total: 4, active: 3, resolved: 1 },
     planning: { total: 3, active: 2, resolved: 1 },
@@ -126,11 +126,11 @@ describe('ActivityClient', () => {
   // ---- startDiscovery ----
 
   describe('startDiscovery', () => {
-    it('starts a discovery adventure', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse(ADVENTURE_STARTED, 200));
+    it('starts a discovery activity conversation', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse(STARTED_CONVERSATION, 200));
 
       const result = await client.startDiscovery();
-      expect(result).toEqual(ADVENTURE_STARTED);
+      expect(result).toEqual(STARTED_CONVERSATION);
       expect(fetchSpy).toHaveBeenCalledWith(
         `${BASE_URL}/activities/discovery`,
         expect.objectContaining({ method: 'POST' })
@@ -149,8 +149,8 @@ describe('ActivityClient', () => {
   // ---- startPlanning ----
 
   describe('startPlanning', () => {
-    it('starts a planning adventure', async () => {
-      const started: AdventureStarted = { ...ADVENTURE_STARTED, mode: 'planning' };
+    it('starts a planning activity conversation', async () => {
+      const started: ActivityConversationStarted = { ...STARTED_CONVERSATION, mode: 'planning' };
       fetchSpy.mockResolvedValueOnce(jsonResponse(started, 200));
 
       const result = await client.startPlanning();
@@ -165,8 +165,8 @@ describe('ActivityClient', () => {
   // ---- startStaffing ----
 
   describe('startStaffing', () => {
-    it('starts a staffing adventure', async () => {
-      const started: AdventureStarted = { ...ADVENTURE_STARTED, mode: 'staffing' };
+    it('starts a staffing activity conversation', async () => {
+      const started: ActivityConversationStarted = { ...STARTED_CONVERSATION, mode: 'staffing' };
       fetchSpy.mockResolvedValueOnce(jsonResponse(started, 200));
 
       const result = await client.startStaffing();
@@ -178,53 +178,53 @@ describe('ActivityClient', () => {
     });
   });
 
-  // ---- listAdventures ----
+  // ---- listActivityConversations ----
 
-  describe('listAdventures', () => {
-    it('lists adventures with default params', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse(ADVENTURE_LIST));
+  describe('listActivityConversations', () => {
+    it('lists conversations with default params', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse(CONVERSATION_LIST));
 
-      const result = await client.listAdventures();
-      expect(result).toEqual(ADVENTURE_LIST);
-      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/adventures`);
+      const result = await client.listActivityConversations();
+      expect(result).toEqual(CONVERSATION_LIST);
+      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/conversations`);
     });
 
-    it('lists adventures with offset and limit', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse(ADVENTURE_LIST));
+    it('lists conversations with offset and limit', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse(CONVERSATION_LIST));
 
-      await client.listAdventures(10, 5);
-      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/adventures?offset=10&limit=5`);
+      await client.listActivityConversations(10, 5);
+      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/conversations?offset=10&limit=5`);
     });
   });
 
-  // ---- getAdventure ----
+  // ---- getActivityConversation ----
 
-  describe('getAdventure', () => {
-    it('gets adventure detail', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse(ADVENTURE_DETAIL));
+  describe('getActivityConversation', () => {
+    it('gets conversation detail', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse(CONVERSATION_DETAIL));
 
-      const result = await client.getAdventure('adv-1');
-      expect(result).toEqual(ADVENTURE_DETAIL);
-      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/adventures/adv-1`);
+      const result = await client.getActivityConversation('conv-1');
+      expect(result).toEqual(CONVERSATION_DETAIL);
+      expect(fetchSpy).toHaveBeenCalledWith(`${BASE_URL}/activities/conversations/conv-1`);
     });
 
     it('throws on 404', async () => {
-      fetchSpy.mockResolvedValueOnce(errorResponse(404, 'not_found', 'Adventure not found'));
+      fetchSpy.mockResolvedValueOnce(errorResponse(404, 'not_found', 'ActivityConversation not found'));
 
-      await expect(client.getAdventure('unknown')).rejects.toThrow(ActivityApiError);
+      await expect(client.getActivityConversation('unknown')).rejects.toThrow(ActivityApiError);
     });
   });
 
-  // ---- parley (JSON) ----
+  // ---- message (JSON) ----
 
-  describe('parley', () => {
+  describe('message', () => {
     it('sends a message and gets JSON response', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse(PARLEY_MESSAGE));
+      fetchSpy.mockResolvedValueOnce(jsonResponse(ACTIVITY_MESSAGE));
 
-      const result = await client.parley('adv-1', 'Hello!');
-      expect(result).toEqual(PARLEY_MESSAGE);
+      const result = await client.message('conv-1', 'Hello!');
+      expect(result).toEqual(ACTIVITY_MESSAGE);
       expect(fetchSpy).toHaveBeenCalledWith(
-        `${BASE_URL}/activities/adventures/adv-1/parley`,
+        `${BASE_URL}/activities/conversations/conv-1/messages`,
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ message: 'Hello!' })
@@ -233,9 +233,9 @@ describe('ActivityClient', () => {
     });
   });
 
-  // ---- parleyStream (SSE) ----
+  // ---- messageStream (SSE) ----
 
-  describe('parleyStream', () => {
+  describe('messageStream', () => {
     it('streams SSE events', async () => {
       const stream = sseStream([
         'event: message.delta\ndata: {"content":"Welcome "}\n\n',
@@ -251,7 +251,7 @@ describe('ActivityClient', () => {
       );
 
       const events: unknown[] = [];
-      for await (const event of client.parleyStream('adv-1', 'Hello!')) {
+      for await (const event of client.messageStream('conv-1', 'Hello!')) {
         events.push(event);
       }
 
@@ -283,7 +283,7 @@ describe('ActivityClient', () => {
       );
 
       const events: unknown[] = [];
-      for await (const event of client.parleyStream('adv-1', 'Please summarize the discovery.')) {
+      for await (const event of client.messageStream('conv-1', 'Please summarize the discovery.')) {
         events.push(event);
       }
 
@@ -313,7 +313,7 @@ describe('ActivityClient', () => {
       );
 
       const events: unknown[] = [];
-      for await (const event of client.parleyStream('adv-1', 'Please summarize the discovery.')) {
+      for await (const event of client.messageStream('conv-1', 'Please summarize the discovery.')) {
         events.push(event);
       }
 
@@ -335,7 +335,7 @@ describe('ActivityClient', () => {
       );
 
       const events: unknown[] = [];
-      for await (const event of client.parleyStream('adv-1', 'Hello!')) {
+      for await (const event of client.messageStream('conv-1', 'Hello!')) {
         events.push(event);
       }
 
@@ -350,14 +350,14 @@ describe('ActivityClient', () => {
     it('throws on HTTP error response', async () => {
       fetchSpy.mockResolvedValueOnce(errorResponse(500, 'agent_error', 'Server error'));
 
-      const gen = client.parleyStream('adv-1', 'Hello!');
+      const gen = client.messageStream('conv-1', 'Hello!');
       await expect(gen.next()).rejects.toThrow(ActivityApiError);
     });
 
     it('throws on missing response body', async () => {
       fetchSpy.mockResolvedValueOnce(new Response(null, { status: 200 }));
 
-      const gen = client.parleyStream('adv-1', 'Hello!');
+      const gen = client.messageStream('conv-1', 'Hello!');
       await expect(gen.next()).rejects.toThrow(ActivityApiError);
     });
 
@@ -366,12 +366,12 @@ describe('ActivityClient', () => {
       fetchSpy.mockResolvedValueOnce(new Response(stream, { status: 200 }));
 
       const events: unknown[] = [];
-      for await (const event of client.parleyStream('adv-1', 'Hello!')) {
+      for await (const event of client.messageStream('conv-1', 'Hello!')) {
         events.push(event);
       }
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        `${BASE_URL}/activities/adventures/adv-1/parley`,
+        `${BASE_URL}/activities/conversations/conv-1/messages`,
         expect.objectContaining({
           headers: expect.objectContaining({
             Accept: 'text/event-stream'
@@ -420,9 +420,9 @@ describe('ActivityClient', () => {
 
     it('strips trailing slashes from baseUrl', () => {
       const c = new ActivityClient({ baseUrl: 'http://example.com/api///' });
-      fetchSpy.mockResolvedValueOnce(jsonResponse(ADVENTURE_LIST));
-      void c.listAdventures();
-      expect(fetchSpy).toHaveBeenCalledWith('http://example.com/api/activities/adventures');
+      fetchSpy.mockResolvedValueOnce(jsonResponse(CONVERSATION_LIST));
+      void c.listActivityConversations();
+      expect(fetchSpy).toHaveBeenCalledWith('http://example.com/api/activities/conversations');
     });
   });
 });

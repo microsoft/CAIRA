@@ -1,19 +1,19 @@
-import type { Adventure, AdventureMode } from '../types.ts';
+import type { ActivityConversation, ActivityMode } from '../types.ts';
 
 interface ConversationListProps {
-  readonly conversations: readonly Adventure[];
+  readonly conversations: readonly ActivityConversation[];
   readonly selectedId: string | null;
   readonly onSelect: (id: string) => void;
   readonly isLoading: boolean;
 }
 
-const MODE_LABELS: Record<AdventureMode, string> = {
+const MODE_LABELS: Record<ActivityMode, string> = {
   discovery: 'Discovery',
   planning: 'Account Plan',
   staffing: 'Staffing'
 };
 
-const MODE_COLORS: Record<AdventureMode, string> = {
+const MODE_COLORS: Record<ActivityMode, string> = {
   discovery: 'bg-amber-500/20 text-amber-400',
   planning: 'bg-emerald-500/20 text-emerald-400',
   staffing: 'bg-sky-500/20 text-sky-400'
@@ -49,33 +49,33 @@ export function ConversationList({ conversations, selectedId, onSelect, isLoadin
       )}
 
       <ul className='list-none'>
-        {conversations.map((adventure) => (
+        {conversations.map((conversation) => (
           <li
-            key={adventure.id}
-            className={`border-b border-zinc-800 ${adventure.id === selectedId ? 'border-l-2 border-l-indigo-500 bg-zinc-800/50' : ''}`}
-            data-testid={`conversation-item-${adventure.id}`}
+            key={conversation.id}
+            className={`border-b border-zinc-800 ${conversation.id === selectedId ? 'border-l-2 border-l-indigo-500 bg-zinc-800/50' : ''}`}
+            data-testid={`conversation-item-${conversation.id}`}
           >
             <button
               className='flex w-full cursor-pointer flex-col gap-1 border-none bg-transparent px-4 py-3 text-left text-zinc-200 transition-colors hover:bg-zinc-800/50'
-              onClick={() => onSelect(adventure.id)}
+              onClick={() => onSelect(conversation.id)}
             >
               <div className='flex items-center gap-2'>
                 <span
-                  className={`rounded-sm px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase ${MODE_COLORS[adventure.mode]}`}
-                  data-testid={`mode-badge-${adventure.id}`}
+                  className={`rounded-sm px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase ${MODE_COLORS[conversation.mode]}`}
+                  data-testid={`mode-badge-${conversation.id}`}
                 >
-                  {MODE_LABELS[adventure.mode]}
+                  {MODE_LABELS[conversation.mode]}
                 </span>
-                {adventure.status === 'resolved' && (
+                {conversation.status === 'resolved' && (
                   <span
                     className='rounded-sm bg-indigo-500/20 px-1.5 py-0.5 text-[0.65rem] font-semibold text-indigo-400 uppercase'
-                    data-testid={`status-badge-${adventure.id}`}
+                    data-testid={`status-badge-${conversation.id}`}
                   >
                     Resolved
                   </span>
                 )}
               </div>
-              <span className='text-xs text-zinc-500'>{relativeTime(adventure.lastParleyAt)}</span>
+              <span className='text-xs text-zinc-500'>{relativeTime(conversation.lastMessageAt)}</span>
             </button>
           </li>
         ))}

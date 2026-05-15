@@ -10,7 +10,7 @@
 
 // ─── User messages ──────────────────────────────────────────────────────
 
-/** Sample user messages for parley tests */
+/** Sample user messages for message tests */
 export const ACTIVITY_MESSAGES = {
   /** Generic greeting — works for any activity mode */
   greeting: 'Hello team, what should we focus on?',
@@ -29,12 +29,12 @@ export const ACTIVITY_MESSAGES = {
 // ─── Schema names (matching backend-api.openapi.yaml components/schemas) ─
 
 export const SCHEMAS = {
-  Adventure: 'Adventure',
-  AdventureStarted: 'AdventureStarted',
-  AdventureDetail: 'AdventureDetail',
-  AdventureList: 'AdventureList',
-  AdventureOutcome: 'AdventureOutcome',
-  ParleyMessage: 'ParleyMessage',
+  ActivityConversation: 'ActivityConversation',
+  ActivityConversationStarted: 'ActivityConversationStarted',
+  ActivityConversationDetail: 'ActivityConversationDetail',
+  ActivityConversationList: 'ActivityConversationList',
+  ActivityOutcome: 'ActivityOutcome',
+  ActivityMessage: 'ActivityMessage',
   ActivityStats: 'ActivityStats',
   ModeStats: 'ModeStats',
   HealthResponse: 'HealthResponse',
@@ -44,7 +44,7 @@ export const SCHEMAS = {
 
 // ─── SSE event sequences ────────────────────────────────────────────────
 
-/** Expected SSE event types for a successful streaming parley */
+/** Expected SSE event types for a successful streaming message */
 export const SSE_EVENT_SEQUENCE = {
   /** Events that must appear at least once (contractually guaranteed) */
   required: ['message.complete'] as const,
@@ -69,4 +69,4 @@ export const ERROR_CODES = {
 // ─── Test IDs ───────────────────────────────────────────────────────────
 
 /** An ID that definitely doesn't exist in any backend */
-export const NON_EXISTENT_ADVENTURE_ID = 'nonexistent_adventure_000';
+export const NON_EXISTENT_CONVERSATION_ID = 'nonexistent_activity_conversation_000';

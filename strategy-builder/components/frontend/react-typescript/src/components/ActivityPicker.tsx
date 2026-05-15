@@ -1,13 +1,13 @@
-import type { AdventureMode } from '../types.ts';
+import type { ActivityMode } from '../types.ts';
 
 interface ActivityPickerProps {
-  readonly onStart: (mode: AdventureMode) => void;
+  readonly onStart: (mode: ActivityMode) => void;
   readonly disabled?: boolean | undefined;
   /** When set, shows a spinner + "Starting..." on that button and disables all buttons. */
-  readonly loadingMode?: AdventureMode | null | undefined;
+  readonly loadingMode?: ActivityMode | null | undefined;
 }
 
-const ACTIVITIES: { mode: AdventureMode; label: string; description: string }[] = [
+const ACTIVITIES: { mode: ActivityMode; label: string; description: string }[] = [
   { mode: 'discovery', label: 'Opportunity Discovery', description: 'Qualify a new customer opportunity' },
   { mode: 'planning', label: 'Account Planning', description: 'Shape the next account-team engagement plan' },
   { mode: 'staffing', label: 'Team Staffing', description: 'Assign the right role and coverage plan' }

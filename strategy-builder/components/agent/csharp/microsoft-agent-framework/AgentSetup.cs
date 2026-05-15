@@ -32,7 +32,7 @@
 ///
 /// Multi-turn chaining: The MAF CheckpointManager captures the full
 /// executor state (including the agent's conversation history) after
-/// each super-step. On subsequent parleys, ResumeStreamingAsync
+/// each super-step. On subsequent messages, ResumeStreamingAsync
 /// restores the checkpoint and the conversation continues seamlessly.
 /// </summary>
 
@@ -65,7 +65,7 @@ public sealed class AgentSetupResult
 
     /// <summary>
     /// In-memory checkpoint manager — stores workflow state (including
-    /// conversation history) between parleys. Each conversation gets its
+    /// conversation history) between messages. Each conversation gets its
     /// own checkpoint chain via SuperStepCompletedEvent.CompletionInfo.Checkpoint.
     /// </summary>
     public required CheckpointManager CheckpointManager { get; init; }
@@ -208,7 +208,7 @@ public static class AgentSetup
 
         // ---- Create checkpoint manager ----
         // CheckpointManager.CreateInMemory() stores workflow state (including
-        // the agent's full conversation history) between parleys. Each
+        // the agent's full conversation history) between messages. Each
         // SuperStepCompletedEvent yields a CheckpointInfo that can be used
         // to resume the workflow for the next turn.
 

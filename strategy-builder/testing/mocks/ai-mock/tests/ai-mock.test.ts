@@ -1549,7 +1549,7 @@ describe('Conversations API', () => {
       expect(r2.body.output[0]?.type).toBe('message');
       expect(r2.body.output_text).toContain('example');
 
-      // Turn 3: another parley — should now call the resolution tool
+      // Turn 3: another message — should now call the resolution tool
       const r3 = await post<{ id: string; output: Array<{ type: string; name?: string }> }>('/responses', {
         input: [{ type: 'message', role: 'user', content: 'Through storms and gales we sail!' }],
         tools: [

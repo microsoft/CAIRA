@@ -30,7 +30,7 @@ namespace CairaAgent;
 ///
 /// Holds CheckpointInfo for multi-turn state management. The checkpoint
 /// is captured from SuperStepCompletedEvent after each workflow execution
-/// and used to resume the workflow on subsequent parleys.
+/// and used to resume the workflow on subsequent messages.
 /// </summary>
 public sealed class ConversationRecord
 {
@@ -42,7 +42,7 @@ public sealed class ConversationRecord
 
     /// <summary>
     /// The last workflow checkpoint for multi-turn conversation chaining.
-    /// Created after the first parley — null until then.
+    /// Created after the first message — null until then.
     ///
     /// The CheckpointManager stores the actual state; this is just the
     /// reference (CheckpointId + SessionId) needed to resume.

@@ -32,7 +32,7 @@
 ///   └──────────────────────────────────────────────────┘
 ///
 /// Multi-turn: The CheckpointManager preserves the full executor state
-/// (including the agent's conversation history) between parleys. On
+/// (including the agent's conversation history) between messages. On
 /// subsequent turns, ResumeStreamingAsync restores the checkpoint and
 /// the conversation continues with full context.
 ///

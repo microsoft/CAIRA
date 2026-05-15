@@ -5,23 +5,23 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChat } from '../../src/hooks/useChat.ts';
 import { useConversationStates } from '../../src/hooks/useConversationStates.ts';
 import type { ActivityClient } from '../../src/api/activity-client.ts';
-import type { AdventureDetail, SSEEvent } from '../../src/types.ts';
+import type { ActivityConversationDetail, SSEEvent } from '../../src/types.ts';
 
-const ADVENTURE_DETAIL: AdventureDetail = {
-  id: 'adv-1',
+const CONVERSATION_DETAIL: ActivityConversationDetail = {
+  id: 'conv-1',
   mode: 'discovery',
   status: 'active',
   createdAt: '2026-01-01T00:00:00Z',
-  lastParleyAt: '2026-01-02T00:00:00Z',
+  lastMessageAt: '2026-01-02T00:00:00Z',
   messageCount: 2,
-  parleys: [
+  messages: [
     { id: 'msg-1', role: 'user', content: 'Hello!', createdAt: '2026-01-01T12:00:00Z' },
     { id: 'msg-2', role: 'assistant', content: 'Welcome!', createdAt: '2026-01-01T12:00:01Z' }
   ]
 };
 
-const RESOLVED_DETAIL: AdventureDetail = {
-  ...ADVENTURE_DETAIL,
+const RESOLVED_DETAIL: ActivityConversationDetail = {
+  ...CONVERSATION_DETAIL,
   status: 'resolved',
   outcome: {
     tool: 'resolve_discovery',
@@ -31,13 +31,13 @@ const RESOLVED_DETAIL: AdventureDetail = {
 
 function createMockClient(): ActivityClient {
   return {
-    listAdventures: vi.fn(),
+    listActivityConversations: vi.fn(),
     startDiscovery: vi.fn(),
     startPlanning: vi.fn(),
     startStaffing: vi.fn(),
-    getAdventure: vi.fn().mockResolvedValue(ADVENTURE_DETAIL),
-    parley: vi.fn(),
-    parleyStream: vi.fn(),
+    getActivityConversation: vi.fn().mockResolvedValue(CONVERSATION_DETAIL),
+    message: vi.fn(),
+    messageStream: vi.fn(),
     getStats: vi.fn(),
     getHealth: vi.fn()
   } as any;
@@ -76,14 +76,14 @@ describe('useChat', () => {
   });
 
   it('loads messages when conversationId is set', async () => {
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.messages).toEqual(ADVENTURE_DETAIL.parleys);
-    expect(mockClient.getAdventure).toHaveBeenCalledWith('adv-1');
+    expect(result.current.messages).toEqual(CONVERSATION_DETAIL.messages);
+    expect(mockClient.getActivityConversation).toHaveBeenCalledWith('conv-1');
   });
 
   it('clears messages when conversationId is null', () => {
@@ -94,9 +94,9 @@ describe('useChat', () => {
   });
 
   it('sets error on load failure', async () => {
-    (mockClient.getAdventure as any).mockRejectedValue(new Error('Load failed'));
+    (mockClient.getActivityConversation as any).mockRejectedValue(new Error('Load failed'));
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -105,10 +105,10 @@ describe('useChat', () => {
     expect(result.current.error).toBe('Load failed');
   });
 
-  it('loads outcome from adventure detail on mount', async () => {
-    (mockClient.getAdventure as any).mockResolvedValue(RESOLVED_DETAIL);
+  it('loads outcome from conversation detail on mount', async () => {
+    (mockClient.getActivityConversation as any).mockResolvedValue(RESOLVED_DETAIL);
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -138,9 +138,9 @@ describe('useChat', () => {
       }
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -188,9 +188,9 @@ describe('useChat', () => {
       }
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -215,9 +215,9 @@ describe('useChat', () => {
       };
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -231,11 +231,11 @@ describe('useChat', () => {
   });
 
   it('handles send failure', async () => {
-    (mockClient.parleyStream as any).mockImplementation(() => {
+    (mockClient.messageStream as any).mockImplementation(() => {
       throw new Error('Network error');
     });
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -256,22 +256,22 @@ describe('useChat', () => {
       await result.current.sendMessage('Hello!');
     });
 
-    expect(mockClient.parleyStream).not.toHaveBeenCalled();
-    expect(mockClient.parley).not.toHaveBeenCalled();
+    expect(mockClient.messageStream).not.toHaveBeenCalled();
+    expect(mockClient.message).not.toHaveBeenCalled();
   });
 
   // ---- Non-streaming (JSON) mode tests ----
 
-  it('sends message via JSON parley() when streaming is false', async () => {
+  it('sends message via JSON message() when streaming is false', async () => {
     const response = {
       id: 'msg-3',
       role: 'assistant' as const,
       content: 'Welcome to the workspace!',
       createdAt: '2026-01-02T00:00:00Z'
     };
-    (mockClient.parley as any).mockResolvedValue(response);
+    (mockClient.message as any).mockResolvedValue(response);
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1', { streaming: false }));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1', { streaming: false }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -281,8 +281,8 @@ describe('useChat', () => {
       await result.current.sendMessage('Hello!');
     });
 
-    expect(mockClient.parley).toHaveBeenCalledWith('adv-1', 'Hello!');
-    expect(mockClient.parleyStream).not.toHaveBeenCalled();
+    expect(mockClient.message).toHaveBeenCalledWith('conv-1', 'Hello!');
+    expect(mockClient.messageStream).not.toHaveBeenCalled();
 
     // Should have original messages + user message + assistant message
     expect(result.current.messages).toHaveLength(4);
@@ -292,7 +292,7 @@ describe('useChat', () => {
     expect(result.current.streamingContent).toBe('');
   });
 
-  it('handles resolution in JSON parley() response', async () => {
+  it('handles resolution in JSON message() response', async () => {
     const response = {
       id: 'msg-3',
       role: 'assistant' as const,
@@ -303,9 +303,9 @@ describe('useChat', () => {
         result: { fit: 'qualified', signals_reviewed: 3 }
       }
     };
-    (mockClient.parley as any).mockResolvedValue(response);
+    (mockClient.message as any).mockResolvedValue(response);
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1', { streaming: false }));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1', { streaming: false }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -322,9 +322,9 @@ describe('useChat', () => {
   });
 
   it('handles send failure in non-streaming mode', async () => {
-    (mockClient.parley as any).mockRejectedValue(new Error('Server error'));
+    (mockClient.message as any).mockRejectedValue(new Error('Server error'));
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1', { streaming: false }));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1', { streaming: false }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -344,8 +344,8 @@ describe('useChat', () => {
       await result.current.sendMessage('Hello!');
     });
 
-    expect(mockClient.parley).not.toHaveBeenCalled();
-    expect(mockClient.parleyStream).not.toHaveBeenCalled();
+    expect(mockClient.message).not.toHaveBeenCalled();
+    expect(mockClient.messageStream).not.toHaveBeenCalled();
   });
 
   // ---- Empty message filtering tests ----
@@ -376,9 +376,9 @@ describe('useChat', () => {
       }
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -399,7 +399,7 @@ describe('useChat', () => {
     });
   });
 
-  it('does not add empty assistant message from JSON parley response', async () => {
+  it('does not add empty assistant message from JSON message response', async () => {
     const response = {
       id: 'msg-3',
       role: 'assistant' as const,
@@ -410,9 +410,9 @@ describe('useChat', () => {
         result: { coverage_level: 'full', role: 'analyst', team_name: 'RevOps' }
       }
     };
-    (mockClient.parley as any).mockResolvedValue(response);
+    (mockClient.message as any).mockResolvedValue(response);
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1', { streaming: false }));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1', { streaming: false }));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -434,18 +434,18 @@ describe('useChat', () => {
   });
 
   it('filters empty assistant messages from loaded conversation history', async () => {
-    const detailWithEmpty: AdventureDetail = {
-      ...ADVENTURE_DETAIL,
-      parleys: [
+    const detailWithEmpty: ActivityConversationDetail = {
+      ...CONVERSATION_DETAIL,
+      messages: [
         { id: 'msg-1', role: 'user', content: 'Hello!', createdAt: '2026-01-01T12:00:00Z' },
         { id: 'msg-2', role: 'assistant', content: 'Welcome!', createdAt: '2026-01-01T12:00:01Z' },
         { id: 'msg-3', role: 'user', content: 'Please summarize the activity.', createdAt: '2026-01-01T12:00:02Z' },
         { id: 'msg-4', role: 'assistant', content: '', createdAt: '2026-01-01T12:00:03Z' }
       ]
     };
-    (mockClient.getAdventure as any).mockResolvedValue(detailWithEmpty);
+    (mockClient.getActivityConversation as any).mockResolvedValue(detailWithEmpty);
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -480,9 +480,9 @@ describe('useChat', () => {
       }
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
-    const { result } = renderHook(() => useIntegrated(mockClient, 'adv-1'));
+    const { result } = renderHook(() => useIntegrated(mockClient, 'conv-1'));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -502,7 +502,7 @@ describe('useChat', () => {
   it('clears activeSpecialist when conversationId becomes null', async () => {
     const { result, rerender } = renderHook(
       ({ convId }: { convId: string | null }) => useIntegrated(mockClient, convId),
-      { initialProps: { convId: 'adv-1' as string | null } }
+      { initialProps: { convId: 'conv-1' as string | null } }
     );
 
     await waitFor(() => {
@@ -523,7 +523,7 @@ describe('useChat', () => {
 
   // ---- Pending first message (streaming) tests ----
 
-  it('streams first message via parleyStream when pendingFirstMessage is set', async () => {
+  it('streams first message via messageStream when pendingFirstMessage is set', async () => {
     const sseEvents: SSEEvent[] = [
       { type: 'delta', content: 'Welcome ' },
       { type: 'delta', content: 'back!' },
@@ -544,11 +544,11 @@ describe('useChat', () => {
       }
     }
 
-    (mockClient.parleyStream as any).mockReturnValue(mockStream());
+    (mockClient.messageStream as any).mockReturnValue(mockStream());
 
     const onConsumed = vi.fn();
     const { result } = renderHook(() =>
-      useIntegrated(mockClient, 'adv-new', {
+      useIntegrated(mockClient, 'conv-new', {
         pendingFirstMessage: 'Start a discovery!',
         onPendingFirstMessageConsumed: onConsumed
       })
@@ -558,11 +558,11 @@ describe('useChat', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Should NOT have called getAdventure — used streaming path instead
-    expect(mockClient.getAdventure).not.toHaveBeenCalled();
+    // Should NOT have called getActivityConversation — used streaming path instead
+    expect(mockClient.getActivityConversation).not.toHaveBeenCalled();
 
-    // Should have called parleyStream with the pending message
-    expect(mockClient.parleyStream).toHaveBeenCalledWith('adv-new', 'Start a discovery!', expect.any(AbortSignal));
+    // Should have called messageStream with the pending message
+    expect(mockClient.messageStream).toHaveBeenCalledWith('conv-new', 'Start a discovery!', expect.any(AbortSignal));
 
     // Should have the user message + the assistant response
     expect(result.current.messages).toHaveLength(2);
@@ -575,18 +575,18 @@ describe('useChat', () => {
     expect(onConsumed).toHaveBeenCalledTimes(1);
   });
 
-  it('sends first message via JSON parley() when pendingFirstMessage is set and streaming is false', async () => {
+  it('sends first message via JSON message() when pendingFirstMessage is set and streaming is false', async () => {
     const response = {
       id: 'msg-opening',
       role: 'assistant' as const,
       content: 'Welcome to the workspace!',
       createdAt: '2026-01-02T00:00:00Z'
     };
-    (mockClient.parley as any).mockResolvedValue(response);
+    (mockClient.message as any).mockResolvedValue(response);
 
     const onConsumed = vi.fn();
     const { result } = renderHook(() =>
-      useIntegrated(mockClient, 'adv-new', {
+      useIntegrated(mockClient, 'conv-new', {
         streaming: false,
         pendingFirstMessage: 'Start a discovery!',
         onPendingFirstMessageConsumed: onConsumed
@@ -597,11 +597,11 @@ describe('useChat', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Should NOT have called getAdventure
-    expect(mockClient.getAdventure).not.toHaveBeenCalled();
+    // Should NOT have called getActivityConversation
+    expect(mockClient.getActivityConversation).not.toHaveBeenCalled();
 
-    // Should have called parley (JSON) with the pending message
-    expect(mockClient.parley).toHaveBeenCalledWith('adv-new', 'Start a discovery!');
+    // Should have called message (JSON) with the pending message
+    expect(mockClient.message).toHaveBeenCalledWith('conv-new', 'Start a discovery!');
 
     // Should have user message + assistant response
     expect(result.current.messages).toHaveLength(2);
@@ -613,9 +613,9 @@ describe('useChat', () => {
     expect(onConsumed).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to getAdventure when pendingFirstMessage is null', async () => {
+  it('falls back to getActivityConversation when pendingFirstMessage is null', async () => {
     const { result } = renderHook(() =>
-      useIntegrated(mockClient, 'adv-1', {
+      useIntegrated(mockClient, 'conv-1', {
         pendingFirstMessage: null
       })
     );
@@ -624,20 +624,20 @@ describe('useChat', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Should have called getAdventure normally
-    expect(mockClient.getAdventure).toHaveBeenCalledWith('adv-1');
-    expect(mockClient.parleyStream).not.toHaveBeenCalled();
-    expect(mockClient.parley).not.toHaveBeenCalled();
+    // Should have called getActivityConversation normally
+    expect(mockClient.getActivityConversation).toHaveBeenCalledWith('conv-1');
+    expect(mockClient.messageStream).not.toHaveBeenCalled();
+    expect(mockClient.message).not.toHaveBeenCalled();
   });
 
   it('handles streaming error during first message', async () => {
-    (mockClient.parleyStream as any).mockImplementation(() => {
+    (mockClient.messageStream as any).mockImplementation(() => {
       throw new Error('Stream failed');
     });
 
     const onConsumed = vi.fn();
     const { result } = renderHook(() =>
-      useIntegrated(mockClient, 'adv-new', {
+      useIntegrated(mockClient, 'conv-new', {
         pendingFirstMessage: 'Start a discovery!',
         onPendingFirstMessageConsumed: onConsumed
       })
@@ -657,26 +657,26 @@ describe('useChat', () => {
   it('preserves conversation state when switching away and back', async () => {
     const { result, rerender } = renderHook(
       ({ convId }: { convId: string | null }) => useIntegrated(mockClient, convId),
-      { initialProps: { convId: 'adv-1' as string | null } }
+      { initialProps: { convId: 'conv-1' as string | null } }
     );
 
     // Wait for messages to load
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-    expect(result.current.messages).toEqual(ADVENTURE_DETAIL.parleys);
+    expect(result.current.messages).toEqual(CONVERSATION_DETAIL.messages);
 
     // Switch away
     rerender({ convId: null });
     expect(result.current.messages).toEqual([]);
 
     // Switch back — should NOT re-fetch, messages should be cached
-    (mockClient.getAdventure as any).mockClear();
-    rerender({ convId: 'adv-1' });
+    (mockClient.getActivityConversation as any).mockClear();
+    rerender({ convId: 'conv-1' });
 
     // Messages should be available immediately (cached)
-    expect(result.current.messages).toEqual(ADVENTURE_DETAIL.parleys);
-    // Should not have called getAdventure again
-    expect(mockClient.getAdventure).not.toHaveBeenCalled();
+    expect(result.current.messages).toEqual(CONVERSATION_DETAIL.messages);
+    // Should not have called getActivityConversation again
+    expect(mockClient.getActivityConversation).not.toHaveBeenCalled();
   });
 });

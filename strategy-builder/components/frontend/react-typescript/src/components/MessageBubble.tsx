@@ -1,7 +1,7 @@
-import type { ParleyMessage } from '../types.ts';
+import type { ActivityMessage } from '../types.ts';
 
 interface MessageBubbleProps {
-  readonly message: ParleyMessage;
+  readonly message: ActivityMessage;
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {

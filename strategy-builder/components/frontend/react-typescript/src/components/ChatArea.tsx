@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { AdventureOutcome, ParleyMessage } from '../types.ts';
+import type { ActivityOutcome, ActivityMessage } from '../types.ts';
 import { MessageBubble } from './MessageBubble.tsx';
 import { OutcomeCard } from './OutcomeCard.tsx';
 
@@ -11,11 +11,11 @@ const SPECIALIST_LABELS: Record<string, string> = {
 };
 
 interface ChatAreaProps {
-  readonly messages: readonly ParleyMessage[];
+  readonly messages: readonly ActivityMessage[];
   readonly streamingContent: string;
   readonly isLoading: boolean;
   readonly error: string | null;
-  readonly outcome?: AdventureOutcome | null | undefined;
+  readonly outcome?: ActivityOutcome | null | undefined;
   readonly activeSpecialist?: string | null | undefined;
 }
 

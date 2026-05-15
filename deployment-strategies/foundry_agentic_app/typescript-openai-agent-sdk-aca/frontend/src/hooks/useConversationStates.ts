@@ -10,13 +10,13 @@
  * The hook exposes:
  *   - `getState(id)` — read a conversation's current state
  *   - `loadConversation(id)` — fetch messages from the server (cached if already loaded)
- *   - `streamFirstMessage(id, message)` — stream the opening agent response for a new adventure
+ *   - `streamFirstMessage(id, message)` — stream the opening agent response for a new activity conversation
  *   - `sendMessage(id, message)` — send a user message (streaming or JSON, per `streaming` flag)
  *   - `abortAll()` — cancel every in-flight stream (called on unmount)
  */
 
 import { useCallback, useMemo, useRef, useState } from 'react';
-import type { AdventureOutcome, ParleyMessage } from '../types.ts';
+import type { ActivityOutcome, ActivityMessage } from '../types.ts';
 import type { ActivityClient } from '../api/activity-client.ts';
 
 // ---------------------------------------------------------------------------
@@ -25,15 +25,15 @@ import type { ActivityClient } from '../api/activity-client.ts';
 
 export interface ChatState {
   /** Messages loaded or accumulated for this conversation. */
-  messages: readonly ParleyMessage[];
+  messages: readonly ActivityMessage[];
   /** Text accumulated from streaming deltas (empty when not streaming). */
   streamingContent: string;
   /** True while loading messages or waiting for an agent response. */
   isLoading: boolean;
   /** Error message, if any. */
   error: string | null;
-  /** Resolution outcome, if the adventure has been resolved. */
-  outcome: AdventureOutcome | null;
+  /** Resolution outcome, if the conversation has been resolved. */
+  outcome: ActivityOutcome | null;
   /** Active specialist tool name (e.g. "discovery_specialist"), or null. */
   activeSpecialist: string | null;
   /** Whether the initial message load from the server has completed. */
@@ -61,7 +61,7 @@ export interface UseConversationStatesResult {
   getState: (id: string) => ChatState;
   /** Fetch messages from the server for a conversation (no-op if already loaded/loading). */
   loadConversation: (id: string) => void;
-  /** Stream the first agent response for a newly created adventure. */
+  /** Stream the first agent response for a newly created conversation. */
   streamFirstMessage: (id: string, message: string) => void;
   /**
    * Send a user message to a conversation.
@@ -142,10 +142,10 @@ export function useConversationStates(
   const processStream = useCallback(
     async (id: string, message: string, signal: AbortSignal) => {
       let accumulated = '';
-      let completeMessage: ParleyMessage | null = null;
+      let completeMessage: ActivityMessage | null = null;
 
       try {
-        for await (const event of client.parleyStream(id, message, signal)) {
+        for await (const event of client.messageStream(id, message, signal)) {
           if (signal.aborted) break;
 
           switch (event.type) {
@@ -209,12 +209,12 @@ export function useConversationStates(
 
       void (async () => {
         try {
-          const detail = await client.getAdventure(id);
+          const detail = await client.getActivityConversation(id);
           // Check that the entry still exists (wasn't cleared)
           if (!stateMap.current.has(id)) return;
-          const parleys = detail.parleys.filter((m) => m.role !== 'assistant' || m.content.trim().length > 0);
+          const messages = detail.messages.filter((m) => m.role !== 'assistant' || m.content.trim().length > 0);
           update(id, {
-            messages: parleys,
+            messages: messages,
             isLoading: false,
             loaded: true,
             ...(detail.outcome ? { outcome: detail.outcome } : {})
@@ -234,7 +234,7 @@ export function useConversationStates(
       const controller = newAbortController(id);
 
       // Optimistically add the user message
-      const userMessage: ParleyMessage = {
+      const userMessage: ActivityMessage = {
         id: `temp-${Date.now()}`,
         role: 'user',
         content: message,
@@ -257,7 +257,7 @@ export function useConversationStates(
         // Non-streaming fallback
         void (async () => {
           try {
-            const response = await client.parley(id, message);
+            const response = await client.message(id, message);
             if (controller.signal.aborted) return;
             const state = ensureState(id);
             const patches: Partial<ChatState> = { isLoading: false };
@@ -285,7 +285,7 @@ export function useConversationStates(
       const state = ensureState(id);
 
       // Optimistically add user message
-      const userMessage: ParleyMessage = {
+      const userMessage: ActivityMessage = {
         id: `temp-${Date.now()}`,
         role: 'user',
         content: message,
@@ -303,7 +303,7 @@ export function useConversationStates(
         await processStream(id, message, controller.signal);
       } else {
         try {
-          const response = await client.parley(id, message);
+          const response = await client.message(id, message);
           if (controller.signal.aborted) return;
           const currentState = ensureState(id);
           const patches: Partial<ChatState> = { isLoading: false };

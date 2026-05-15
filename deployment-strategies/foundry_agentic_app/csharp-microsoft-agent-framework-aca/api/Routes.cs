@@ -5,10 +5,10 @@
 ///   POST /api/activities/discovery              -> create conv, return syntheticMessage
 ///   POST /api/activities/planning            -> create conv, return syntheticMessage
 ///   POST /api/activities/staffing                -> create conv, return syntheticMessage
-///   GET  /api/activities/adventures          -> GET  /conversations (enriched)
-///   GET  /api/activities/adventures/:id      -> GET  /conversations/:id (enriched)
-///   POST /api/activities/adventures/:id/parley -> POST /conversations/:id/messages (SSE parsed)
-///   GET  /api/activities/stats               -> computed from adventures
+///   GET  /api/activities/conversations          -> GET  /conversations (enriched)
+///   GET  /api/activities/conversations/:id      -> GET  /conversations/:id (enriched)
+///   POST /api/activities/conversations/:id/messages -> POST /conversations/:id/messages (SSE parsed)
+///   GET  /api/activities/stats               -> computed from conversations
 ///   GET  /health                         -> checks agent /health
 ///   GET  /health/deep                    -> auth-required check of agent business endpoint
 /// </summary>
@@ -16,14 +16,15 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace CairaApi;
 
 public static class Routes
 {
-    // ---------- In-memory adventure state ----------
+    // ---------- In-memory conversation state ----------
 
-    internal static readonly ConcurrentDictionary<string, AdventureRecord> AdventureStore = new();
+    internal static readonly ConcurrentDictionary<string, ActivityConversationRecord> ActivityConversationStore = new();
 
     // ---------- Synthetic first messages ----------
 
@@ -73,54 +74,78 @@ public static class Routes
                 : Results.Json(health, statusCode: 503);
         });
 
-        // ---- Business operations: start adventure ----
+        app.MapGet("/identity", async (IAccessTokenProvider tokenProvider, ILogger<AgentHttpClient> logger) =>
+        {
+            try
+            {
+                var token = await tokenProvider.GetAccessTokenAsync("https://management.azure.com/.default");
+                var claims = DecodeJwtPayload(token);
+
+                return Results.Ok(new IdentityResponse(
+                    Authenticated: true,
+                    Identity: new IdentityInfo(
+                        TenantId: GetClaimString(claims, "tid"),
+                        ObjectId: GetClaimString(claims, "oid"),
+                        DisplayName: GetClaimString(claims, "name") ?? GetClaimString(claims, "appid"),
+                        Type: InferIdentityType(claims))));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to get identity");
+                return Results.Ok(new IdentityResponse(
+                    Authenticated: false,
+                    Reason: $"Credential error: {ex.Message}"));
+            }
+        });
+
+        // ---- Business operations: start conversation ----
         app.MapPost("/api/activities/discovery", (AgentHttpClient agentClient) =>
-            HandleStartAdventure("discovery", agentClient));
+            HandleStartActivityConversation("discovery", agentClient));
 
         app.MapPost("/api/activities/planning", (AgentHttpClient agentClient) =>
-            HandleStartAdventure("planning", agentClient));
+            HandleStartActivityConversation("planning", agentClient));
 
         app.MapPost("/api/activities/staffing", (AgentHttpClient agentClient) =>
-            HandleStartAdventure("staffing", agentClient));
+            HandleStartActivityConversation("staffing", agentClient));
 
-        // ---- GET /api/activities/adventures ----
-        app.MapGet("/api/activities/adventures", async (AgentHttpClient agentClient, int? offset, int? limit) =>
+        // ---- GET /api/activities/conversations ----
+        app.MapGet("/api/activities/conversations", async (AgentHttpClient agentClient, int? offset, int? limit) =>
         {
             var result = await agentClient.ListConversationsAsync(offset, limit);
             if (!result.Ok || result.Data == null)
             {
                 var status = AgentHttpClient.MapAgentStatus(result.Status);
                 return Results.Json(
-                    result.Error ?? new ErrorResponse("agent_error", "Failed to list adventures"),
+                    result.Error ?? new ErrorResponse("agent_error", "Failed to list conversations"),
                     statusCode: status);
             }
 
-            var adventures = result.Data.Items
-                .Select(c => ConversationToAdventure(c, AdventureStore.GetValueOrDefault(c.Id)))
+            var conversations = result.Data.Items
+                .Select(c => ConversationToActivityConversation(c, ActivityConversationStore.GetValueOrDefault(c.Id)))
                 .ToList();
 
-            return Results.Ok(new AdventureList(adventures, result.Data.Offset, result.Data.Limit, result.Data.Total));
+            return Results.Ok(new ActivityConversationList(conversations, result.Data.Offset, result.Data.Limit, result.Data.Total));
         });
 
-        // ---- GET /api/activities/adventures/{adventureId} ----
-        app.MapGet("/api/activities/adventures/{adventureId}", async (string adventureId, AgentHttpClient agentClient) =>
+        // ---- GET /api/activities/conversations/{conversationId} ----
+        app.MapGet("/api/activities/conversations/{conversationId}", async (string conversationId, AgentHttpClient agentClient) =>
         {
-            var result = await agentClient.GetConversationAsync(adventureId);
+            var result = await agentClient.GetConversationAsync(conversationId);
             if (!result.Ok || result.Data == null)
             {
                 var status = AgentHttpClient.MapAgentStatus(result.Status);
                 return Results.Json(
-                    result.Error ?? new ErrorResponse("agent_error", "Failed to get adventure"),
+                    result.Error ?? new ErrorResponse("agent_error", "Failed to get activity conversation"),
                     statusCode: status);
             }
 
-            var detail = ConversationDetailToAdventureDetail(result.Data, AdventureStore.GetValueOrDefault(adventureId));
+            var detail = ConversationDetailToActivityConversationDetail(result.Data, ActivityConversationStore.GetValueOrDefault(conversationId));
             return Results.Ok(detail);
         });
 
-        // ---- POST /api/activities/adventures/{adventureId}/parley ----
-        app.MapPost("/api/activities/adventures/{adventureId}/parley", async (
-            string adventureId,
+        // ---- POST /api/activities/conversations/{conversationId}/messages ----
+        app.MapPost("/api/activities/conversations/{conversationId}/messages", async (
+            string conversationId,
             HttpContext httpContext,
             AgentHttpClient agentClient,
             ILogger<AgentHttpClient> logger) =>
@@ -130,10 +155,10 @@ public static class Routes
             var wantsStream = acceptHeader.Contains("text/event-stream");
 
             // Read body
-            ParleyRequest? body;
+            MessageRequest? body;
             try
             {
-                body = await httpContext.Request.ReadFromJsonAsync<ParleyRequest>();
+                body = await httpContext.Request.ReadFromJsonAsync<MessageRequest>();
             }
             catch
             {
@@ -145,7 +170,7 @@ public static class Routes
                 return Results.Json(new ErrorResponse("bad_request", "Missing required field: message"), statusCode: 400);
             }
 
-            logger.LogInformation("parley request (traceId={TraceId}, mode={Mode})",
+            logger.LogInformation("message request (traceId={TraceId}, mode={Mode})",
                 traceId, wantsStream ? "stream" : "json");
 
             if (wantsStream)
@@ -155,7 +180,7 @@ public static class Routes
                 {
                     try
                     {
-                        using var response = await agentClient.SendMessageStreamAsync(adventureId, body.Message, traceId);
+                        using var response = await agentClient.SendMessageStreamAsync(conversationId, body.Message, traceId);
 
                         if (!response.IsSuccessStatusCode)
                         {
@@ -166,23 +191,23 @@ public static class Routes
                         }
 
                         using var agentStream = await response.Content.ReadAsStreamAsync();
-                        var outcome = await PipeSSEAndCaptureOutcome(agentStream, stream);
+                        var outcome = await PipeSSEAndCaptureActivityOutcome(agentStream, stream);
 
                         if (outcome != null)
                         {
-                            if (AdventureStore.TryGetValue(adventureId, out var record))
+                            if (ActivityConversationStore.TryGetValue(conversationId, out var record))
                             {
                                 record.Status = "resolved";
                                 record.Outcome = outcome;
                             }
                         }
 
-                        logger.LogInformation("parley SSE complete (traceId={TraceId}, resolved={Resolved})",
+                        logger.LogInformation("message SSE complete (traceId={TraceId}, resolved={Resolved})",
                             traceId, outcome != null);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "parley SSE failed — connection error (traceId={TraceId})",
+                        logger.LogError(ex, "message SSE failed — connection error (traceId={TraceId})",
                             traceId);
                         var errorJson = JsonSerializer.Serialize(new ErrorResponse("agent_unreachable", "Failed to connect to agent container for streaming"));
                         await stream.WriteAsync(Encoding.UTF8.GetBytes($"event: error\ndata: {errorJson}\n\n"));
@@ -192,7 +217,7 @@ public static class Routes
             else
             {
                 // JSON response
-                var result = await agentClient.SendMessageAsync(adventureId, body.Message, traceId);
+                var result = await agentClient.SendMessageAsync(conversationId, body.Message, traceId);
                 if (!result.Ok || result.Data == null)
                 {
                     var status = AgentHttpClient.MapAgentStatus(result.Status);
@@ -203,15 +228,15 @@ public static class Routes
 
                 if (result.Data.Resolution != null)
                 {
-                    if (AdventureStore.TryGetValue(adventureId, out var record))
+                    if (ActivityConversationStore.TryGetValue(conversationId, out var record))
                     {
                         record.Status = "resolved";
-                        record.Outcome = new AdventureOutcome(result.Data.Resolution.Tool, result.Data.Resolution.Result);
+                        record.Outcome = new ActivityOutcome(result.Data.Resolution.Tool, result.Data.Resolution.Result);
                     }
                 }
 
-                var parley = AgentMessageToParley(result.Data);
-                return Results.Ok(parley);
+                var message = AgentMessageToActivityMessage(result.Data);
+                return Results.Ok(message);
             }
         });
 
@@ -223,7 +248,7 @@ public static class Routes
             {
                 var status = AgentHttpClient.MapAgentStatus(result.Status);
                 return Results.Json(
-                    result.Error ?? new ErrorResponse("agent_error", "Failed to get adventure stats"),
+                    result.Error ?? new ErrorResponse("agent_error", "Failed to get conversation stats"),
                     statusCode: status);
             }
 
@@ -234,17 +259,17 @@ public static class Routes
                 ["staffing"] = [0, 0, 0],
             };
 
-            var totalAdventures = 0;
-            var activeAdventures = 0;
-            var resolvedAdventures = 0;
+            var totalConversations = 0;
+            var activeConversations = 0;
+            var resolvedConversations = 0;
 
             foreach (var conv in result.Data.Items)
             {
-                var record = AdventureStore.GetValueOrDefault(conv.Id);
+                var record = ActivityConversationStore.GetValueOrDefault(conv.Id);
                 var mode = record?.Mode ?? ExtractModeFromMetadata(conv.Metadata);
                 var advStatus = record?.Status ?? "active";
 
-                totalAdventures++;
+                totalConversations++;
                 if (!counts.TryGetValue(mode, out var modeArr))
                 {
                     modeArr = [0, 0, 0];
@@ -254,12 +279,12 @@ public static class Routes
                 modeArr[0]++;
                 if (advStatus == "resolved")
                 {
-                    resolvedAdventures++;
+                    resolvedConversations++;
                     modeArr[2]++;
                 }
                 else
                 {
-                    activeAdventures++;
+                    activeConversations++;
                     modeArr[1]++;
                 }
             }
@@ -268,34 +293,34 @@ public static class Routes
                 kv => kv.Key,
                 kv => new ModeStats(kv.Value[0], kv.Value[1], kv.Value[2]));
 
-            return Results.Ok(new ActivityStats(totalAdventures, activeAdventures, resolvedAdventures, byMode));
+            return Results.Ok(new ActivityStats(totalConversations, activeConversations, resolvedConversations, byMode));
         });
     }
 
     // ---------- Helpers ----------
 
-    private static async Task<IResult> HandleStartAdventure(string mode, AgentHttpClient agentClient)
+    private static async Task<IResult> HandleStartActivityConversation(string mode, AgentHttpClient agentClient)
     {
         var traceId = Guid.NewGuid().ToString();
         var syntheticMessage = SyntheticMessages[mode];
         var metadata = new Dictionary<string, object> { ["mode"] = mode };
 
         // Only create the conversation — do NOT send the first message.
-        // The frontend will send syntheticMessage via the streaming parley endpoint.
+        // The frontend will send syntheticMessage via the streaming message endpoint.
         var createResult = await agentClient.CreateConversationAsync(metadata, traceId);
         if (!createResult.Ok || createResult.Data == null)
         {
             var status = AgentHttpClient.MapAgentStatus(createResult.Status);
             return Results.Json(
-                createResult.Error ?? new ErrorResponse("agent_error", "Failed to start adventure"),
+                createResult.Error ?? new ErrorResponse("agent_error", "Failed to start activity conversation"),
                 statusCode: status);
         }
 
         var data = createResult.Data;
-        var record = new AdventureRecord { Mode = mode };
-        AdventureStore[data.Id] = record;
+        var record = new ActivityConversationRecord { Mode = mode };
+        ActivityConversationStore[data.Id] = record;
 
-        var response = new AdventureStarted(
+        var response = new ActivityConversationStarted(
             data.Id, mode, record.Status,
             syntheticMessage,
             data.CreatedAt);
@@ -303,31 +328,31 @@ public static class Routes
         return Results.Json(response, statusCode: 201);
     }
 
-    private static Adventure ConversationToAdventure(
-        AgentConversation conv, AdventureRecord? record)
+    private static ActivityConversation ConversationToActivityConversation(
+        AgentConversation conv, ActivityConversationRecord? record)
     {
         var mode = record?.Mode ?? ExtractModeFromMetadata(conv.Metadata);
         var status = record?.Status ?? "active";
-        return new Adventure(conv.Id, mode, status, record?.Outcome,
+        return new ActivityConversation(conv.Id, mode, status, record?.Outcome,
             conv.CreatedAt, conv.UpdatedAt, 0);
     }
 
-    private static AdventureDetail ConversationDetailToAdventureDetail(
-        AgentConversationDetail detail, AdventureRecord? record)
+    private static ActivityConversationDetail ConversationDetailToActivityConversationDetail(
+        AgentConversationDetail detail, ActivityConversationRecord? record)
     {
         var mode = record?.Mode ?? ExtractModeFromMetadata(detail.Metadata);
         var status = record?.Status ?? "active";
-        return new AdventureDetail(detail.Id, mode, status, record?.Outcome,
+        return new ActivityConversationDetail(detail.Id, mode, status, record?.Outcome,
             detail.CreatedAt, detail.UpdatedAt, detail.Messages.Count,
-            detail.Messages.Select(AgentMessageToParley).ToList());
+            detail.Messages.Select(AgentMessageToActivityMessage).ToList());
     }
 
-    private static ParleyMessage AgentMessageToParley(AgentMessage msg)
+    private static ActivityMessage AgentMessageToActivityMessage(AgentMessage msg)
     {
-        AdventureOutcome? resolution = msg.Resolution != null
-            ? new AdventureOutcome(msg.Resolution.Tool, msg.Resolution.Result)
+        ActivityOutcome? resolution = msg.Resolution != null
+            ? new ActivityOutcome(msg.Resolution.Tool, msg.Resolution.Result)
             : null;
-        return new ParleyMessage(msg.Id, msg.Role, msg.Content, msg.CreatedAt, msg.Usage, resolution);
+        return new ActivityMessage(msg.Id, msg.Role, msg.Content, msg.CreatedAt, msg.Usage, resolution);
     }
 
     private static string ExtractModeFromMetadata(Dictionary<string, object>? metadata)
@@ -343,10 +368,10 @@ public static class Routes
     /// <summary>
     /// Pipe SSE stream from agent to client while capturing activity.resolved events.
     /// </summary>
-    private static async Task<AdventureOutcome?> PipeSSEAndCaptureOutcome(
+    private static async Task<ActivityOutcome?> PipeSSEAndCaptureActivityOutcome(
         Stream agentStream, Stream clientStream)
     {
-        AdventureOutcome? captured = null;
+        ActivityOutcome? captured = null;
         var buffer = new byte[8192];
         var textBuffer = new StringBuilder();
         string? eventType = null;
@@ -380,7 +405,7 @@ public static class Routes
                 {
                     try
                     {
-                        var data = JsonSerializer.Deserialize<AdventureOutcome>(line[6..]);
+                        var data = JsonSerializer.Deserialize<ActivityOutcome>(line[6..]);
                         if (data != null) captured = data;
                     }
                     catch (JsonException)
@@ -397,5 +422,48 @@ public static class Routes
         }
 
         return captured;
+    }
+
+    private static JsonObject DecodeJwtPayload(string token)
+    {
+        var parts = token.Split('.');
+        if (parts.Length != 3)
+        {
+            return [];
+        }
+
+        var payload = parts[1].Replace('-', '+').Replace('_', '/');
+        payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+
+        try
+        {
+            return JsonNode.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload))) as JsonObject ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+        catch (FormatException)
+        {
+            return [];
+        }
+    }
+
+    private static string? GetClaimString(JsonObject claims, string name) =>
+        claims.TryGetPropertyValue(name, out var value) ? value?.GetValue<string>() : null;
+
+    private static string InferIdentityType(JsonObject claims)
+    {
+        if (claims.ContainsKey("xms_mirid"))
+        {
+            return "managedIdentity";
+        }
+
+        if (claims.ContainsKey("appid") && !claims.ContainsKey("name"))
+        {
+            return "servicePrincipal";
+        }
+
+        return claims.ContainsKey("name") ? "user" : "unknown";
     }
 }

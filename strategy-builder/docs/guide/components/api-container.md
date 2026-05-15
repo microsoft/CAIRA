@@ -5,7 +5,7 @@
 **Port:** 4000
 **Contract:** `contracts/backend-api.openapi.yaml`
 
-The API container is the **business operations layer**. The current sample domain is a fictional sales/account-team scenario, while the route and mode identifiers stay business-oriented and aligned to the activity sample. The API exposes business operations that create conversations on the agent container and return a mode-specific `syntheticMessage` for the frontend to send as the first parley. It also proxies ongoing chat via the adventures endpoints, **parsing the SSE stream** to detect `activity.resolved` events and capture resolution outcomes. Adventures gain `status` (`active`/`resolved`) and `outcome` fields. It is **agent-framework-agnostic** -- it only knows the agent API contract.
+The API container is the **business operations layer**. The current sample domain is a fictional sales/account-team scenario, while the route and mode identifiers stay business-oriented and aligned to the activity sample. The API exposes business operations that create conversations on the agent container and return a mode-specific `syntheticMessage` for the frontend to send as the first message. It also proxies ongoing chat via the conversations endpoints, **parsing the SSE stream** to detect `activity.resolved` events and capture resolution outcomes. ActivityConversations gain `status` (`active`/`resolved`) and `outcome` fields. It is **agent-framework-agnostic** -- it only knows the agent API contract.
 
 This page focuses on the current TypeScript implementation. A C# implementation
 with the same contract and business behavior also exists under
@@ -43,11 +43,11 @@ components/api/typescript/
 1. Frontend calls `POST /api/activities/discovery` (opportunity discovery), `/planning` (account planning), or `/staffing` (account-team staffing)
 1. API creates a conversation on the agent: `POST /conversations`
 1. API returns `{ id, mode, status, syntheticMessage, createdAt }` to the frontend
-1. Frontend sends `syntheticMessage` via `POST /api/activities/adventures/{id}/parley` to get the first assistant response
+1. Frontend sends `syntheticMessage` via `POST /api/activities/conversations/{id}/messages` to get the first assistant response
 
 **Continuing a conversation:**
 
-1. Frontend calls `POST /api/activities/adventures/{id}/parley` with the user's next message
+1. Frontend calls `POST /api/activities/conversations/{id}/messages` with the user's next message
 1. API translates to `POST /conversations/{id}/messages` with `{ "content": "You fight like a dairy farmer!" }`
 1. If streaming: API opens SSE connection to agent, **parses events** to detect `activity.resolved` (captures outcome, stores it, passes event through), pipes remaining events to the frontend response
 1. If non-streaming: API waits for JSON response from agent (which may include an optional `resolution` field), wraps it in the business response format
@@ -66,16 +66,16 @@ The `AgentClient` class is the HTTP client that talks to the agent container:
 
 ### Endpoints
 
-> **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/parley`, and `planning` endpoints.
+> **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/messages`, and `planning` endpoints.
 
 | Endpoint                                      | Method | Maps to agent API                                 | Description                                                                               |
 |-----------------------------------------------|--------|---------------------------------------------------|-------------------------------------------------------------------------------------------|
 | `POST /api/activities/discovery`              | POST   | `POST /conversations`                             | Start an opportunity discovery flow (creates conversation and returns `syntheticMessage`) |
 | `POST /api/activities/planning`               | POST   | `POST /conversations`                             | Start an account planning flow (creates conversation and returns `syntheticMessage`)      |
 | `POST /api/activities/staffing`               | POST   | `POST /conversations`                             | Start an account-team staffing flow (creates conversation and returns `syntheticMessage`) |
-| `GET /api/activities/adventures`              | GET    | `GET /conversations`                              | List all adventures (with `mode` + `status` fields)                                       |
-| `GET /api/activities/adventures/{id}`         | GET    | `GET /conversations/{id}`                         | Get adventure detail with messages, `status`, and `outcome`                               |
-| `POST /api/activities/adventures/{id}/parley` | POST   | `POST /conversations/{id}/messages`               | Continue chatting (SSE stream; parses for `activity.resolved`)                            |
+| `GET /api/activities/conversations`              | GET    | `GET /conversations`                              | List all conversations (with `mode` + `status` fields)                                       |
+| `GET /api/activities/conversations/{id}`         | GET    | `GET /conversations/{id}`                         | Get conversation detail with messages, `status`, and `outcome`                               |
+| `POST /api/activities/conversations/{id}/messages` | POST   | `POST /conversations/{id}/messages`               | Continue chatting (SSE stream; parses for `activity.resolved`)                            |
 | `GET /api/activities/stats`                   | GET    | Computed from `GET /conversations`                | Activity stats per mode; includes resolution counts                                       |
 | `GET /health`                                 | GET    | Also calls agent `/health`                        | Health check (self + agent dependency)                                                    |
 | `GET /health/deep`                            | GET    | Calls agent `GET /conversations?offset=0&limit=1` | Deep health check for authenticated API→agent connectivity                                |

@@ -22,7 +22,7 @@ info:
     - `POST /api/activities/staffing` — Start team staffing
 
     Each operation creates a conversation on the agent container, sends a synthetic
-    first message aligned to the selected activity, and returns the adventure ID
+    first message aligned to the selected activity, and returns the conversation ID
     and the agent's opening response.
 
     ## Activity Resolution
@@ -30,14 +30,14 @@ info:
     Each activity has a **definitive conclusion** captured via agent-driven resolution
     tools (`resolve_discovery`, `resolve_planning`, `resolve_staffing`). When an activity
     resolves, the SSE stream includes an `activity.resolved` event with structured
-    outcome data. The API captures this outcome and stores it on the adventure.
+    outcome data. The API captures this outcome and stores it on the conversation.
 
-    Adventures remain **open after resolution** — the user can keep chatting, but
+    ActivityConversations remain **open after resolution** — the user can keep chatting, but
     the outcome is preserved.
 
     ## Streaming
 
-    The `POST /api/activities/adventures/{adventureId}/parley` endpoint supports
+    The `POST /api/activities/conversations/{conversationId}/messages` endpoint supports
     Server-Sent Events (SSE) for streaming assistant responses. The API parses the
     agent's SSE stream to detect `activity.resolved` events and passes all events
     through to the frontend.
@@ -79,8 +79,8 @@ servers:
 tags:
   - name: Activities
     description: Business operations for each activity mode
-  - name: Adventures
-    description: Adventure management and chat
+  - name: ActivityConversations
+    description: ActivityConversation management and chat
   - name: Observability
     description: Health checks and statistics
 
@@ -93,14 +93,14 @@ paths:
       description: |
         Starts an opportunity discovery flow. Creates a conversation on the
         agent container, sends a synthetic first message for discovery routing,
-        and returns the adventure ID with the agent's opening response.
+        and returns the conversation ID with the agent's opening response.
       responses:
         '201':
           description: Discovery flow started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdventureStarted'
+                $ref: '#/components/schemas/ActivityConversationStarted'
         '400':
           $ref: '#/components/responses/BadRequest'
         '502':
@@ -115,7 +115,7 @@ paths:
       tags: [Activities]
       description: |
         Starts an account planning flow. The agent presents planning options,
-        evaluates the selected path, and returns the adventure ID with the
+        evaluates the selected path, and returns the conversation ID with the
         opening response.
       responses:
         '201':
@@ -123,7 +123,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdventureStarted'
+                $ref: '#/components/schemas/ActivityConversationStarted'
         '400':
           $ref: '#/components/responses/BadRequest'
         '502':
@@ -139,14 +139,14 @@ paths:
       description: |
         Starts a team staffing interview. The agent evaluates the requested
         engagement needs, recommends staffing coverage, and returns the
-        adventure ID with the opening response.
+        conversation ID with the opening response.
       responses:
         '201':
           description: Staffing interview started
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdventureStarted'
+                $ref: '#/components/schemas/ActivityConversationStarted'
         '400':
           $ref: '#/components/responses/BadRequest'
         '502':
@@ -154,14 +154,14 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/activities/adventures:
+  /api/activities/conversations:
     get:
-      operationId: listAdventures
-      summary: List all adventures
-      tags: [Adventures]
+      operationId: listActivityConversations
+      summary: List all conversations
+      tags: [ActivityConversations]
       description: |
-        Returns a paginated list of adventures (conversations), ordered by most
-        recent activity. Each adventure includes its mode, status, and outcome
+        Returns a paginated list of conversations (conversations), ordered by most
+        recent activity. Each conversation includes its mode, status, and outcome
         (if resolved). Maps to `GET /conversations` on the agent container with
         business-layer enrichment.
       parameters:
@@ -169,11 +169,11 @@ paths:
         - $ref: '#/components/parameters/Limit'
       responses:
         '200':
-          description: Paginated adventure list
+          description: Paginated conversation list
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdventureList'
+                $ref: '#/components/schemas/ActivityConversationList'
         '400':
           $ref: '#/components/responses/BadRequest'
         '502':
@@ -181,24 +181,24 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/activities/adventures/{adventureId}:
+  /api/activities/conversations/{conversationId}:
     get:
-      operationId: getAdventure
-      summary: Get adventure details
-      tags: [Adventures]
+      operationId: getActivityConversation
+      summary: Get conversation details
+      tags: [ActivityConversations]
       description: |
-        Returns an adventure's details including mode, status, outcome (if resolved),
-        and full parley (message) history. Maps to `GET /conversations/{conversationId}`
+        Returns an activity conversation's details including mode, status, outcome (if resolved),
+        and full message (message) history. Maps to `GET /conversations/{conversationId}`
         on the agent container with business-layer enrichment.
       parameters:
-        - $ref: '#/components/parameters/AdventureId'
+        - $ref: '#/components/parameters/ConversationId'
       responses:
         '200':
-          description: Adventure with parley history
+          description: ActivityConversation with message history
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdventureDetail'
+                $ref: '#/components/schemas/ActivityConversationDetail'
         '404':
           $ref: '#/components/responses/NotFound'
         '502':
@@ -206,13 +206,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/activities/adventures/{adventureId}/parley:
+  /api/activities/conversations/{conversationId}/messages:
     post:
-      operationId: parley
-      summary: Send a message in an adventure
-      tags: [Adventures]
+      operationId: message
+      summary: Send a message in an activity conversation
+      tags: [ActivityConversations]
       description: |
-        Sends a message to the agent within an existing adventure and receives
+        Sends a message to the agent within an existing conversation and receives
         a response. The response format depends on the `Accept` header:
 
         - `Accept: text/event-stream` (default) — streams the assistant response
@@ -251,13 +251,13 @@ paths:
         {"code": "agent_error", "message": "The service could not complete the request"}
         ```
       parameters:
-        - $ref: '#/components/parameters/AdventureId'
+        - $ref: '#/components/parameters/ConversationId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ParleyRequest'
+              $ref: '#/components/schemas/MessageRequest'
       responses:
         '200':
           description: |
@@ -271,7 +271,7 @@ paths:
                 description: SSE event stream. See operation description for event format.
             application/json:
               schema:
-                $ref: '#/components/schemas/ParleyMessage'
+                $ref: '#/components/schemas/ActivityMessage'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -289,8 +289,8 @@ paths:
       summary: Get activity statistics
       tags: [Observability]
       description: |
-        Returns aggregate statistics about activity — total adventures
-        per mode, resolution counts, and active adventures.
+        Returns aggregate statistics about activity — total conversations
+        per mode, resolution counts, and active conversations.
       responses:
         '200':
           description: Activity statistics
@@ -339,11 +339,11 @@ components:
       description: Bearer token injected by the frontend BFF for internal service-to-service authentication.
 
   parameters:
-    AdventureId:
-      name: adventureId
+    ConversationId:
+      name: conversationId
       in: path
       required: true
-      description: Unique identifier of the adventure / conversation
+      description: Unique identifier of the activity conversation
       schema:
         type: string
 
@@ -369,7 +369,7 @@ components:
         default: 20
 
   schemas:
-    AdventureMode:
+    ActivityMode:
       type: string
       description: The type of activity
       enum:
@@ -377,19 +377,19 @@ components:
         - planning
         - staffing
 
-    AdventureStatus:
+    ActivityStatus:
       type: string
       description: Whether the activity has reached its conclusion
       enum:
         - active
         - resolved
 
-    AdventureStarted:
+    ActivityConversationStarted:
       type: object
       description: |
-        Response from a business operation that starts an adventure. Contains
-        the adventure ID, mode, initial status, and the synthetic user message
-        that the frontend should display and send via the streaming parley
+        Response from a business operation that starts an conversation. Contains
+        the conversation ID, mode, initial status, and the synthetic user message
+        that the frontend should display and send via the streaming message
         endpoint to get the agent's first response.
       required:
         - id
@@ -400,94 +400,94 @@ components:
       properties:
         id:
           type: string
-          description: Unique adventure identifier (same as conversation ID)
+          description: Unique conversation identifier (same as conversation ID)
         mode:
-          $ref: '#/components/schemas/AdventureMode'
+          $ref: '#/components/schemas/ActivityMode'
         status:
-          $ref: '#/components/schemas/AdventureStatus'
+          $ref: '#/components/schemas/ActivityStatus'
         syntheticMessage:
           type: string
           description: >
-            The synthetic user message for this adventure mode. The frontend
+            The synthetic user message for this conversation mode. The frontend
             should display this as the first user bubble and send it via
-            the parley streaming endpoint to obtain the agent's opening response.
+            the message streaming endpoint to obtain the agent's opening response.
         createdAt:
           type: string
           format: date-time
-          description: When the adventure was created
+          description: When the conversation was created
 
-    Adventure:
+    ActivityConversation:
       type: object
-      description: An adventure (maps to a conversation with business metadata)
+      description: An conversation (maps to a conversation with business metadata)
       required:
         - id
         - mode
         - status
         - createdAt
-        - lastParleyAt
+        - lastMessageAt
         - messageCount
       properties:
         id:
           type: string
-          description: Unique adventure identifier (same as conversation ID)
+          description: Unique conversation identifier (same as conversation ID)
         mode:
-          $ref: '#/components/schemas/AdventureMode'
+          $ref: '#/components/schemas/ActivityMode'
         status:
-          $ref: '#/components/schemas/AdventureStatus'
+          $ref: '#/components/schemas/ActivityStatus'
         outcome:
-          $ref: '#/components/schemas/AdventureOutcome'
+          $ref: '#/components/schemas/ActivityOutcome'
         createdAt:
           type: string
           format: date-time
-          description: When the adventure was created
-        lastParleyAt:
+          description: When the conversation was created
+        lastMessageAt:
           type: string
           format: date-time
-          description: When the last parley occurred
+          description: When the last message occurred
         messageCount:
           type: integer
-          description: Total number of messages in this adventure
+          description: Total number of messages in this activity conversation
 
-    AdventureDetail:
+    ActivityConversationDetail:
       type: object
-      description: Adventure with full parley history
+      description: ActivityConversation with full message history
       required:
         - id
         - mode
         - status
         - createdAt
-        - lastParleyAt
+        - lastMessageAt
         - messageCount
-        - parleys
+        - messages
       properties:
         id:
           type: string
-          description: Unique adventure identifier
+          description: Unique conversation identifier
         mode:
-          $ref: '#/components/schemas/AdventureMode'
+          $ref: '#/components/schemas/ActivityMode'
         status:
-          $ref: '#/components/schemas/AdventureStatus'
+          $ref: '#/components/schemas/ActivityStatus'
         outcome:
-          $ref: '#/components/schemas/AdventureOutcome'
+          $ref: '#/components/schemas/ActivityOutcome'
         createdAt:
           type: string
           format: date-time
-          description: When the adventure was created
-        lastParleyAt:
+          description: When the conversation was created
+        lastMessageAt:
           type: string
           format: date-time
-          description: When the last parley occurred
+          description: When the last message occurred
         messageCount:
           type: integer
           description: Total number of messages
-        parleys:
+        messages:
           type: array
           maxItems: 1000
           items:
-            $ref: '#/components/schemas/ParleyMessage'
+            $ref: '#/components/schemas/ActivityMessage'
           description: Messages in chronological order
 
-    AdventureOutcome:
+    ActivityOutcome:
       type: object
       description: |
         Structured outcome from an activity resolution. The `result` field
@@ -505,21 +505,21 @@ components:
           description: Domain-specific outcome data from the resolution tool
           additionalProperties: true
 
-    AdventureList:
+    ActivityConversationList:
       type: object
-      description: Paginated list of adventures
+      description: Paginated list of conversations
       required:
-        - adventures
+        - conversations
         - offset
         - limit
         - total
       properties:
-        adventures:
+        conversations:
           type: array
           maxItems: 100
           items:
-            $ref: '#/components/schemas/Adventure'
-          description: Adventures on this page
+            $ref: '#/components/schemas/ActivityConversation'
+          description: ActivityConversations on this page
         offset:
           type: integer
           description: Number of items skipped
@@ -528,9 +528,9 @@ components:
           description: Maximum items per page
         total:
           type: integer
-          description: Total number of adventures
+          description: Total number of conversations
 
-    ParleyRequest:
+    MessageRequest:
       type: object
       description: A message to send to the assistant
       required:
@@ -541,9 +541,9 @@ components:
           minLength: 1
           description: The user's message text
 
-    ParleyMessage:
+    ActivityMessage:
       type: object
-      description: A single message in a parley (conversation)
+      description: A single message in a message (conversation)
       required:
         - id
         - role
@@ -567,7 +567,7 @@ components:
         usage:
           $ref: '#/components/schemas/TokenUsage'
         resolution:
-          $ref: '#/components/schemas/AdventureOutcome'
+          $ref: '#/components/schemas/ActivityOutcome'
 
     TokenUsage:
       type: object
@@ -584,23 +584,23 @@ components:
       type: object
       description: Aggregate statistics about activity
       required:
-        - totalAdventures
-        - activeAdventures
-        - resolvedAdventures
+        - totalConversations
+        - activeConversations
+        - resolvedConversations
         - byMode
       properties:
-        totalAdventures:
+        totalConversations:
           type: integer
-          description: Total number of adventures across all modes
-        activeAdventures:
+          description: Total number of conversations across all modes
+        activeConversations:
           type: integer
-          description: Adventures currently in progress
-        resolvedAdventures:
+          description: ActivityConversations currently in progress
+        resolvedConversations:
           type: integer
-          description: Adventures that have reached a conclusion
+          description: ActivityConversations that have reached a conclusion
         byMode:
           type: object
-          description: Per-mode adventure counts
+          description: Per-mode conversation counts
           required:
             - discovery
             - planning
@@ -623,13 +623,13 @@ components:
       properties:
         total:
           type: integer
-          description: Total adventures in this mode
+          description: Total conversations in this mode
         active:
           type: integer
-          description: Active adventures in this mode
+          description: Active conversations in this mode
         resolved:
           type: integer
-          description: Resolved adventures in this mode
+          description: Resolved conversations in this mode
 
     HealthResponse:
       type: object
@@ -693,7 +693,7 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
 
     NotFound:
-      description: Adventure not found
+      description: ActivityConversation not found
       content:
         application/json:
           schema:

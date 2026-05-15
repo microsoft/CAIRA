@@ -200,16 +200,16 @@ When `E2E_BASE_URL` is not set, the compose E2E tests skip gracefully. When `E2E
 | Start discovery                | `POST /api/activities/discovery` creates an opportunity discovery activity    |
 | Start planning                 | `POST /api/activities/planning` creates an account planning activity          |
 | Start staffing                 | `POST /api/activities/staffing` creates an account-team staffing activity     |
-| List adventures                | `GET /api/activities/adventures` includes created adventures                  |
-| Adventure detail               | `GET /api/activities/adventures/{id}` returns messages and status             |
-| Parley (JSON)                  | `POST /api/activities/adventures/{id}/parley` returns the specialist response |
-| Parley (SSE)                   | SSE streaming with `message.delta` and `message.complete` events              |
+| List conversations                | `GET /api/activities/conversations` includes created conversations                  |
+| ActivityConversation detail               | `GET /api/activities/conversations/{id}` returns messages and status             |
+| Message (JSON)                  | `POST /api/activities/conversations/{id}/messages` returns the specialist response |
+| Message (SSE)                   | SSE streaming with `message.delta` and `message.complete` events              |
 | SSE delta/complete consistency | Concatenated delta content matches complete content                           |
 | Stats                          | `GET /api/activities/stats` returns per-mode activity statistics              |
-| Error handling                 | 404 for non-existent adventure and parley                                     |
-| Lifecycle (discovery)          | Start -> parley -> resolution -> verify `status: resolved` + outcome          |
-| Lifecycle (planning)           | Start -> parley -> resolution -> verify `status: resolved` + outcome          |
-| Lifecycle (staffing)           | Start -> parley -> resolution -> verify `status: resolved` + outcome          |
+| Error handling                 | 404 for non-existent conversation and message                                     |
+| Lifecycle (discovery)          | Start -> message -> resolution -> verify `status: resolved` + outcome          |
+| Lifecycle (planning)           | Start -> message -> resolution -> verify `status: resolved` + outcome          |
+| Lifecycle (staffing)           | Start -> message -> resolution -> verify `status: resolved` + outcome          |
 
 ### Test helpers
 

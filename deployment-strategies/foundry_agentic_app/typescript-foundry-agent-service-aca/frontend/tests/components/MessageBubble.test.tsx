@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MessageBubble } from '../../src/components/MessageBubble.tsx';
-import type { ParleyMessage } from '../../src/types.ts';
+import type { ActivityMessage } from '../../src/types.ts';
 
-const USER_MESSAGE: ParleyMessage = {
+const USER_MESSAGE: ActivityMessage = {
   id: 'msg-1',
   role: 'user',
   content: 'Hello there!',
   createdAt: '2026-01-01T12:00:00Z'
 };
 
-const ASSISTANT_MESSAGE: ParleyMessage = {
+const ASSISTANT_MESSAGE: ActivityMessage = {
   id: 'msg-2',
   role: 'assistant',
   content: 'Welcome to the workspace!',

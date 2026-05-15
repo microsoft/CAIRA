@@ -841,11 +841,11 @@ function buildMockEnv(component: ComponentInfo, mockPort: number): Record<string
  * the contract validator generates zeroed UUIDs for path params which won't
  * match any real resource.
  *
- * API endpoints that require pre-existing adventures are similarly skipped.
+ * API endpoints that require pre-existing conversations are similarly skipped.
  */
 const L3_SKIP_PATHS: Record<string, string[]> = {
   agent: ['/conversations/{conversationId}', '/conversations/{conversationId}/messages'],
-  api: ['/api/activities/adventures/{adventureId}', '/api/activities/adventures/{adventureId}/parley']
+  api: ['/api/activities/conversations/{conversationId}', '/api/activities/conversations/{conversationId}/messages']
 };
 
 /**

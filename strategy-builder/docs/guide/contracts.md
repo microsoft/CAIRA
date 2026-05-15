@@ -72,18 +72,18 @@ The `/conversations/{conversationId}/messages` endpoint supports both streaming 
 
 ## Business API (`backend-api.openapi.yaml`)
 
-The public business API that the frontend calls. The current sample domain is a fictional sales/account-team scenario, while the existing route and mode identifiers remain business-oriented and aligned to the activity sample. These endpoints create conversations on the agent and return a mode-specific `syntheticMessage` for the frontend to send as the first parley.
+The public business API that the frontend calls. The current sample domain is a fictional sales/account-team scenario, while the existing route and mode identifiers remain business-oriented and aligned to the activity sample. These endpoints create conversations on the agent and return a mode-specific `syntheticMessage` for the frontend to send as the first message.
 
-> **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/parley`, and `planning` endpoints.
+> **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/messages`, and `planning` endpoints.
 
 | Endpoint                                      | Method | Description                                  | Maps to agent API                   |
 |-----------------------------------------------|--------|----------------------------------------------|-------------------------------------|
 | `POST /api/activities/discovery`              | POST   | Start an opportunity discovery flow          | `POST /conversations`               |
 | `POST /api/activities/planning`               | POST   | Start an account planning flow               | `POST /conversations`               |
 | `POST /api/activities/staffing`               | POST   | Start an account-team staffing flow          | `POST /conversations`               |
-| `GET /api/activities/adventures`              | GET    | List all adventures (with mode + status)     | `GET /conversations`                |
-| `GET /api/activities/adventures/{id}`         | GET    | Get adventure detail with messages + outcome | `GET /conversations/{id}`           |
-| `POST /api/activities/adventures/{id}/parley` | POST   | Continue chatting (SSE stream)               | `POST /conversations/{id}/messages` |
+| `GET /api/activities/conversations`              | GET    | List all conversations (with mode + status)     | `GET /conversations`                |
+| `GET /api/activities/conversations/{id}`         | GET    | Get conversation detail with messages + outcome | `GET /conversations/{id}`           |
+| `POST /api/activities/conversations/{id}/messages` | POST   | Continue chatting (SSE stream)               | `POST /conversations/{id}/messages` |
 | `GET /api/activities/stats`                   | GET    | Activity stats per mode                      | Computed from `GET /conversations`  |
 | `GET /health`                                 | GET    | Health check (includes agent health)         | Checks agent `/health` too          |
 
@@ -91,9 +91,9 @@ The public business API that the frontend calls. The current sample domain is a 
 
 Each business operation (`discovery`, `planning`, `staffing`) follows the same pattern:
 
-1. **Create conversation:** API calls `POST /conversations` on the agent and stores adventure metadata
+1. **Create conversation:** API calls `POST /conversations` on the agent and stores conversation metadata
 1. **Return to frontend:** API returns `{ id, mode, status, syntheticMessage, createdAt }`
-1. **Get first agent response:** frontend sends `syntheticMessage` to `POST /api/activities/adventures/{id}/parley`; the API forwards to `POST /conversations/{id}/messages`
+1. **Get first agent response:** frontend sends `syntheticMessage` to `POST /api/activities/conversations/{id}/messages`; the API forwards to `POST /conversations/{id}/messages`
 
 ```json
 // POST /api/activities/discovery
@@ -111,7 +111,7 @@ Each business operation (`discovery`, `planning`, `staffing`) follows the same p
 ```
 
 ```json
-// GET /api/activities/adventures/{id} (after resolution)
+// GET /api/activities/conversations/{id} (after resolution)
 {
   "id": "conv_abc123",
   "mode": "discovery",

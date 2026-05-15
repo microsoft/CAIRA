@@ -8,59 +8,59 @@
  *   POST /api/activities/discovery       — start opportunity discovery
  *   POST /api/activities/planning        — start account planning
  *   POST /api/activities/staffing        — start team staffing
- *   GET  /api/activities/adventures      — list all adventures
- *   GET  /api/activities/adventures/:id  — get adventure detail
- *   POST /api/activities/adventures/:id/parley — continue chatting
+ *   GET  /api/activities/conversations      — list all conversations
+ *   GET  /api/activities/conversations/:id  — get conversation detail
+ *   POST /api/activities/conversations/:id/messages — continue chatting
  *   GET  /api/activities/stats           — activity stats
  *   GET  /health                     — health check
  */
 
 // ─── Response types (matching OpenAPI schemas) ──────────────────────────
 
-export type AdventureMode = 'discovery' | 'planning' | 'staffing';
-export type AdventureStatus = 'active' | 'resolved';
+export type ActivityMode = 'discovery' | 'planning' | 'staffing';
+export type ActivityStatus = 'active' | 'resolved';
 
-export interface AdventureOutcome {
+export interface ActivityOutcome {
   tool: string;
   result: Record<string, unknown>;
 }
 
-export interface Adventure {
+export interface ActivityConversation {
   id: string;
-  mode: AdventureMode;
-  status: AdventureStatus;
-  outcome?: AdventureOutcome | undefined;
+  mode: ActivityMode;
+  status: ActivityStatus;
+  outcome?: ActivityOutcome | undefined;
   createdAt: string;
-  lastParleyAt: string;
+  lastMessageAt: string;
   messageCount: number;
 }
 
-export interface AdventureStarted {
+export interface ActivityConversationStarted {
   id: string;
-  mode: AdventureMode;
-  status: AdventureStatus;
+  mode: ActivityMode;
+  status: ActivityStatus;
   syntheticMessage: string;
   createdAt: string;
 }
 
-export interface AdventureDetail extends Adventure {
-  parleys: ParleyMessage[];
+export interface ActivityConversationDetail extends ActivityConversation {
+  messages: ActivityMessage[];
 }
 
-export interface AdventureList {
-  adventures: Adventure[];
+export interface ActivityConversationList {
+  conversations: ActivityConversation[];
   offset: number;
   limit: number;
   total: number;
 }
 
-export interface ParleyMessage {
+export interface ActivityMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   createdAt: string;
   usage?: TokenUsage | undefined;
-  resolution?: AdventureOutcome | undefined;
+  resolution?: ActivityOutcome | undefined;
 }
 
 export interface TokenUsage {
@@ -75,9 +75,9 @@ export interface ModeStats {
 }
 
 export interface ActivityStats {
-  totalAdventures: number;
-  activeAdventures: number;
-  resolvedAdventures: number;
+  totalConversations: number;
+  activeConversations: number;
+  resolvedConversations: number;
   byMode: {
     discovery: ModeStats;
     planning: ModeStats;
@@ -135,47 +135,47 @@ export class ApiClient {
     this.timeoutMs = options?.timeoutMs ?? 10_000;
   }
 
-  // ─── Business Operations (start adventures) ─────────────────────────
+  // ─── Business Operations (start conversations) ─────────────────────────
 
   /** POST /api/activities/discovery — start opportunity discovery */
-  async startDiscovery(): Promise<ApiResponse<AdventureStarted>> {
-    return this.request<AdventureStarted>('/api/activities/discovery', { method: 'POST' });
+  async startDiscovery(): Promise<ApiResponse<ActivityConversationStarted>> {
+    return this.request<ActivityConversationStarted>('/api/activities/discovery', { method: 'POST' });
   }
 
   /** POST /api/activities/planning — start account planning */
-  async startPlanning(): Promise<ApiResponse<AdventureStarted>> {
-    return this.request<AdventureStarted>('/api/activities/planning', { method: 'POST' });
+  async startPlanning(): Promise<ApiResponse<ActivityConversationStarted>> {
+    return this.request<ActivityConversationStarted>('/api/activities/planning', { method: 'POST' });
   }
 
   /** POST /api/activities/staffing — start team staffing */
-  async startStaffing(): Promise<ApiResponse<AdventureStarted>> {
-    return this.request<AdventureStarted>('/api/activities/staffing', { method: 'POST' });
+  async startStaffing(): Promise<ApiResponse<ActivityConversationStarted>> {
+    return this.request<ActivityConversationStarted>('/api/activities/staffing', { method: 'POST' });
   }
 
-  // ─── Adventure Management ───────────────────────────────────────────
+  // ─── ActivityConversation Management ───────────────────────────────────────────
 
-  /** GET /api/activities/adventures — list all adventures */
-  async listAdventures(options?: {
+  /** GET /api/activities/conversations — list all conversations */
+  async listActivityConversations(options?: {
     offset?: number | undefined;
     limit?: number | undefined;
-  }): Promise<ApiResponse<AdventureList>> {
+  }): Promise<ApiResponse<ActivityConversationList>> {
     const params = new URLSearchParams();
     if (options?.offset !== undefined) params.set('offset', String(options.offset));
     if (options?.limit !== undefined) params.set('limit', String(options.limit));
     const qs = params.toString();
-    return this.request<AdventureList>(`/api/activities/adventures${qs ? `?${qs}` : ''}`);
+    return this.request<ActivityConversationList>(`/api/activities/conversations${qs ? `?${qs}` : ''}`);
   }
 
-  /** GET /api/activities/adventures/{adventureId} — get adventure detail with parleys */
-  async getAdventure(adventureId: string): Promise<ApiResponse<AdventureDetail>> {
-    return this.request<AdventureDetail>(`/api/activities/adventures/${adventureId}`);
+  /** GET /api/activities/conversations/{conversationId} — get conversation detail with messages */
+  async getActivityConversation(conversationId: string): Promise<ApiResponse<ActivityConversationDetail>> {
+    return this.request<ActivityConversationDetail>(`/api/activities/conversations/${conversationId}`);
   }
 
-  // ─── Parley (continue chatting) ─────────────────────────────────────
+  // ─── Message (continue chatting) ─────────────────────────────────────
 
-  /** POST /api/activities/adventures/{adventureId}/parley — send a message (JSON response) */
-  async parley(adventureId: string, message: string): Promise<ApiResponse<ParleyMessage>> {
-    return this.request<ParleyMessage>(`/api/activities/adventures/${adventureId}/parley`, {
+  /** POST /api/activities/conversations/{conversationId}/messages — send a message (JSON response) */
+  async message(conversationId: string, message: string): Promise<ApiResponse<ActivityMessage>> {
+    return this.request<ActivityMessage>(`/api/activities/conversations/${conversationId}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -186,17 +186,17 @@ export class ApiClient {
   }
 
   /**
-   * POST /api/activities/adventures/{adventureId}/parley — send a message (SSE stream).
+   * POST /api/activities/conversations/{conversationId}/messages — send a message (SSE stream).
    *
    * Returns the raw Response object for SSE processing.
    * Use `sseCollector` to collect events from the response.
    */
-  async parleyStream(adventureId: string, message: string): Promise<Response> {
+  async messageStream(conversationId: string, message: string): Promise<Response> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      const response = await fetch(`${this.baseUrl}/api/activities/adventures/${adventureId}/parley`, {
+      const response = await fetch(`${this.baseUrl}/api/activities/conversations/${conversationId}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

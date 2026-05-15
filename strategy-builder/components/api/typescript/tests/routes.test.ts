@@ -3,14 +3,14 @@
  *
  * Creates a Fastify app with routes + a mock agent backend to test
  * the full request-response cycle including data transformation,
- * adventure state management, and SSE outcome capture.
+ * conversation state management, and SSE outcome capture.
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from '../src/app.ts';
-import { resetAdventureStore, adventureStore } from '../src/routes.ts';
+import { resetActivityConversationStore, activityConversationStore } from '../src/routes.ts';
 
 // ---------- Mock agent backend ----------
 
@@ -263,7 +263,7 @@ beforeEach(() => {
   conversations.clear();
   nextConvId = 1;
   nextMsgId = 1;
-  resetAdventureStore();
+  resetActivityConversationStore();
 });
 
 // ---------- Helper ----------
@@ -363,7 +363,7 @@ describe('API auth middleware', () => {
   });
 
   it('requires Authorization for business routes', async () => {
-    const noAuth = await apiRequestWithAuth('GET', '/api/activities/adventures');
+    const noAuth = await apiRequestWithAuth('GET', '/api/activities/conversations');
     expect(noAuth.status).toBe(401);
     expect(noAuth.data).toEqual({
       code: 'unauthorized',
@@ -373,14 +373,14 @@ describe('API auth middleware', () => {
     await apiRequestWithAuth('POST', '/api/activities/discovery', undefined, {
       Authorization: 'Bearer bff-token'
     });
-    const withAuth = await apiRequestWithAuth('GET', '/api/activities/adventures', undefined, {
+    const withAuth = await apiRequestWithAuth('GET', '/api/activities/conversations', undefined, {
       Authorization: 'Bearer bff-token'
     });
     expect(withAuth.status).toBe(200);
   });
 
   it('rejects invalid bearer tokens', async () => {
-    const invalid = await apiRequestWithAuth('GET', '/api/activities/adventures', undefined, {
+    const invalid = await apiRequestWithAuth('GET', '/api/activities/conversations', undefined, {
       Authorization: 'Bearer wrong-token'
     });
     expect(invalid.status).toBe(401);
@@ -411,9 +411,9 @@ describe('POST /api/activities/discovery', () => {
     expect(started.createdAt).toBeTruthy();
   });
 
-  it('stores adventure in adventure store', async () => {
+  it('stores conversation in conversation store', async () => {
     await apiRequest('POST', '/api/activities/discovery');
-    const record = adventureStore.get('conv-001');
+    const record = activityConversationStore.get('conv-001');
     expect(record).toBeDefined();
     expect(record?.mode).toBe('discovery');
     expect(record?.status).toBe('active');
@@ -440,33 +440,33 @@ describe('POST /api/activities/staffing', () => {
   });
 });
 
-// ---------- Adventure management ----------
+// ---------- ActivityConversation management ----------
 
-describe('GET /api/activities/adventures', () => {
-  it('lists adventures', async () => {
-    // Create two adventures
+describe('GET /api/activities/conversations', () => {
+  it('lists conversations', async () => {
+    // Create two conversations
     await apiRequest('POST', '/api/activities/discovery');
     await apiRequest('POST', '/api/activities/planning');
 
-    const { status, data } = await apiRequest('GET', '/api/activities/adventures');
+    const { status, data } = await apiRequest('GET', '/api/activities/conversations');
     expect(status).toBe(200);
     const list = data as {
-      adventures: Array<{ id: string; mode: string; status: string }>;
+      conversations: Array<{ id: string; mode: string; status: string }>;
       total: number;
       offset: number;
       limit: number;
     };
-    expect(list.adventures).toHaveLength(2);
+    expect(list.conversations).toHaveLength(2);
     expect(list.total).toBe(2);
     expect(list.offset).toBe(0);
     expect(list.limit).toBe(20);
-    expect(list.adventures[0]?.mode).toBe('discovery');
-    expect(list.adventures[1]?.mode).toBe('planning');
+    expect(list.conversations[0]?.mode).toBe('discovery');
+    expect(list.conversations[1]?.mode).toBe('planning');
   });
 
   it('passes pagination params', async () => {
     await apiRequest('POST', '/api/activities/discovery');
-    const { status, data } = await apiRequest('GET', '/api/activities/adventures?offset=5&limit=10');
+    const { status, data } = await apiRequest('GET', '/api/activities/conversations?offset=5&limit=10');
     expect(status).toBe(200);
     const list = data as { offset: number; limit: number };
     expect(list.offset).toBe(5);
@@ -474,64 +474,64 @@ describe('GET /api/activities/adventures', () => {
   });
 });
 
-describe('GET /api/activities/adventures/:adventureId', () => {
-  it('returns adventure detail with parleys', async () => {
+describe('GET /api/activities/conversations/:conversationId', () => {
+  it('returns conversation detail with messages', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    // Start-adventure only creates the conversation; send a parley to populate messages
-    await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    // Start activity conversation only creates the conversation; send a message to populate messages
+    await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: 'Hello coordinator!'
     });
 
-    const { status, data } = await apiRequest('GET', `/api/activities/adventures/${id}`);
+    const { status, data } = await apiRequest('GET', `/api/activities/conversations/${id}`);
     expect(status).toBe(200);
     const detail = data as {
       id: string;
       mode: string;
       status: string;
       messageCount: number;
-      parleys: Array<{ id: string; role: string; content: string }>;
+      messages: Array<{ id: string; role: string; content: string }>;
     };
     expect(detail.id).toBe(id);
     expect(detail.mode).toBe('discovery');
     expect(detail.status).toBe('active');
-    // Should have 2 messages: the user parley + the agent's response
+    // Should have 2 messages: the user message + the agent's response
     expect(detail.messageCount).toBe(2);
-    expect(detail.parleys).toHaveLength(2);
-    expect(detail.parleys[0]?.role).toBe('user');
-    expect(detail.parleys[1]?.role).toBe('assistant');
+    expect(detail.messages).toHaveLength(2);
+    expect(detail.messages[0]?.role).toBe('user');
+    expect(detail.messages[1]?.role).toBe('assistant');
   });
 
-  it('returns 404 for nonexistent adventure', async () => {
-    const { status, data } = await apiRequest('GET', '/api/activities/adventures/nonexistent');
+  it('returns 404 for nonexistent activity conversation', async () => {
+    const { status, data } = await apiRequest('GET', '/api/activities/conversations/nonexistent');
     expect(status).toBe(404);
     const err = data as { code: string };
     expect(err.code).toBe('not_found');
   });
 });
 
-// ---------- Parley (JSON) ----------
+// ---------- Message (JSON) ----------
 
-describe('POST /api/activities/adventures/:id/parley (JSON)', () => {
+describe('POST /api/activities/conversations/:id/messages (JSON)', () => {
   it('sends a message and gets JSON response', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    const { status, data } = await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    const { status, data } = await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: 'Hello coordinator!'
     });
     expect(status).toBe(200);
-    const parley = data as { id: string; role: string; content: string };
-    expect(parley.role).toBe('assistant');
-    expect(parley.content).toContain('Hello coordinator!');
+    const message = data as { id: string; role: string; content: string };
+    expect(message.role).toBe('assistant');
+    expect(message.content).toContain('Hello coordinator!');
   });
 
   it('returns 400 for missing message', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    const { status, data } = await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {});
+    const { status, data } = await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {});
     expect(status).toBe(400);
     const err = data as { code: string };
     expect(err.code).toBe('bad_request');
@@ -541,7 +541,7 @@ describe('POST /api/activities/adventures/:id/parley (JSON)', () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    const { status, data } = await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    const { status, data } = await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: ''
     });
     expect(status).toBe(400);
@@ -549,8 +549,8 @@ describe('POST /api/activities/adventures/:id/parley (JSON)', () => {
     expect(err.code).toBe('bad_request');
   });
 
-  it('returns 404 for nonexistent adventure', async () => {
-    const { status, data } = await apiRequest('POST', '/api/activities/adventures/nonexistent/parley', {
+  it('returns 404 for nonexistent activity conversation', async () => {
+    const { status, data } = await apiRequest('POST', '/api/activities/conversations/nonexistent/messages', {
       message: 'Hello'
     });
     expect(status).toBe(404);
@@ -558,37 +558,37 @@ describe('POST /api/activities/adventures/:id/parley (JSON)', () => {
     expect(err.code).toBe('not_found');
   });
 
-  it('captures resolution from JSON response and updates adventure status', async () => {
+  it('captures resolution from JSON response and updates conversation status', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
     // Send a message that triggers resolution
-    const { status, data } = await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    const { status, data } = await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: 'resolve:discovery'
     });
     expect(status).toBe(200);
-    const parley = data as {
+    const message = data as {
       resolution?: { tool: string; result: Record<string, unknown> };
     };
-    expect(parley.resolution).toBeDefined();
-    expect(parley.resolution?.tool).toBe('resolve_discovery');
-    expect(parley.resolution?.result).toHaveProperty('fit', 'qualified');
+    expect(message.resolution).toBeDefined();
+    expect(message.resolution?.tool).toBe('resolve_discovery');
+    expect(message.resolution?.result).toHaveProperty('fit', 'qualified');
 
-    // Verify adventure store was updated
-    const record = adventureStore.get(id);
+    // Verify conversation store was updated
+    const record = activityConversationStore.get(id);
     expect(record?.status).toBe('resolved');
     expect(record?.outcome?.tool).toBe('resolve_discovery');
   });
 });
 
-// ---------- Parley (SSE) ----------
+// ---------- Message (SSE) ----------
 
-describe('POST /api/activities/adventures/:id/parley (SSE)', () => {
+describe('POST /api/activities/conversations/:id/messages (SSE)', () => {
   it('streams SSE events from agent', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    const resp = await fetch(`${appBaseUrl}/api/activities/adventures/${id}/parley`, {
+    const resp = await fetch(`${appBaseUrl}/api/activities/conversations/${id}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -608,11 +608,11 @@ describe('POST /api/activities/adventures/:id/parley (SSE)', () => {
     expect(text).toContain('[DONE]');
   });
 
-  it('captures resolution from SSE stream and updates adventure status', async () => {
+  it('captures resolution from SSE stream and updates conversation status', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    const resp = await fetch(`${appBaseUrl}/api/activities/adventures/${id}/parley`, {
+    const resp = await fetch(`${appBaseUrl}/api/activities/conversations/${id}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -627,8 +627,8 @@ describe('POST /api/activities/adventures/:id/parley (SSE)', () => {
     expect(text).toContain('event: activity.resolved');
     expect(text).toContain('resolve_discovery');
 
-    // Verify adventure store was updated
-    const record = adventureStore.get(id);
+    // Verify conversation store was updated
+    const record = activityConversationStore.get(id);
     expect(record?.status).toBe('resolved');
     expect(record?.outcome?.tool).toBe('resolve_discovery');
     expect(record?.outcome?.result).toHaveProperty('fit', 'qualified');
@@ -639,7 +639,7 @@ describe('POST /api/activities/adventures/:id/parley (SSE)', () => {
 
 describe('GET /api/activities/stats', () => {
   it('returns activity statistics', async () => {
-    // Create adventures of different types
+    // Create conversations of different types
     await apiRequest('POST', '/api/activities/discovery');
     await apiRequest('POST', '/api/activities/planning');
     await apiRequest('POST', '/api/activities/staffing');
@@ -647,60 +647,60 @@ describe('GET /api/activities/stats', () => {
     const { status, data } = await apiRequest('GET', '/api/activities/stats');
     expect(status).toBe(200);
     const stats = data as {
-      totalAdventures: number;
-      activeAdventures: number;
-      resolvedAdventures: number;
+      totalConversations: number;
+      activeConversations: number;
+      resolvedConversations: number;
       byMode: {
         discovery: { total: number; active: number; resolved: number };
         planning: { total: number; active: number; resolved: number };
         staffing: { total: number; active: number; resolved: number };
       };
     };
-    expect(stats.totalAdventures).toBe(3);
-    expect(stats.activeAdventures).toBe(3);
-    expect(stats.resolvedAdventures).toBe(0);
+    expect(stats.totalConversations).toBe(3);
+    expect(stats.activeConversations).toBe(3);
+    expect(stats.resolvedConversations).toBe(0);
     expect(stats.byMode.discovery.total).toBe(1);
     expect(stats.byMode.planning.total).toBe(1);
     expect(stats.byMode.staffing.total).toBe(1);
   });
 
-  it('reflects resolved adventures in stats', async () => {
-    // Create and resolve a discovery adventure
+  it('reflects resolved conversations in stats', async () => {
+    // Create and resolve a discovery activity conversation
     const { data: started } = await apiRequest('POST', '/api/activities/discovery');
     const id = (started as { id: string }).id;
 
-    await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: 'resolve:discovery'
     });
 
     const { data } = await apiRequest('GET', '/api/activities/stats');
     const stats = data as {
-      totalAdventures: number;
-      activeAdventures: number;
-      resolvedAdventures: number;
+      totalConversations: number;
+      activeConversations: number;
+      resolvedConversations: number;
       byMode: { discovery: { total: number; active: number; resolved: number } };
     };
-    expect(stats.totalAdventures).toBe(1);
-    expect(stats.resolvedAdventures).toBe(1);
-    expect(stats.activeAdventures).toBe(0);
+    expect(stats.totalConversations).toBe(1);
+    expect(stats.resolvedConversations).toBe(1);
+    expect(stats.activeConversations).toBe(0);
     expect(stats.byMode.discovery.resolved).toBe(1);
   });
 });
 
-// ---------- Adventure detail with outcome ----------
+// ---------- ActivityConversation detail with outcome ----------
 
-describe('Adventure detail with outcome', () => {
-  it('shows outcome on adventure detail after resolution', async () => {
+describe('ActivityConversation detail with outcome', () => {
+  it('shows outcome on conversation detail after resolution', async () => {
     const { data: started } = await apiRequest('POST', '/api/activities/planning');
     const id = (started as { id: string }).id;
 
-    // Resolve the adventure
-    await apiRequest('POST', `/api/activities/adventures/${id}/parley`, {
+    // Resolve the activity conversation
+    await apiRequest('POST', `/api/activities/conversations/${id}/messages`, {
       message: 'resolve:planning'
     });
 
-    // Get adventure detail
-    const { data } = await apiRequest('GET', `/api/activities/adventures/${id}`);
+    // Get conversation detail
+    const { data } = await apiRequest('GET', `/api/activities/conversations/${id}`);
     const detail = data as {
       status: string;
       outcome?: { tool: string; result: Record<string, unknown> };
@@ -716,8 +716,8 @@ describe('Adventure detail with outcome', () => {
 // ---------- Error mapping ----------
 
 describe('error mapping', () => {
-  it('maps agent 404 to 404 on adventure detail', async () => {
-    const { status } = await apiRequest('GET', '/api/activities/adventures/nonexistent');
+  it('maps agent 404 to 404 on conversation detail', async () => {
+    const { status } = await apiRequest('GET', '/api/activities/conversations/nonexistent');
     expect(status).toBe(404);
   });
 });

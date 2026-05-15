@@ -44,7 +44,7 @@ const PLANNING_ENTRIES: readonly KnowledgeEntry[] = [
     tags: ['engagement', 'executive', 'technical', 'adoption', 'motion']
   },
   {
-    id: 'planning-idol',
+    id: 'planning-risk',
     title: 'Risk Review Prompts',
     summary:
       'Surface timeline risk, unclear ownership, low sponsor engagement, and missing success criteria before recommending a plan.',

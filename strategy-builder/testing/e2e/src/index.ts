@@ -7,7 +7,7 @@ export {
   ApiClient,
   type ApiClientOptions,
   type ApiResponse,
-  type ParleyMessage,
+  type ActivityMessage,
   type TokenUsage,
   type HealthResponse,
   type DependencyHealth,

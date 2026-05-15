@@ -390,11 +390,11 @@ public class AgentHttpClientTests
     }
 
     // ========================================================================
-    // StartAdventure (compound operation)
+    // StartActivityConversation (compound operation)
     // ========================================================================
 
     [Fact]
-    public async Task StartAdventure_CreatesConversationAndSendsMessage()
+    public async Task StartActivityConversation_CreatesConversationAndSendsMessage()
     {
         var (client, handler) = CreateClient();
 
@@ -415,7 +415,7 @@ public class AgentHttpClientTests
             createdAt = "2026-01-01T00:00:00Z",
         });
 
-        var result = await client.StartAdventureAsync("Test message",
+        var result = await client.StartActivityConversationAsync("Test message",
             new Dictionary<string, object> { ["mode"] = "discovery" });
 
         Assert.True(result.Ok);
@@ -426,7 +426,7 @@ public class AgentHttpClientTests
     }
 
     [Fact]
-    public async Task StartAdventure_ReturnsErrorWhenCreateFails()
+    public async Task StartActivityConversation_ReturnsErrorWhenCreateFails()
     {
         var (client, handler) = CreateClient();
 
@@ -434,7 +434,7 @@ public class AgentHttpClientTests
         // Use 400 to avoid retries
         handler.Enqueue(HttpStatusCode.BadRequest, new { code = "bad_request", message = "Bad" });
 
-        var result = await client.StartAdventureAsync("Test");
+        var result = await client.StartActivityConversationAsync("Test");
 
         Assert.False(result.Ok);
         Assert.Equal(1, handler.CallCount); // only the create attempt

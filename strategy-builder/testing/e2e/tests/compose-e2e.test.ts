@@ -18,7 +18,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest';
 import { ApiClient } from '../src/helpers/api-client.ts';
-import type { AdventureStarted } from '../src/helpers/api-client.ts';
+import type { ActivityConversationStarted } from '../src/helpers/api-client.ts';
 import { collectSSEEvents } from '../src/helpers/sse-collector.ts';
 import type { SSEEvent } from '../src/helpers/sse-collector.ts';
 import { ACTIVITY_MESSAGES, SSE_EVENT_SEQUENCE } from '../src/fixtures/activity-fixtures.ts';
@@ -56,13 +56,13 @@ describeCompose('Full-stack E2E (compose)', () => {
     });
   });
 
-  // ─── Discovery adventure flow ────────────────────────────────────────────
+  // ─── Discovery conversation flow ────────────────────────────────────────────
 
-  describe('discovery adventure flow', () => {
-    let adventure: AdventureStarted;
+  describe('discovery conversation flow', () => {
+    let activityConversation: ActivityConversationStarted;
 
     describe('start discovery', () => {
-      it('creates a discovery adventure', async () => {
+      it('creates a discovery activity conversation', async () => {
         const res = await client.startDiscovery();
         expect(res.status).toBe(201);
         expect(res.body.id).toBeTruthy();
@@ -74,14 +74,14 @@ describeCompose('Full-stack E2E (compose)', () => {
         expect(typeof res.body.syntheticMessage).toBe('string');
         expect(res.body.createdAt).toBeTruthy();
 
-        adventure = res.body;
+        activityConversation = res.body;
       });
     });
 
-    // Parley (JSON response)
-    describe('parley (JSON)', () => {
+    // Message (JSON response)
+    describe('message (JSON)', () => {
       it('sends a message and receives an assistant response', async () => {
-        const res = await client.parley(adventure.id, ACTIVITY_MESSAGES.discovery);
+        const res = await client.message(activityConversation.id, ACTIVITY_MESSAGES.discovery);
         expect(res.status).toBe(200);
         expect(res.body.role).toBe('assistant');
         // Content is always non-empty in mock mode; against a real LLM the
@@ -98,7 +98,7 @@ describeCompose('Full-stack E2E (compose)', () => {
         it('mock response returns non-empty content (not blank)', async () => {
           // Regression test: the mock must return substantive content, not
           // an empty string (which was the old extractUserText bug).
-          const res = await client.parley(adventure.id, ACTIVITY_MESSAGES.short);
+          const res = await client.message(activityConversation.id, ACTIVITY_MESSAGES.short);
           expect(res.status).toBe(200);
           expect(res.body.content).toBeTruthy();
           // Content should be a non-trivial string (at least 5 chars)
@@ -107,12 +107,12 @@ describeCompose('Full-stack E2E (compose)', () => {
       }
     });
 
-    // Parley (SSE streaming)
-    describe('parley (SSE streaming)', () => {
+    // Message (SSE streaming)
+    describe('message (SSE streaming)', () => {
       let sseEvents: SSEEvent[];
 
       it('streams a response with message.delta and message.complete events', async () => {
-        const response = await client.parleyStream(adventure.id, ACTIVITY_MESSAGES.greeting);
+        const response = await client.messageStream(activityConversation.id, ACTIVITY_MESSAGES.greeting);
         expect(response.status).toBe(200);
 
         const contentType = response.headers.get('content-type') ?? '';
@@ -185,92 +185,92 @@ describeCompose('Full-stack E2E (compose)', () => {
     });
   });
 
-  // ─── Planning adventure flow ──────────────────────────────────────────
+  // ─── Planning conversation flow ──────────────────────────────────────────
 
-  describe('planning adventure flow', () => {
-    it('creates a planning adventure and sends a message', async () => {
+  describe('planning conversation flow', () => {
+    it('creates a planning conversation and sends a message', async () => {
       const startRes = await client.startPlanning();
       expect(startRes.status).toBe(201);
       expect(startRes.body.mode).toBe('planning');
       expect(startRes.body.syntheticMessage).toBeTruthy();
 
-      const parleyRes = await client.parley(startRes.body.id, ACTIVITY_MESSAGES.planning);
-      expect(parleyRes.status).toBe(200);
+      const messageRes = await client.message(startRes.body.id, ACTIVITY_MESSAGES.planning);
+      expect(messageRes.status).toBe(200);
       // Content is always non-empty in mock mode; against a real LLM the
       // model may resolve an activity without producing user-facing text.
       if (MOCK_MODE) {
-        expect(parleyRes.body.content).toBeTruthy();
+        expect(messageRes.body.content).toBeTruthy();
       }
-      expect(typeof parleyRes.body.content).toBe('string');
+      expect(typeof messageRes.body.content).toBe('string');
     });
   });
 
   // ─── Staffing enlistment flow ─────────────────────────────────────────────
 
   describe('staffing enlistment flow', () => {
-    it('creates a staffing adventure and sends a message', async () => {
+    it('creates a staffing conversation and sends a message', async () => {
       const startRes = await client.startStaffing();
       expect(startRes.status).toBe(201);
       expect(startRes.body.mode).toBe('staffing');
       expect(startRes.body.syntheticMessage).toBeTruthy();
 
-      const parleyRes = await client.parley(startRes.body.id, ACTIVITY_MESSAGES.staffing);
-      expect(parleyRes.status).toBe(200);
+      const messageRes = await client.message(startRes.body.id, ACTIVITY_MESSAGES.staffing);
+      expect(messageRes.status).toBe(200);
       // Content is always non-empty in mock mode; against a real LLM the
       // model may resolve an activity without producing user-facing text.
       if (MOCK_MODE) {
-        expect(parleyRes.body.content).toBeTruthy();
+        expect(messageRes.body.content).toBeTruthy();
       }
-      expect(typeof parleyRes.body.content).toBe('string');
+      expect(typeof messageRes.body.content).toBe('string');
     });
   });
 
-  // ─── List adventures ──────────────────────────────────────────────────
+  // ─── List conversations ──────────────────────────────────────────────────
 
-  describe('list adventures', () => {
-    it('returns a list that includes our created adventures', async () => {
-      const res = await client.listAdventures();
+  describe('list conversations', () => {
+    it('returns a list that includes our created conversations', async () => {
+      const res = await client.listActivityConversations();
       expect(res.status).toBe(200);
-      expect(res.body.adventures).toBeInstanceOf(Array);
+      expect(res.body.conversations).toBeInstanceOf(Array);
       expect(res.body.total).toBeGreaterThanOrEqual(3); // discovery + planning + staffing
 
       // Check that all three modes are represented
-      const modes = new Set(res.body.adventures.map((a) => a.mode));
+      const modes = new Set(res.body.conversations.map((a) => a.mode));
       expect(modes.has('discovery')).toBe(true);
       expect(modes.has('planning')).toBe(true);
       expect(modes.has('staffing')).toBe(true);
     });
 
     it('supports pagination', async () => {
-      const res = await client.listAdventures({ offset: 0, limit: 1 });
+      const res = await client.listActivityConversations({ offset: 0, limit: 1 });
       expect(res.status).toBe(200);
-      expect(res.body.adventures.length).toBeLessThanOrEqual(1);
+      expect(res.body.conversations.length).toBeLessThanOrEqual(1);
       expect(res.body.limit).toBe(1);
     });
   });
 
-  // ─── Adventure detail ─────────────────────────────────────────────────
+  // ─── ActivityConversation detail ─────────────────────────────────────────────────
 
-  describe('adventure detail', () => {
-    it('returns the adventure with parleys', async () => {
-      // Create an adventure and parley so we have messages
+  describe('activity conversation detail', () => {
+    it('returns the conversation with messages', async () => {
+      // Create an conversation and message so we have messages
       const startRes = await client.startDiscovery();
-      await client.parley(startRes.body.id, ACTIVITY_MESSAGES.discovery);
+      await client.message(startRes.body.id, ACTIVITY_MESSAGES.discovery);
 
-      const res = await client.getAdventure(startRes.body.id);
+      const res = await client.getActivityConversation(startRes.body.id);
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(startRes.body.id);
       expect(res.body.mode).toBe('discovery');
-      expect(res.body.parleys).toBeInstanceOf(Array);
+      expect(res.body.messages).toBeInstanceOf(Array);
       // Opening message + user message + assistant response = at least 3
-      expect(res.body.parleys.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.messages.length).toBeGreaterThanOrEqual(1);
     });
 
     it('message count reflects activity', async () => {
       const startRes = await client.startDiscovery();
-      await client.parley(startRes.body.id, 'Hello!');
+      await client.message(startRes.body.id, 'Hello!');
 
-      const res = await client.getAdventure(startRes.body.id);
+      const res = await client.getActivityConversation(startRes.body.id);
       expect(res.body.messageCount).toBeGreaterThanOrEqual(1);
     });
   });
@@ -281,9 +281,9 @@ describeCompose('Full-stack E2E (compose)', () => {
     it('returns statistics reflecting our activity', async () => {
       const res = await client.getStats();
       expect(res.status).toBe(200);
-      expect(res.body.totalAdventures).toBeGreaterThanOrEqual(3);
-      expect(typeof res.body.activeAdventures).toBe('number');
-      expect(typeof res.body.resolvedAdventures).toBe('number');
+      expect(res.body.totalConversations).toBeGreaterThanOrEqual(3);
+      expect(typeof res.body.activeConversations).toBe('number');
+      expect(typeof res.body.resolvedConversations).toBe('number');
     });
 
     it('stats response has expected shape', async () => {
@@ -297,26 +297,26 @@ describeCompose('Full-stack E2E (compose)', () => {
     });
   });
 
-  // ─── Full lifecycle: start → parley → resolution (mock mode only) ───
+  // ─── Full lifecycle: start → message → resolution (mock mode only) ───
 
   const describeLifecycle = MOCK_MODE ? describe : describe.skip;
 
   describeLifecycle('full lifecycle — discovery resolution', () => {
-    it('starts discovery, parleys via SSE, and resolves the adventure', async () => {
-      // 1. Start discovery adventure (create-only, no message sent to agent)
+    it('starts discovery, messages via SSE, and resolves the activity conversation', async () => {
+      // 1. Start discovery conversation (create-only, no message sent to agent)
       const startRes = await client.startDiscovery();
       expect(startRes.status).toBe(201);
       expect(startRes.body.status).toBe('active');
-      const adventureId = startRes.body.id;
+      const conversationId = startRes.body.id;
 
-      // 2. Send the synthetic message as the first parley (opening interaction)
-      const openingResponse = await client.parleyStream(adventureId, startRes.body.syntheticMessage);
+      // 2. Send the synthetic message as the first message (opening interaction)
+      const openingResponse = await client.messageStream(conversationId, startRes.body.syntheticMessage);
       expect(openingResponse.status).toBe(200);
       const openingResult = await collectSSEEvents(openingResponse, { timeoutMs: SSE_TIMEOUT_MS });
       expect(openingResult.done).toBe(true);
 
-      // 3. Send a follow-up parley via SSE stream — this should trigger resolution
-      const sseResponse = await client.parleyStream(adventureId, ACTIVITY_MESSAGES.discovery);
+      // 3. Send a follow-up message via SSE stream — this should trigger resolution
+      const sseResponse = await client.messageStream(conversationId, ACTIVITY_MESSAGES.discovery);
       expect(sseResponse.status).toBe(200);
 
       const result = await collectSSEEvents(sseResponse, { timeoutMs: SSE_TIMEOUT_MS });
@@ -332,8 +332,8 @@ describeCompose('Full-stack E2E (compose)', () => {
       expect(resolvedData.tool).toBe('resolve_discovery');
       expect(resolvedData.result).toBeDefined();
 
-      // 5. Verify adventure detail shows resolved status
-      const detailRes = await client.getAdventure(adventureId);
+      // 5. Verify conversation detail shows resolved status
+      const detailRes = await client.getActivityConversation(conversationId);
       expect(detailRes.status).toBe(200);
       expect(detailRes.body.status).toBe('resolved');
       expect(detailRes.body.outcome).toBeDefined();
@@ -342,27 +342,27 @@ describeCompose('Full-stack E2E (compose)', () => {
       // 6. Verify stats reflect the resolution
       const statsRes = await client.getStats();
       expect(statsRes.status).toBe(200);
-      expect(statsRes.body.resolvedAdventures).toBeGreaterThanOrEqual(1);
+      expect(statsRes.body.resolvedConversations).toBeGreaterThanOrEqual(1);
       expect(statsRes.body.byMode.discovery.resolved).toBeGreaterThanOrEqual(1);
     });
   });
 
   describeLifecycle('full lifecycle — planning resolution', () => {
-    it('starts planning, parleys via SSE, and resolves the adventure', async () => {
-      // 1. Start planning adventure (create-only)
+    it('starts planning, messages via SSE, and resolves the activity conversation', async () => {
+      // 1. Start planning conversation (create-only)
       const startRes = await client.startPlanning();
       expect(startRes.status).toBe(201);
       expect(startRes.body.status).toBe('active');
-      const adventureId = startRes.body.id;
+      const conversationId = startRes.body.id;
 
-      // 2. Send the synthetic message as the first parley (opening interaction)
-      const openingResponse = await client.parleyStream(adventureId, startRes.body.syntheticMessage);
+      // 2. Send the synthetic message as the first message (opening interaction)
+      const openingResponse = await client.messageStream(conversationId, startRes.body.syntheticMessage);
       expect(openingResponse.status).toBe(200);
       const openingResult = await collectSSEEvents(openingResponse, { timeoutMs: SSE_TIMEOUT_MS });
       expect(openingResult.done).toBe(true);
 
-      // 3. Send a follow-up parley via SSE stream — this should trigger resolution
-      const sseResponse = await client.parleyStream(adventureId, ACTIVITY_MESSAGES.planning);
+      // 3. Send a follow-up message via SSE stream — this should trigger resolution
+      const sseResponse = await client.messageStream(conversationId, ACTIVITY_MESSAGES.planning);
       expect(sseResponse.status).toBe(200);
 
       const result = await collectSSEEvents(sseResponse, { timeoutMs: SSE_TIMEOUT_MS });
@@ -378,8 +378,8 @@ describeCompose('Full-stack E2E (compose)', () => {
       expect(resolvedData.tool).toBe('resolve_planning');
       expect(resolvedData.result).toBeDefined();
 
-      // 5. Verify adventure detail shows resolved status
-      const detailRes = await client.getAdventure(adventureId);
+      // 5. Verify conversation detail shows resolved status
+      const detailRes = await client.getActivityConversation(conversationId);
       expect(detailRes.status).toBe(200);
       expect(detailRes.body.status).toBe('resolved');
       expect(detailRes.body.outcome).toBeDefined();
@@ -393,21 +393,21 @@ describeCompose('Full-stack E2E (compose)', () => {
   });
 
   describeLifecycle('full lifecycle — staffing resolution', () => {
-    it('starts staffing, parleys via SSE, and resolves the adventure', async () => {
-      // 1. Start staffing adventure (create-only)
+    it('starts staffing, messages via SSE, and resolves the activity conversation', async () => {
+      // 1. Start staffing conversation (create-only)
       const startRes = await client.startStaffing();
       expect(startRes.status).toBe(201);
       expect(startRes.body.status).toBe('active');
-      const adventureId = startRes.body.id;
+      const conversationId = startRes.body.id;
 
-      // 2. Send the synthetic message as the first parley (opening interaction)
-      const openingResponse = await client.parleyStream(adventureId, startRes.body.syntheticMessage);
+      // 2. Send the synthetic message as the first message (opening interaction)
+      const openingResponse = await client.messageStream(conversationId, startRes.body.syntheticMessage);
       expect(openingResponse.status).toBe(200);
       const openingResult = await collectSSEEvents(openingResponse, { timeoutMs: SSE_TIMEOUT_MS });
       expect(openingResult.done).toBe(true);
 
-      // 3. Send a follow-up parley via SSE stream — this should trigger resolution
-      const sseResponse = await client.parleyStream(adventureId, ACTIVITY_MESSAGES.staffing);
+      // 3. Send a follow-up message via SSE stream — this should trigger resolution
+      const sseResponse = await client.messageStream(conversationId, ACTIVITY_MESSAGES.staffing);
       expect(sseResponse.status).toBe(200);
 
       const result = await collectSSEEvents(sseResponse, { timeoutMs: SSE_TIMEOUT_MS });
@@ -423,8 +423,8 @@ describeCompose('Full-stack E2E (compose)', () => {
       expect(resolvedData.tool).toBe('resolve_staffing');
       expect(resolvedData.result).toBeDefined();
 
-      // 5. Verify adventure detail shows resolved status
-      const detailRes = await client.getAdventure(adventureId);
+      // 5. Verify conversation detail shows resolved status
+      const detailRes = await client.getActivityConversation(conversationId);
       expect(detailRes.status).toBe(200);
       expect(detailRes.body.status).toBe('resolved');
       expect(detailRes.body.outcome).toBeDefined();
@@ -440,13 +440,13 @@ describeCompose('Full-stack E2E (compose)', () => {
   // ─── Error handling ───────────────────────────────────────────────────
 
   describe('error handling', () => {
-    it('returns 404 for non-existent adventure', async () => {
-      const res = await client.getAdventure('nonexistent_adventure_000');
+    it('returns 404 for non-existent activity conversation', async () => {
+      const res = await client.getActivityConversation('nonexistent_activity_conversation_000');
       expect(res.status).toBe(404);
     });
 
-    it('returns 404 for parley with non-existent adventure', async () => {
-      const res = await client.parley('nonexistent_adventure_000', 'Hello?');
+    it('returns 404 for message with non-existent activity conversation', async () => {
+      const res = await client.message('nonexistent_activity_conversation_000', 'Hello?');
       expect(res.status).toBe(404);
     });
   });

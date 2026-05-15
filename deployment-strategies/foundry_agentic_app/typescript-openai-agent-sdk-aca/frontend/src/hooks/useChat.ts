@@ -8,17 +8,17 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import type { AdventureOutcome, ParleyMessage } from '../types.ts';
+import type { ActivityOutcome, ActivityMessage } from '../types.ts';
 import type { UseConversationStatesResult } from './useConversationStates.ts';
 
 interface UseChatOptions {
   /** When false, uses JSON request/response instead of SSE streaming (default: true). */
   readonly streaming?: boolean;
   /**
-   * Synthetic message for a newly started adventure.
+   * Synthetic message for a newly started conversation.
    * When set together with a new conversationId, useChat will skip the
-   * getAdventure fetch and instead show this as the first user bubble,
-   * then stream the agent's opening response via parleyStream.
+   * getActivityConversation fetch and instead show this as the first user bubble,
+   * then stream the agent's opening response via messageStream.
    */
   readonly pendingFirstMessage?: string | null;
   /** Callback to clear the pending first message after it has been consumed. */
@@ -26,16 +26,16 @@ interface UseChatOptions {
 }
 
 export interface UseChatResult {
-  readonly messages: readonly ParleyMessage[];
+  readonly messages: readonly ActivityMessage[];
   readonly streamingContent: string;
   readonly isLoading: boolean;
   readonly error: string | null;
-  readonly outcome: AdventureOutcome | null;
+  readonly outcome: ActivityOutcome | null;
   readonly activeSpecialist: string | null;
   readonly sendMessage: (message: string) => Promise<void>;
 }
 
-const EMPTY_MESSAGES: readonly ParleyMessage[] = [];
+const EMPTY_MESSAGES: readonly ActivityMessage[] = [];
 
 export function useChat(
   store: UseConversationStatesResult,
@@ -57,11 +57,11 @@ export function useChat(
     const pendingMessage = pendingFirstMessageRef.current;
 
     if (pendingMessage) {
-      // New adventure — stream the first message.
+      // New conversation — stream the first message.
       onConsumedRef.current?.();
       store.streamFirstMessage(conversationId, pendingMessage);
     } else {
-      // Existing adventure — load from server (no-op if already loaded).
+      // Existing conversation — load from server (no-op if already loaded).
       store.loadConversation(conversationId);
     }
   }, [store, conversationId]);

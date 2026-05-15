@@ -2,28 +2,28 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useAdventures } from '../../src/hooks/useAdventures.ts';
+import { useActivityConversations } from '../../src/hooks/useActivityConversations.ts';
 import type { ActivityClient } from '../../src/api/activity-client.ts';
-import type { AdventureList, Adventure, AdventureStarted } from '../../src/types.ts';
+import type { ActivityConversationList, ActivityConversation, ActivityConversationStarted } from '../../src/types.ts';
 
-const ADVENTURE: Adventure = {
-  id: 'adv-1',
+const CONVERSATION: ActivityConversation = {
+  id: 'conv-1',
   mode: 'discovery',
   status: 'active',
   createdAt: '2026-01-01T00:00:00Z',
-  lastParleyAt: '2026-01-02T00:00:00Z',
+  lastMessageAt: '2026-01-02T00:00:00Z',
   messageCount: 3
 };
 
-const ADVENTURE_LIST: AdventureList = {
-  adventures: [ADVENTURE],
+const CONVERSATION_LIST: ActivityConversationList = {
+  conversations: [CONVERSATION],
   offset: 0,
   limit: 50,
   total: 1
 };
 
-const ADVENTURE_STARTED: AdventureStarted = {
-  id: 'adv-new',
+const STARTED_CONVERSATION: ActivityConversationStarted = {
+  id: 'conv-new',
   mode: 'planning',
   status: 'active',
   syntheticMessage:
@@ -33,162 +33,166 @@ const ADVENTURE_STARTED: AdventureStarted = {
 
 function createMockClient(): ActivityClient {
   return {
-    listAdventures: vi.fn().mockResolvedValue(ADVENTURE_LIST),
-    startDiscovery: vi.fn().mockResolvedValue(ADVENTURE_STARTED),
-    startPlanning: vi.fn().mockResolvedValue(ADVENTURE_STARTED),
-    startStaffing: vi.fn().mockResolvedValue(ADVENTURE_STARTED),
-    getAdventure: vi.fn(),
-    parley: vi.fn(),
-    parleyStream: vi.fn(),
+    listActivityConversations: vi.fn().mockResolvedValue(CONVERSATION_LIST),
+    startDiscovery: vi.fn().mockResolvedValue(STARTED_CONVERSATION),
+    startPlanning: vi.fn().mockResolvedValue(STARTED_CONVERSATION),
+    startStaffing: vi.fn().mockResolvedValue(STARTED_CONVERSATION),
+    getActivityConversation: vi.fn(),
+    message: vi.fn(),
+    messageStream: vi.fn(),
     getStats: vi.fn(),
     getHealth: vi.fn()
   } as any;
 }
 
-describe('useAdventures', () => {
+describe('useActivityConversations', () => {
   let mockClient: ActivityClient;
 
   beforeEach(() => {
     mockClient = createMockClient();
   });
 
-  it('loads adventures on mount', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('loads conversations on mount', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.adventures).toEqual([ADVENTURE]);
-    expect(mockClient.listAdventures).toHaveBeenCalledWith(0, 50);
+    expect(result.current.conversations).toEqual([CONVERSATION]);
+    expect(mockClient.listActivityConversations).toHaveBeenCalledWith(0, 50);
   });
 
   it('starts with loading state', () => {
-    (mockClient.listAdventures as any).mockReturnValue(new Promise(() => {}));
+    (mockClient.listActivityConversations as any).mockReturnValue(new Promise(() => {}));
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
     expect(result.current.isLoading).toBe(true);
   });
 
   it('sets error on load failure', async () => {
-    (mockClient.listAdventures as any).mockRejectedValue(new Error('Network error'));
+    (mockClient.listActivityConversations as any).mockRejectedValue(new Error('Network error'));
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.error).toBe('Network error');
-    expect(result.current.adventures).toEqual([]);
+    expect(result.current.conversations).toEqual([]);
   });
 
-  it('starts a discovery adventure and selects it', async () => {
-    const discoveryStarted: AdventureStarted = {
-      ...ADVENTURE_STARTED,
+  it('starts a discovery conversation and selects it', async () => {
+    const discoveryStarted: ActivityConversationStarted = {
+      ...STARTED_CONVERSATION,
       mode: 'discovery',
-      id: 'adv-discovery'
+      id: 'conv-discovery'
     };
     (mockClient.startDiscovery as any).mockResolvedValue(discoveryStarted);
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('discovery');
+      await result.current.startActivityConversation('discovery');
     });
 
-    expect(result.current.selectedId).toBe('adv-discovery');
-    expect(result.current.adventures[0]?.id).toBe('adv-discovery');
-    expect(result.current.adventures[0]?.mode).toBe('discovery');
+    expect(result.current.selectedId).toBe('conv-discovery');
+    expect(result.current.conversations[0]?.id).toBe('conv-discovery');
+    expect(result.current.conversations[0]?.mode).toBe('discovery');
     expect(mockClient.startDiscovery).toHaveBeenCalled();
   });
 
-  it('starts a planning adventure via startPlanning', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('starts a planning conversation via startPlanning', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('planning');
+      await result.current.startActivityConversation('planning');
     });
 
     expect(mockClient.startPlanning).toHaveBeenCalled();
-    expect(result.current.selectedId).toBe('adv-new');
+    expect(result.current.selectedId).toBe('conv-new');
   });
 
-  it('starts a staffing adventure via startStaffing', async () => {
-    const staffingStarted: AdventureStarted = { ...ADVENTURE_STARTED, mode: 'staffing', id: 'adv-staffing' };
+  it('starts a staffing conversation via startStaffing', async () => {
+    const staffingStarted: ActivityConversationStarted = {
+      ...STARTED_CONVERSATION,
+      mode: 'staffing',
+      id: 'conv-staffing'
+    };
     (mockClient.startStaffing as any).mockResolvedValue(staffingStarted);
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('staffing');
+      await result.current.startActivityConversation('staffing');
     });
 
     expect(mockClient.startStaffing).toHaveBeenCalled();
-    expect(result.current.selectedId).toBe('adv-staffing');
+    expect(result.current.selectedId).toBe('conv-staffing');
   });
 
   it('sets error on start failure', async () => {
     (mockClient.startDiscovery as any).mockRejectedValue(new Error('Start failed'));
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('discovery');
+      await result.current.startActivityConversation('discovery');
     });
 
     expect(result.current.error).toBe('Start failed');
   });
 
-  it('selects an adventure', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('selects an activity conversation', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     act(() => {
-      result.current.selectAdventure('adv-1');
+      result.current.selectActivityConversation('conv-1');
     });
 
-    expect(result.current.selectedId).toBe('adv-1');
+    expect(result.current.selectedId).toBe('conv-1');
   });
 
-  it('refreshes adventures', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('refreshes conversations', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     // First call is from mount
-    expect(mockClient.listAdventures).toHaveBeenCalledTimes(1);
+    expect(mockClient.listActivityConversations).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       await result.current.refresh();
     });
 
-    expect(mockClient.listAdventures).toHaveBeenCalledTimes(2);
+    expect(mockClient.listActivityConversations).toHaveBeenCalledTimes(2);
   });
 
   it('exposes loadingMode as null when idle', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -206,16 +210,16 @@ describe('useAdventures', () => {
       })
     );
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    // Start the adventure (don't await)
+    // Start the conversation (don't await)
     let startPromise: Promise<void>;
     act(() => {
-      startPromise = result.current.startAdventure('discovery');
+      startPromise = result.current.startActivityConversation('discovery');
     });
 
     // loadingMode should be 'discovery' while in-flight
@@ -223,7 +227,7 @@ describe('useAdventures', () => {
 
     // Resolve it
     await act(async () => {
-      resolveStart(ADVENTURE_STARTED);
+      resolveStart(STARTED_CONVERSATION);
       await startPromise;
     });
 
@@ -234,14 +238,14 @@ describe('useAdventures', () => {
   it('clears loadingMode on start failure', async () => {
     (mockClient.startDiscovery as any).mockRejectedValue(new Error('Start failed'));
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('discovery');
+      await result.current.startActivityConversation('discovery');
     });
 
     expect(result.current.loadingMode).toBeNull();
@@ -250,8 +254,8 @@ describe('useAdventures', () => {
 
   // ---- pendingFirstMessage tests ----
 
-  it('sets pendingFirstMessage after starting an adventure', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('sets pendingFirstMessage after starting an activity conversation', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -261,21 +265,21 @@ describe('useAdventures', () => {
     expect(result.current.pendingFirstMessage).toBeNull();
 
     await act(async () => {
-      await result.current.startAdventure('planning');
+      await result.current.startActivityConversation('planning');
     });
 
-    expect(result.current.pendingFirstMessage).toBe(ADVENTURE_STARTED.syntheticMessage);
+    expect(result.current.pendingFirstMessage).toBe(STARTED_CONVERSATION.syntheticMessage);
   });
 
   it('clearPendingFirstMessage resets pendingFirstMessage to null', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('planning');
+      await result.current.startActivityConversation('planning');
     });
 
     expect(result.current.pendingFirstMessage).not.toBeNull();
@@ -290,32 +294,32 @@ describe('useAdventures', () => {
   it('does not set pendingFirstMessage on start failure', async () => {
     (mockClient.startDiscovery as any).mockRejectedValue(new Error('Start failed'));
 
-    const { result } = renderHook(() => useAdventures(mockClient));
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('discovery');
+      await result.current.startActivityConversation('discovery');
     });
 
     expect(result.current.pendingFirstMessage).toBeNull();
   });
 
-  it('sets messageCount to 0 for a newly started adventure', async () => {
-    const { result } = renderHook(() => useAdventures(mockClient));
+  it('sets messageCount to 0 for a newly started activity conversation', async () => {
+    const { result } = renderHook(() => useActivityConversations(mockClient));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     await act(async () => {
-      await result.current.startAdventure('planning');
+      await result.current.startActivityConversation('planning');
     });
 
-    const newAdventure = result.current.adventures.find((a) => a.id === 'adv-new');
-    expect(newAdventure).toBeDefined();
-    expect(newAdventure?.messageCount).toBe(0);
+    const newActivityConversation = result.current.conversations.find((a) => a.id === 'conv-new');
+    expect(newActivityConversation).toBeDefined();
+    expect(newActivityConversation?.messageCount).toBe(0);
   });
 });

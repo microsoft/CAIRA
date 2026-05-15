@@ -290,7 +290,7 @@ export class OpenAIClient {
       span.setAttribute('conversation.id', conversationId);
       span.setAttribute('agent.name', selected.agent.name ?? 'unknown');
       if (selected.mode) {
-        span.setAttribute('adventure.mode', selected.mode);
+        span.setAttribute('conversation.mode', selected.mode);
       }
 
       try {
@@ -457,7 +457,7 @@ export class OpenAIClient {
         span.setAttribute('conversation.id', conversationId);
         span.setAttribute('agent.name', selected.agent.name ?? 'unknown');
         if (selected.mode) {
-          span.setAttribute('adventure.mode', selected.mode);
+          span.setAttribute('conversation.mode', selected.mode);
         }
 
         try {

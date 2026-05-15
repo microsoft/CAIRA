@@ -1,7 +1,7 @@
-import type { AdventureOutcome } from '../types.ts';
+import type { ActivityOutcome } from '../types.ts';
 
 interface OutcomeCardProps {
-  readonly outcome: AdventureOutcome;
+  readonly outcome: ActivityOutcome;
 }
 
 const MODE_LABELS: Record<string, string> = {

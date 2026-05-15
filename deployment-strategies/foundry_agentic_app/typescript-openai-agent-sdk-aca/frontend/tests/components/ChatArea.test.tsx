@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatArea } from '../../src/components/ChatArea.tsx';
-import type { AdventureOutcome, ParleyMessage } from '../../src/types.ts';
+import type { ActivityOutcome, ActivityMessage } from '../../src/types.ts';
 
-const MESSAGES: ParleyMessage[] = [
+const MESSAGES: ActivityMessage[] = [
   {
     id: 'msg-1',
     role: 'user',
@@ -18,12 +18,12 @@ const MESSAGES: ParleyMessage[] = [
   }
 ];
 
-const DISCOVERY_OUTCOME: AdventureOutcome = {
+const DISCOVERY_OUTCOME: ActivityOutcome = {
   tool: 'resolve_discovery',
   result: { fit: 'qualified', signals_reviewed: 4, primary_need: 'Needs clearer forecasting' }
 };
 
-const PLANNING_OUTCOME: AdventureOutcome = {
+const PLANNING_OUTCOME: ActivityOutcome = {
   tool: 'resolve_planning',
   result: {
     approved: true,

@@ -176,7 +176,7 @@ const responses = new Map<string, Response>();
  * Tracks response IDs where a specialist agent (with resolution tools) returned
  * a text response instead of calling the resolution tool. This lets us distinguish
  * the first specialist interaction (after handoff → return text) from subsequent
- * interactions (parley → call resolution tool).
+ * interactions (message → call resolution tool).
  *
  * Without this state, the stateless Responses API mock can't differentiate between
  * "handoff just completed, return conversational text" and "user sent another
@@ -192,7 +192,7 @@ const specialistTextResponses = new Set<string>();
  *
  * This solves the problem where the @openai/agents SDK doesn't chain
  * `previous_response_id` within the first `run()` call. Without this cache,
- * the second `run()` (parley) can't find the original transfer call by walking
+ * the second `run()` (message) can't find the original transfer call by walking
  * the `previous_response_id` chain, so it falls back to keyword matching —
  * which fails for messages like "I can support adoption planning" (no staffing keywords).
  *
@@ -405,7 +405,7 @@ function selectTransferTool(
   previousResponseId: string | null | undefined
 ): string {
   // First: check if a previous response in this chain already selected a transfer tool.
-  // This ensures follow-up parleys route to the same specialist even when the
+  // This ensures follow-up messages route to the same specialist even when the
   // user's message doesn't contain the original delegation keywords.
   //
   // We check TWO sources:
@@ -667,7 +667,7 @@ export function createResponse(body: CreateResponseRequest): Response {
     if (body.tools && hasResolutionTools(body.tools) && !hasResolutionOutput) {
       // Specialist agent has resolution tools. Determine whether to return
       // conversational text (first interaction after handoff) or call the
-      // resolution tool (subsequent parley turn).
+      // resolution tool (subsequent message turn).
       //
       // A real LLM wouldn't call the resolution tool immediately after a
       // handoff — it would start the activity with conversational text (e.g.,
@@ -761,7 +761,7 @@ export function createResponse(body: CreateResponseRequest): Response {
 
   // Track which specialist was selected for this response. When a response
   // contains a transfer_to_* or *_specialist function call, record `responseId → toolName`.
-  // This allows subsequent parley requests to find the specialist even when
+  // This allows subsequent message requests to find the specialist even when
   // the SDK doesn't chain previous_response_id within the first run() call.
   for (const item of response.output) {
     if (item.type === 'function_call' && (item.name.startsWith('transfer_to_') || item.name.endsWith('_specialist'))) {
@@ -794,7 +794,7 @@ export function createResponse(body: CreateResponseRequest): Response {
   // If this response was a specialist's first text turn (not a resolution tool
   // call, not a handoff, but text from an agent with resolution tools), record
   // the response ID so the next call in this chain triggers resolution.
-  // Also map it in responseSpecialistMap so that parley requests can find the
+  // Also map it in responseSpecialistMap so that message requests can find the
   // specialist even when previous_response_id chain is broken (SDK bug).
   if (
     body.tools &&

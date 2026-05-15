@@ -121,7 +121,7 @@ Each specialist agent has an **activity-specific resolution tool** (`resolve_dis
 **Continuing a conversation:**
 
 1. User types a message in the **frontend** chat UI
-1. Frontend BFF proxies `POST /api/activities/adventures/{id}/parley` to the **API container**
+1. Frontend BFF proxies `POST /api/activities/conversations/{id}/messages` to the **API container**
 1. API container translates to `POST /conversations/{id}/messages` to the **agent container**
 1. Agent container uses its framework SDK (Foundry Agent Service, OpenAI Agent SDK, or Microsoft Agent Framework) to call **Azure AI Foundry**, routing to the appropriate specialist via the variant's orchestration pattern
 1. Response streams back as **Server-Sent Events (SSE)** through all layers: Agent -> API -> Frontend BFF -> Browser
@@ -129,7 +129,7 @@ Each specialist agent has an **activity-specific resolution tool** (`resolve_dis
 
 ### Activity resolution
 
-Activities have **definitive conclusions** captured via agent-driven tool calls. When a specialist agent determines an activity is complete, it calls its resolution tool (`resolve_discovery`, `resolve_planning`, or `resolve_staffing`). This emits an `activity.resolved` SSE event with structured outcome data. The API layer **parses** the SSE stream (not raw passthrough) to detect these events, stores the outcome, and passes the event through to the frontend. Adventures gain `status` (`active`/`resolved`) and `outcome` fields. Conversations remain open after resolution.
+Activities have **definitive conclusions** captured via agent-driven tool calls. When a specialist agent determines an activity is complete, it calls its resolution tool (`resolve_discovery`, `resolve_planning`, or `resolve_staffing`). This emits an `activity.resolved` SSE event with structured outcome data. The API layer **parses** the SSE stream (not raw passthrough) to detect these events, stores the outcome, and passes the event through to the frontend. ActivityConversations gain `status` (`active`/`resolved`) and `outcome` fields. Conversations remain open after resolution.
 
 ### Streaming architecture
 
