@@ -11,7 +11,9 @@ tasks:
   install:mkdocs:
     desc: Install MkDocs
     cmds:
-      - uv tool install mkdocs
+      - task: internal:install:uv
+        vars:
+          APP: "mkdocs"
       - |
         set -euo pipefail
         export PATH="$HOME/.local/bin:$PATH"
@@ -23,6 +25,9 @@ tasks:
         done < <(mkdocs get-deps)
 
         "${cmd[@]}"
+        if [[ "$(uname -s)" == "Linux" ]]; then
+          sudo ln -sf "$HOME/.local/bin/mkdocs" /usr/local/bin/mkdocs
+        fi
 
   # * Tools
   tools:

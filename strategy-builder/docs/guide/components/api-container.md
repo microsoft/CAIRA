@@ -68,18 +68,18 @@ The `AgentClient` class is the HTTP client that talks to the agent container:
 
 > **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/messages`, and `planning` endpoints.
 
-| Endpoint                                      | Method | Maps to agent API                                 | Description                                                                               |
-|-----------------------------------------------|--------|---------------------------------------------------|-------------------------------------------------------------------------------------------|
-| `POST /api/activities/discovery`              | POST   | `POST /conversations`                             | Start an opportunity discovery flow (creates conversation and returns `syntheticMessage`) |
-| `POST /api/activities/planning`               | POST   | `POST /conversations`                             | Start an account planning flow (creates conversation and returns `syntheticMessage`)      |
-| `POST /api/activities/staffing`               | POST   | `POST /conversations`                             | Start an account-team staffing flow (creates conversation and returns `syntheticMessage`) |
-| `GET /api/activities/conversations`              | GET    | `GET /conversations`                              | List all conversations (with `mode` + `status` fields)                                       |
-| `GET /api/activities/conversations/{id}`         | GET    | `GET /conversations/{id}`                         | Get conversation detail with messages, `status`, and `outcome`                               |
+| Endpoint                                           | Method | Maps to agent API                                 | Description                                                                               |
+|----------------------------------------------------|--------|---------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `POST /api/activities/discovery`                   | POST   | `POST /conversations`                             | Start an opportunity discovery flow (creates conversation and returns `syntheticMessage`) |
+| `POST /api/activities/planning`                    | POST   | `POST /conversations`                             | Start an account planning flow (creates conversation and returns `syntheticMessage`)      |
+| `POST /api/activities/staffing`                    | POST   | `POST /conversations`                             | Start an account-team staffing flow (creates conversation and returns `syntheticMessage`) |
+| `GET /api/activities/conversations`                | GET    | `GET /conversations`                              | List all conversations (with `mode` + `status` fields)                                    |
+| `GET /api/activities/conversations/{id}`           | GET    | `GET /conversations/{id}`                         | Get conversation detail with messages, `status`, and `outcome`                            |
 | `POST /api/activities/conversations/{id}/messages` | POST   | `POST /conversations/{id}/messages`               | Continue chatting (SSE stream; parses for `activity.resolved`)                            |
-| `GET /api/activities/stats`                   | GET    | Computed from `GET /conversations`                | Activity stats per mode; includes resolution counts                                       |
-| `GET /health`                                 | GET    | Also calls agent `/health`                        | Health check (self + agent dependency)                                                    |
-| `GET /health/deep`                            | GET    | Calls agent `GET /conversations?offset=0&limit=1` | Deep health check for authenticated API→agent connectivity                                |
-| `GET /identity`                               | GET    | --                                                | Credential validation (returns identity claims from `DefaultAzureCredential`)             |
+| `GET /api/activities/stats`                        | GET    | Computed from `GET /conversations`                | Activity stats per mode; includes resolution counts                                       |
+| `GET /health`                                      | GET    | Also calls agent `/health`                        | Health check (self + agent dependency)                                                    |
+| `GET /health/deep`                                 | GET    | Calls agent `GET /conversations?offset=0&limit=1` | Deep health check for authenticated API→agent connectivity                                |
+| `GET /identity`                                    | GET    | --                                                | Credential validation (returns identity claims from `DefaultAzureCredential`)             |
 
 ### Health check
 

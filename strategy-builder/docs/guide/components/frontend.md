@@ -65,17 +65,17 @@ A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business
 
 > **WS-12 rework:** These methods replace the previous `recruit()`, `listStaffing()`, `getStaffingMember()`, `message()`, `messageStream()`, and `getPlanning()` methods.
 
-| Method                               | Endpoint                                      | Returns                                        |
-|--------------------------------------|-----------------------------------------------|------------------------------------------------|
-| `startDiscovery()`                   | `POST /api/activities/discovery`              | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
-| `startPlanning()`                    | `POST /api/activities/planning`               | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
-| `startStaffing()`                    | `POST /api/activities/staffing`               | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
-| `listActivityConversations(offset?, limit?)`    | `GET /api/activities/conversations`              | `ActivityConversationList`                                |
-| `getActivityConversation(id)`                   | `GET /api/activities/conversations/{id}`         | `ActivityConversationDetail`                              |
-| `message(conversationId, message)`       | `POST /api/activities/conversations/{id}/messages` | `ActivityMessage` (JSON)                         |
-| `messageStream(conversationId, message)` | `POST /api/activities/conversations/{id}/messages` | `AsyncGenerator<SSEEvent>` (SSE)               |
-| `getStats()`                         | `GET /api/activities/stats`                   | `ActivityStats`                                |
-| `checkHealth()`                      | `GET /health`                                 | `HealthResponse`                               |
+| Method                                       | Endpoint                                           | Returns                                                   |
+|----------------------------------------------|----------------------------------------------------|-----------------------------------------------------------|
+| `startDiscovery()`                           | `POST /api/activities/discovery`                   | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `startPlanning()`                            | `POST /api/activities/planning`                    | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `startStaffing()`                            | `POST /api/activities/staffing`                    | `ActivityConversationStarted` (`id` + `syntheticMessage`) |
+| `listActivityConversations(offset?, limit?)` | `GET /api/activities/conversations`                | `ActivityConversationList`                                |
+| `getActivityConversation(id)`                | `GET /api/activities/conversations/{id}`           | `ActivityConversationDetail`                              |
+| `message(conversationId, message)`           | `POST /api/activities/conversations/{id}/messages` | `ActivityMessage` (JSON)                                  |
+| `messageStream(conversationId, message)`     | `POST /api/activities/conversations/{id}/messages` | `AsyncGenerator<SSEEvent>` (SSE)                          |
+| `getStats()`                                 | `GET /api/activities/stats`                        | `ActivityStats`                                           |
+| `checkHealth()`                              | `GET /health`                                      | `HealthResponse`                                          |
 
 **SSE implementation:** The `messageStream()` method uses `fetch()` with `ReadableStream` (not `EventSource`) because the message endpoint is a POST request. It is an async generator that parses SSE event blocks and yields typed `SSEEvent` discriminated unions (`SSEMessageDelta | SSEMessageComplete | SSEActivityResolved | SSEToolCalled | SSEToolDone | SSEError`).
 
@@ -85,7 +85,7 @@ A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business
 |--------------------|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | `App`              | --                                                               | Root: wires hooks to components, manages layout, renders activity picker, streaming toggle    |
 | `ActivityPicker`   | onStartDiscovery, onStartPlanning, onStartStaffing, loadingMode  | Three-button picker for choosing a sample activity; shows spinner + "Starting..." during load |
-| `ConversationList` | conversations, selected, onSelect                                | Sidebar with conversation list, shows mode badge and relative time (e.g., "2 min ago")           |
+| `ConversationList` | conversations, selected, onSelect                                | Sidebar with conversation list, shows mode badge and relative time (e.g., "2 min ago")        |
 | `ChatArea`         | messages, isStreaming, streamingContent, error, activeSpecialist | Displays messages with auto-scroll, specialist-specific loading text, and error state         |
 | `OutcomeCard`      | outcome, mode                                                    | Displays resolution outcome as a styled card/banner in the chat area                          |
 | `MessageInput`     | onSend, disabled, resolved                                       | Text input with send button, Enter key submission; shows "Activity complete" when resolved    |
@@ -94,11 +94,11 @@ A class-based HTTP client (`src/api/activity-client.ts`) that wraps the business
 
 ### React hooks
 
-| Hook               | Returns                                                                      | Behavior                                                                                                                                                                                                                                                                                                               |
-|--------------------|------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `useConversations` | `{ conversations, selected, loading, error, select }`                        | Fetches conversation list on mount, selects conversations (no longer creates -- business operations handle creation)                                                                                                                                                                                                         |
-| `useChat`          | `{ messages, isStreaming, streamingContent, error, send, activeSpecialist }` | Sends messages via `messageStream()` (SSE) or `message()` (JSON), controlled by `streaming` option. In streaming mode, accumulates SSE deltas, tracks `activeSpecialist` via `tool.called`/`tool.done` events. Filters empty assistant messages. In JSON mode, sends a single request and appends the complete response. |
-| `useActivityConversations`    | `{ startDiscovery, startPlanning, startStaffing, loading, loadingMode }`     | Calls business operation endpoints, receives `syntheticMessage`, then uses message to obtain assistant responses. Tracks `loadingMode` per activity type for button loading states.                                                                                                                                     |
+| Hook                       | Returns                                                                      | Behavior                                                                                                                                                                                                                                                                                                                 |
+|----------------------------|------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `useConversations`         | `{ conversations, selected, loading, error, select }`                        | Fetches conversation list on mount, selects conversations (no longer creates -- business operations handle creation)                                                                                                                                                                                                     |
+| `useChat`                  | `{ messages, isStreaming, streamingContent, error, send, activeSpecialist }` | Sends messages via `messageStream()` (SSE) or `message()` (JSON), controlled by `streaming` option. In streaming mode, accumulates SSE deltas, tracks `activeSpecialist` via `tool.called`/`tool.done` events. Filters empty assistant messages. In JSON mode, sends a single request and appends the complete response. |
+| `useActivityConversations` | `{ startDiscovery, startPlanning, startStaffing, loading, loadingMode }`     | Calls business operation endpoints, receives `syntheticMessage`, then uses message to obtain assistant responses. Tracks `loadingMode` per activity type for button loading states.                                                                                                                                      |
 
 ## Configuration
 

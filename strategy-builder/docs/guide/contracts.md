@@ -76,16 +76,16 @@ The public business API that the frontend calls. The current sample domain is a 
 
 > **WS-12 rework:** These endpoints replace the previous `recruit`, `staffing`, `staffing/{id}/messages`, and `planning` endpoints.
 
-| Endpoint                                      | Method | Description                                  | Maps to agent API                   |
-|-----------------------------------------------|--------|----------------------------------------------|-------------------------------------|
-| `POST /api/activities/discovery`              | POST   | Start an opportunity discovery flow          | `POST /conversations`               |
-| `POST /api/activities/planning`               | POST   | Start an account planning flow               | `POST /conversations`               |
-| `POST /api/activities/staffing`               | POST   | Start an account-team staffing flow          | `POST /conversations`               |
-| `GET /api/activities/conversations`              | GET    | List all conversations (with mode + status)     | `GET /conversations`                |
-| `GET /api/activities/conversations/{id}`         | GET    | Get conversation detail with messages + outcome | `GET /conversations/{id}`           |
-| `POST /api/activities/conversations/{id}/messages` | POST   | Continue chatting (SSE stream)               | `POST /conversations/{id}/messages` |
-| `GET /api/activities/stats`                   | GET    | Activity stats per mode                      | Computed from `GET /conversations`  |
-| `GET /health`                                 | GET    | Health check (includes agent health)         | Checks agent `/health` too          |
+| Endpoint                                           | Method | Description                                     | Maps to agent API                   |
+|----------------------------------------------------|--------|-------------------------------------------------|-------------------------------------|
+| `POST /api/activities/discovery`                   | POST   | Start an opportunity discovery flow             | `POST /conversations`               |
+| `POST /api/activities/planning`                    | POST   | Start an account planning flow                  | `POST /conversations`               |
+| `POST /api/activities/staffing`                    | POST   | Start an account-team staffing flow             | `POST /conversations`               |
+| `GET /api/activities/conversations`                | GET    | List all conversations (with mode + status)     | `GET /conversations`                |
+| `GET /api/activities/conversations/{id}`           | GET    | Get conversation detail with messages + outcome | `GET /conversations/{id}`           |
+| `POST /api/activities/conversations/{id}/messages` | POST   | Continue chatting (SSE stream)                  | `POST /conversations/{id}/messages` |
+| `GET /api/activities/stats`                        | GET    | Activity stats per mode                         | Computed from `GET /conversations`  |
+| `GET /health`                                      | GET    | Health check (includes agent health)            | Checks agent `/health` too          |
 
 ### Business operation flow
 
