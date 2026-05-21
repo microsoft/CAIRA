@@ -76,7 +76,7 @@ jobs:
         run: task validate
 
   success:
-    needs: [validate]
+    needs: [validate, dependency_review]
     if: ${{ always() }}
     name: Pull Request Success
     runs-on: ubuntu-24.04
