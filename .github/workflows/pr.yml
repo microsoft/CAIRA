@@ -28,6 +28,21 @@ jobs:
       - name: Approve
         run: echo "Workflow was approved"
 
+  dependency_review:
+    needs: [approval]
+    name: Dependency Review
+    runs-on: ubuntu-24.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          show-openssf-scorecard: false
+
   validate:
     name: Validate references
     needs: [approval]
@@ -59,3 +74,18 @@ jobs:
 
       - name: Validate PR
         run: task validate
+
+  success:
+    needs: [validate]
+    if: ${{ always() }}
+    name: Pull Request Success
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Success
+        run: |
+          if [[ "${{ needs.dependency_review.result }}" == "success" && "${{ needs.validate.result }}" == "success" ]]; then
+            echo "All required checks passed."
+          else
+            echo "Some required checks did not pass."
+            exit 1
+          fi
