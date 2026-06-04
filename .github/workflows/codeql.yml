@@ -46,7 +46,7 @@ jobs:
           dotnet-version: "10.0.x"
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/init@87557b9c84dde89fdd9b10e88954ac2f4248e463 # v4.36.1
         with:
           config-file: ./.github/linters/.codeql.yml
           languages: ${{ matrix.language }}
@@ -61,7 +61,7 @@ jobs:
           dotnet build "${project}" --configuration Release --no-restore
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        uses: github/codeql-action/analyze@87557b9c84dde89fdd9b10e88954ac2f4248e463 # v4.36.1
         with:
           category: "/language:${{ matrix.category }}"
           upload: ${{ github.event_name == 'merge_group' && 'never' || 'always' }}
