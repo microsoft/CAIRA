@@ -19,15 +19,30 @@ tasks:
     cmds:
       - ./scripts/security.sh
 
+  security:trivy:
+    desc: Scan repository with Trivy
+    cmds:
+      - ./scripts/trivy.sh
+
   validate:code:
     desc: Validate code and infrastructure
     cmds:
       - ./scripts/validate-code.sh
 
+  validate:audit:
+    desc: Audit reference component dependencies
+    cmds:
+      - ./scripts/audit-deps.sh
+
   validate:containers:
     desc: Build reference component containers
     cmds:
       - ./scripts/validate-containers.sh
+
+  validate:containers:trivy:
+    desc: Build and scan reference component containers with Trivy
+    cmds:
+      - ./scripts/scan-containers.sh
 
   validate:
     desc: Run complete repository validation

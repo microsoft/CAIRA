@@ -44,9 +44,11 @@ task bootstrap
 task validate
 ```
 
-Validation is intentionally component-local: TypeScript components use npm scripts, C# uses .NET build, Terraform uses `fmt/init/validate`, and each app container has a Dockerfile that can be built independently. You can also run pieces independently with `task security`, `task validate:code`, and `task validate:containers`.
+Validation is intentionally component-local: TypeScript components use npm scripts, C# uses .NET build, Terraform uses `fmt/init/validate`, and each app container has a Dockerfile that can be built independently. You can also run pieces independently with `task security`, `task validate:code`, and `task validate:containers`. Dependency audits and Trivy scans are available separately with `task validate:audit`, `task security:trivy`, and `task validate:containers:trivy`.
 
-The CAIRA skill test can be run locally with `task test:skill`. It installs the skill into a fresh empty workspace, runs the README example prompt through GitHub Copilot CLI in unattended  mode, then asks Copilot to verify the generated result.
+The CAIRA skill test can be run locally with `task test:skill`. It installs the skill into a fresh empty workspace, runs the README example prompt through GitHub Copilot CLI in unattended mode, then asks Copilot to verify the generated result.
+
+For the weekly GitHub Actions run, the workflow signs in to Azure with OIDC, gets a short-lived Azure AI Foundry token from the Azure CLI, and configures Copilot CLI BYOK provider environment variables (`COPILOT_PROVIDER_BASE_URL`, `COPILOT_PROVIDER_MODEL_ID`, and optionally `COPILOT_PROVIDER_WIRE_API`) for an OpenAI-compatible Foundry endpoint. The OIDC service principal should have the least-privilege **Cognitive Services OpenAI User** role at the Azure AI Foundry / Azure OpenAI resource that hosts the configured deployment.
 
 ## Developing CAIRA
 

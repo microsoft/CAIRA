@@ -36,7 +36,48 @@ ensure_copilot() {
   exit 1
 }
 
+configure_foundry_provider() {
+  local foundry_config_requested="false"
+  local provider_model="${COPILOT_PROVIDER_MODEL_ID:-${CAIRA_COPILOT_MODEL:-}}"
+
+  if [[ -n "${COPILOT_PROVIDER_BASE_URL:-}" || -n "${COPILOT_PROVIDER_BEARER_TOKEN:-}" || -n "${COPILOT_PROVIDER_MODEL_ID:-}" ]]; then
+    foundry_config_requested="true"
+  fi
+
+  if [[ "${foundry_config_requested}" != "true" ]]; then
+    return
+  fi
+
+  if [[ -z "${COPILOT_PROVIDER_BASE_URL:-}" ]]; then
+    echo "COPILOT_PROVIDER_BASE_URL is required when Foundry provider configuration is enabled." >&2
+    exit 1
+  fi
+
+  if [[ -z "${COPILOT_PROVIDER_BEARER_TOKEN:-}" ]]; then
+    echo "COPILOT_PROVIDER_BEARER_TOKEN is required when Foundry provider configuration is enabled." >&2
+    exit 1
+  fi
+
+  if [[ -z "${CAIRA_COPILOT_MODEL:-}" && -z "${COPILOT_PROVIDER_MODEL_ID:-}" ]]; then
+    echo "CAIRA_COPILOT_MODEL or COPILOT_PROVIDER_MODEL_ID is required when Foundry provider configuration is enabled." >&2
+    exit 1
+  fi
+
+  if [[ "${COPILOT_PROVIDER_BASE_URL}" != */openai/v1/ && "${COPILOT_PROVIDER_BASE_URL}" != */openai/v1 ]]; then
+    echo "COPILOT_PROVIDER_BASE_URL must be an Azure AI Foundry OpenAI-compatible endpoint ending in /openai/v1 or /openai/v1/." >&2
+    exit 1
+  fi
+
+  export COPILOT_ENABLE_ALT_PROVIDERS="${COPILOT_ENABLE_ALT_PROVIDERS:-true}"
+  export COPILOT_PROVIDER_TYPE="${COPILOT_PROVIDER_TYPE:-openai}"
+  export COPILOT_PROVIDER_WIRE_API="${COPILOT_PROVIDER_WIRE_API:-responses}"
+  export COPILOT_PROVIDER_MODEL_ID="${COPILOT_PROVIDER_MODEL_ID:-${provider_model}}"
+  export COPILOT_PROVIDER_WIRE_MODEL="${COPILOT_PROVIDER_WIRE_MODEL:-${provider_model}}"
+  CAIRA_COPILOT_MODEL="${CAIRA_COPILOT_MODEL:-${provider_model}}"
+}
+
 ensure_copilot
+configure_foundry_provider
 
 export CI="${CI:-true}"
 export NO_COLOR="${NO_COLOR:-1}"
@@ -46,7 +87,6 @@ COPILOT_ARGS=(
   --yolo
   --no-ask-user
   --no-auto-update
-  -s
 )
 
 if [[ -n "${CAIRA_COPILOT_MODEL:-}" ]]; then
@@ -59,12 +99,10 @@ run_copilot_prompt() {
   local exit_code
 
   set +e
-  copilot "${COPILOT_ARGS[@]}" --prompt "${prompt}" > "${output}"
-  exit_code="$?"
+  copilot "${COPILOT_ARGS[@]}" --prompt "${prompt}" 2>&1 | tee "${output}"
+  exit_code="${PIPESTATUS[0]}"
   set -e
 
-  echo "Copilot output:"
-  cat "${output}"
   return "${exit_code}"
 }
 
@@ -113,7 +151,11 @@ run_copilot_prompt "${VERIFY_PROMPT}" "${VERIFIER_OUTPUT}"
 VERIFIER_EXIT_CODE="$?"
 set -e
 
-VERIFIER_RESULT="$(sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "${VERIFIER_OUTPUT}" | tail -n 1)"
+VERIFIER_RESULT="$(
+  sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' "${VERIFIER_OUTPUT}" |
+    { grep -E '^CAIRA_TEST_RESULT=(PASS|FAIL)$' || true; } |
+    tail -n 1 || true
+)"
 echo "Verifier result: ${VERIFIER_RESULT}"
 
 if [[ "${VERIFIER_EXIT_CODE}" -eq 0 && "${VERIFIER_RESULT}" =~ ^[[:space:]]*CAIRA_TEST_RESULT=PASS[[:space:]]*$ ]]; then
