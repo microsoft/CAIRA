@@ -19,8 +19,8 @@ task bootstrap
 task validate
 ```
 
-Validation is intentionally simple: secret scanning, component dependency install, package audits, TypeScript typecheck/build, .NET build/audit, Docker builds, and Terraform fmt/init/validate.
-Run `task security`, `task validate:code`, or `task validate:containers` when you need to isolate one part of the validation flow.
+Validation is intentionally simple: secret scanning, component dependency install, TypeScript typecheck/build, .NET build, Docker builds, and Terraform fmt/init/validate.
+Run `task security`, `task validate:code`, or `task validate:containers` when you need to isolate one part of the validation flow. Run `task validate:audit`, `task security:trivy`, or `task validate:containers:trivy` when you need explicit dependency or Trivy scans outside the normal validation flow.
 
 ## Guidelines
 
