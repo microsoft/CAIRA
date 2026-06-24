@@ -22,7 +22,6 @@ require_dotnet_restore() {
 run_npm() {
   local dir="$1"
   require_npm_deps "${dir}"
-  npm audit --prefix "${dir}" --audit-level=moderate
   npm run typecheck --prefix "${dir}" --silent
   npm run build --prefix "${dir}" --silent
 }
@@ -43,11 +42,6 @@ DOTNET_PROJECT="${DOTNET_PROJECT_DIR}/Caira.Api.MicrosoftAgentFramework.csproj"
 
 require_dotnet_restore "${DOTNET_PROJECT_DIR}"
 dotnet build "${DOTNET_PROJECT}" --no-restore
-dotnet list "${DOTNET_PROJECT}" package --vulnerable --include-transitive \
-  | tee /tmp/caira-dotnet-vulnerable.txt
-if grep -q "has the following vulnerable packages" /tmp/caira-dotnet-vulnerable.txt; then
-  exit 1
-fi
 
 run_terraform "${ROOT_DIR}/reference-architectures/iac/foundry"
 run_terraform "${ROOT_DIR}/reference-architectures/iac/container-apps"

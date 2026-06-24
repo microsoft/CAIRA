@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
@@ -20,7 +21,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -32,8 +33,68 @@ jobs:
         with:
           repo-token: ${{ github.token }}
 
+      - name: Validate Foundry configuration
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          COPILOT_PROVIDER_BASE_URL: ${{ vars.COPILOT_PROVIDER_BASE_URL }}
+          COPILOT_PROVIDER_MODEL_ID: ${{ vars.COPILOT_PROVIDER_MODEL_ID }}
+        run: |
+          set -euo pipefail
+
+          required_vars=(
+            AZURE_CLIENT_ID
+            AZURE_TENANT_ID
+            AZURE_SUBSCRIPTION_ID
+            COPILOT_PROVIDER_BASE_URL
+            COPILOT_PROVIDER_MODEL_ID
+          )
+
+          for var_name in "${required_vars[@]}"; do
+            if [[ -z "${!var_name}" ]]; then
+              echo "${var_name} must be configured as a repository or environment variable." >&2
+              exit 1
+            fi
+          done
+
+          if [[ "${COPILOT_PROVIDER_BASE_URL}" != */openai/v1/ && "${COPILOT_PROVIDER_BASE_URL}" != */openai/v1 ]]; then
+            echo "COPILOT_PROVIDER_BASE_URL must be an Azure AI Foundry OpenAI-compatible endpoint ending in /openai/v1 or /openai/v1/." >&2
+            exit 1
+          fi
+
+      - name: Azure login
+        uses: azure/login@eec3c95657c1536435858eda1f3ff5437fee8474 # v2.3.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
       - name: Install GitHub Copilot CLI
         run: npm install --global "@github/copilot"
 
+      - name: Get Foundry access token
+        run: |
+          set -euo pipefail
+          token="$(az account get-access-token \
+            --scope https://cognitiveservices.azure.com/.default \
+            --query accessToken \
+            --output tsv)"
+
+          if [[ -z "${token}" ]]; then
+            echo "Azure CLI did not return a Foundry access token." >&2
+            exit 1
+          fi
+
+          echo "::add-mask::${token}"
+          echo "COPILOT_PROVIDER_BEARER_TOKEN=${token}" >> "${GITHUB_ENV}"
+
       - name: Run CAIRA skill test
+        env:
+          COPILOT_ENABLE_ALT_PROVIDERS: "true"
+          COPILOT_PROVIDER_TYPE: openai
+          COPILOT_PROVIDER_BASE_URL: ${{ vars.COPILOT_PROVIDER_BASE_URL }}
+          COPILOT_PROVIDER_MODEL_ID: ${{ vars.COPILOT_PROVIDER_MODEL_ID }}
+          COPILOT_PROVIDER_WIRE_MODEL: ${{ vars.COPILOT_PROVIDER_MODEL_ID }}
+          COPILOT_PROVIDER_WIRE_API: ${{ vars.COPILOT_PROVIDER_WIRE_API || 'responses' }}
         run: task test:skill
