@@ -30,10 +30,10 @@
     "@types/node": "^25.9.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4",
+    "@vitejs/plugin-react": "^6",
     "tailwindcss": "^4",
     "typescript": "^6.0.3",
-    "vite": "^6"
+    "vite": "^8"
   },
   "engines": {
     "node": ">=24.0.0"
