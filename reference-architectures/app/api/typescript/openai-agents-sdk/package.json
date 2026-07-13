@@ -16,7 +16,7 @@
     "@microsoft/opentelemetry": "1.0.2",
     "@openai/agents": "0.12.0",
     "@opentelemetry/api": "1.9.1",
-    "fastify": "5.8.5",
+    "fastify": "5.9.0",
     "jose": "6.2.3",
     "openai": "6.44.0",
     "zod": "4.4.3"
