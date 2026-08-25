@@ -45,7 +45,7 @@ resource "azurerm_application_insights" "this" {
 
 module "foundry" {
   source  = "Azure/avm-ptn-aiml-ai-foundry/azurerm"
-  version = "0.11.2"
+  version = "0.11.3"
 
   base_name                  = local.avm_base_name
   location                   = var.location
